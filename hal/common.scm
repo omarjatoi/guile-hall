@@ -36,22 +36,26 @@
   #:export (values->specification instantiate project-root-directory))
 
 (define (values->specification nam versio autho copyrigh synopsi descriptio
-                               home-pag licens dependencie file)
+                               home-pag licens dependencie
+                               lib-files tst-files prog-files doc-files
+                               infra-files)
   (specification
    (name nam) (version versio) (author autho) (copyright copyrigh)
    (synopsis synopsi) (description descriptio) (home-page home-pag)
    (license licens) (dependencies dependencie)
-   (files (append
-           (base-libraries nam)
-           (base-tests)
-           (base-programs nam)
-           (base-documentation nam)
-           (base-infrastructure)
-           file))))
+   (all-files
+    (files (append lib-files (base-libraries nam))
+           (append tst-files (base-tests))
+           (append prog-files (base-programs))
+           (append doc-files (base-documentation nam))
+           (append infra-files (base-infrastructure))))))
 
 (define (instantiate spec context operation)
   (for-each (cute <> spec context operation "  ")
-            (specification-files spec)))
+            (apply append
+                   (map (cute <> (specification-files spec))
+                        (list files-libraries files-tests files-programs
+                              files-documentation files-infrastructure)))))
 
 (define (project-root-directory)
   (if (file-exists? "halcyon.scm")
@@ -67,7 +71,7 @@
 (define (base-tests)
   `(,(directory "tests" '())))
 
-(define (base-programs name)
+(define (base-programs)
   `(,(directory "bin" `())))
 
 (define (base-documentation name)
@@ -126,4 +130,4 @@
      (throw 'hal-spec-dependencies
             "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."))))
 
-(define (files files) files)
+(define (all-files files) files)

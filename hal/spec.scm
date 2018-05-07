@@ -41,9 +41,23 @@
             specification-license specification-dependencies
             specification-files
 
+            <files>
+            files files?
+            files-libraries files-tests files-programs files-documentation
+            files-infrastructure
+
             specification->metadata specification->scm))
 
 ;;;; Spec Definition
+
+(define-record-type <files>
+  (files libraries tests programs documentation infrastructure)
+  files?
+  (libraries files-libraries)
+  (tests files-tests)
+  (programs files-programs)
+  (documentation files-documentation)
+  (infrastructure files-infrastructure))
 
 (define-record-type <specification>
   (specification name version author copyright synopsis description home-page
@@ -81,8 +95,16 @@
     (dependencies ,(specification-dependencies spec))))
 
 (define (specification->scm spec)
-  `(halcyon
-    ,@(specification->metadata spec)
-    (files
-     ,@(map (cute <> (specification->metadata spec) '() 'write "")
-            (specification-files spec)))))
+  (let ((spec-meta (specification->metadata spec))
+        (spec-files (specification-files spec)))
+    (define (proc xsr)
+      (map (cute <> (specification->metadata spec) '() 'write "")
+           (xsr (specification-files spec))))
+    `(halcyon
+      ,@spec-meta
+      (files
+       (libraries ,(proc files-libraries))
+       (tests ,(proc files-tests))
+       (programs ,(proc files-programs))
+       (documentation ,(proc files-documentation))
+       (infrastructure ,(proc files-infrastructure))))))
