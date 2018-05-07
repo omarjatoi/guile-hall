@@ -46,10 +46,10 @@
 ;;;; Directory Constructor
 
 (define (directory name children)
-  (lambda (metadata context operation indentation)
+  (lambda (spec context operation indentation)
     (define (proc child)
       ;; We use this procedure to recurse on our children
-      (child metadata (append context (list name)) operation
+      (child spec (append context (list name)) operation
              (string-append indentation "  ")))
     ;; write is used for generating our specificaiton->scm
     (if (eq? 'write operation)
