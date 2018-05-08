@@ -62,6 +62,7 @@
         `(directory ,name ,(map proc children))
         (let ((fname (context->fname context name)))
           (match operation
+            ('path fname)
             ;; exec is for generating files & folders
             ('exec
              (if (file-exists? fname)
@@ -89,6 +90,7 @@
         (filetype-write name language extension)
         (let ((fname (context->fname context name extension)))
           (match operation
+            ('path fname)
             ('exec
              (if (file-exists? fname)
                  (format #t "Skipping: ~a~%" fname)
@@ -97,7 +99,6 @@
                  (with-output-to-file fname
                    (lambda _
                      (cond ((string=? name "halcyon")
-                            ;; (throw 't (specification->scm spec))
                             (pretty-print (specification->scm spec)
                                           (current-output-port)))
                            ((string? contents)
