@@ -33,7 +33,7 @@
   #:use-module (hal spec)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
-  #:export (create-project))
+  #:export (create-project create-project-here))
 
 ;; Fire of side-effectful project creation
 (define (create-project spec context operation)
@@ -48,3 +48,6 @@
           (instantiate spec (append context `(,(specification-name spec)))
                        operation)))))
 
+
+(define (create-project-here spec context operation)
+  (instantiate spec (append context `(,(specification-name spec))) operation))
