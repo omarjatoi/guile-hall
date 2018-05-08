@@ -33,7 +33,10 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
-  #:export (values->specification instantiate project-root-directory))
+  #:export (values->specification
+            instantiate
+
+            project-root-directory? find-project-root-directory))
 
 (define (values->specification nam versio autho copyrigh synopsi descriptio
                                home-pag licens dependencie
@@ -57,10 +60,19 @@
                         (list files-libraries files-tests files-programs
                               files-documentation files-infrastructure)))))
 
-(define (project-root-directory)
-  (if (file-exists? "halcyon.scm")
-      (getcwd)
-      (throw 'hal-project-missing "halcyon.scm file missing in:" (getcwd))))
+(define (project-root-directory?)
+  (file-exists? "halcyon.scm"))
+
+(define (find-project-root-directory)
+  (let ((start (getcwd)))
+    (let lp ((cwd (getcwd)))
+      (cond ((project-root-directory?) cwd)
+            ((string=? cwd "/")
+             (throw 'hal-find-project-root-directory
+                    "No halcyon.scm file found.  Search started at:" start))
+            (else
+             (chdir "..")
+             (lp (getcwd)))))))
 
 ;;;; Defaults
 
