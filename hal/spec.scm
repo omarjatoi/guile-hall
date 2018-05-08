@@ -94,17 +94,18 @@
     (license ,(specification-license spec))
     (dependencies ,(specification-dependencies spec))))
 
-(define (specification->scm spec)
-  (let ((spec-meta (specification->metadata spec))
-        (spec-files (specification-files spec)))
+(define (specification->files spec)
+  (let ((spec-files (specification-files spec)))
     (define (proc xsr)
-      (map (cute <> (specification->metadata spec) '() 'write "")
-           (xsr (specification-files spec))))
-    `(halcyon
-      ,@spec-meta
-      (files
-       (libraries ,(proc files-libraries))
-       (tests ,(proc files-tests))
-       (programs ,(proc files-programs))
-       (documentation ,(proc files-documentation))
-       (infrastructure ,(proc files-infrastructure))))))
+      (map (cut <> spec '() 'write "") (xsr spec-files)))
+    `(files
+      (libraries ,(proc files-libraries))
+      (tests ,(proc files-tests))
+      (programs ,(proc files-programs))
+      (documentation ,(proc files-documentation))
+      (infrastructure ,(proc files-infrastructure)))))
+
+(define (specification->scm spec)
+  `(halcyon
+    ,@(specification->metadata spec)
+    ,(specification->files spec)))
