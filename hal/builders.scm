@@ -33,7 +33,12 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 pretty-print)
-  #:export (file directory context->fname scm->specification))
+  #:export (file
+            directory
+
+            context->fname scm->specification scm->files
+
+            filetype-read filetype-write filetype-derive))
 
 ;;;;; Helpers
 
@@ -125,6 +130,11 @@
            (cons (apply filetype-read type name args) accum)))
       (_ (throw 'hal-category-traverser "Got muddled:" files accum)))))
 
+(define (scm->files all-files)
+  (apply files
+         (map (compose category-traverser (cute href all-files <>))
+              '(libraries tests programs documentation infrastructure))))
+
 (define (scm->specification scm)
   (match scm
     (('halcyon . scm)
@@ -134,11 +144,7 @@
                                 home-page license dependencies))
                     (list
                      (let ((all-files (href scm 'files)))
-                       (apply files
-                              (map (compose category-traverser
-                                            (cute href all-files <>))
-                                   '(libraries tests programs documentation
-                                               infrastructure))))))))
+                       (apply files (scm->files all-files)))))))
     (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
 
 ;;;; Filetype converters
