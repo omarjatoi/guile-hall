@@ -160,3 +160,11 @@
            ('shell-file '(shell "sh" ""))
            (_ (throw 'hal-filetype-read
                      "Unknown filetype" type)))))
+
+(define (filetype-derive name)
+  (match (string-split name #\.)
+    ((name "scm") `(scheme-file ,name))
+    ((name) `(text-file ,name))
+    ((name "texi") `(texi-file ,name))
+    ((name "sh") `(shell-file ,name))
+    ((name ext) `(file ,name unknown ,ext))))
