@@ -39,14 +39,14 @@
             specification-copyright specification-synopsis
             specification-description specification-home-page
             specification-license specification-dependencies
-            specification-files
+            specification-files set-specification-files
 
             <files>
             files files?
             files-libraries files-tests files-programs files-documentation
             files-infrastructure
 
-            specification->metadata specification->scm))
+            specification->metadata specification->files specification->scm))
 
 ;;;; Spec Definition
 
@@ -59,7 +59,7 @@
   (documentation files-documentation)
   (infrastructure files-infrastructure))
 
-(define-record-type <specification>
+(define-immutable-record-type <specification>
   (specification name version author copyright synopsis description home-page
                  license dependencies files)
   specification?
@@ -72,7 +72,7 @@
   (home-page specification-home-page)
   (license specification-license)
   (dependencies specification-dependencies)
-  (files specification-files))
+  (files specification-files set-specification-files))
 
 (set-record-type-printer!
  <specification>
