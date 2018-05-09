@@ -143,9 +143,7 @@
             (append (map (cute href scm <>)
                          '(name version author copyright synopsis description
                                 home-page license dependencies))
-                    (list
-                     (let ((all-files (href scm 'files)))
-                       (apply files (scm->files all-files)))))))
+                    (list (scm->files (href scm 'files))))))
     (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
 
 ;;;; Filetype converters
