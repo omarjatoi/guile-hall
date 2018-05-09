@@ -36,7 +36,9 @@
   #:export (values->specification
             instantiate
 
-            project-root-directory? find-project-root-directory))
+            project-root-directory? find-project-root-directory
+
+            read-spec))
 
 (define (values->specification nam versio autho copyrigh synopsi descriptio
                                home-pag licens dependencie
@@ -66,13 +68,19 @@
 (define (find-project-root-directory)
   (let ((start (getcwd)))
     (let lp ((cwd (getcwd)))
-      (cond ((project-root-directory?) cwd)
+      (cond ((project-root-directory?) `(,cwd))
             ((string=? cwd "/")
              (throw 'hal-find-project-root-directory
                     "No halcyon.scm file found.  Search started at:" start))
             (else
              (chdir "..")
              (lp (getcwd)))))))
+
+(define (read-spec)
+  (find-project-root-directory)
+  (scm->specification
+   (with-input-from-file "halcyon.scm"
+     (lambda _ (read)))))
 
 ;;;; Defaults
 
