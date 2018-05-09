@@ -46,7 +46,8 @@
             files-libraries files-tests files-programs files-documentation
             files-infrastructure
 
-            specification->metadata specification->files specification->scm))
+            specification->metadata specification->files
+            specification->files-tree specification->scm))
 
 ;;;; Spec Definition
 
@@ -104,6 +105,9 @@
       (programs ,(proc files-programs))
       (documentation ,(proc files-documentation))
       (infrastructure ,(proc files-infrastructure)))))
+
+(define (specification->files-tree spec)
+  (apply append (map second (cdr (specification->files spec)))))
 
 (define (specification->scm spec)
   `(halcyon
