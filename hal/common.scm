@@ -38,7 +38,9 @@
 
             project-root-directory? find-project-root-directory
 
-            read-spec))
+            read-spec
+
+            guix-file))
 
 (define (values->specification nam versio autho copyrigh synopsi descriptio
                                home-pag licens dependencie
@@ -102,8 +104,42 @@
                 `(,(file name 'texi "texi" "")))))
 
 (define (base-infrastructure)
-  `(,(file "guix" 'scheme "scm" "")
+  `(,(guix-file)
     ,(file "halcyon" 'scheme "scm" #f)))
+
+;;;;; Files
+
+(define (guix-file)
+  (file "guix" 'scheme "scm"
+           (lambda (spec)
+             (list
+              '(use-modules (guix packages)
+                            (guix licenses)
+                            (guix download)
+                            (guix build-system gnu)
+                            (gnu packages)
+                            (gnu packages autotools)
+                            (gnu packages guile)
+                            (gnu packages pkg-config)
+                            (gnu packages texinfo))
+              `(package
+                (name ,(specification-name spec))
+                (version ,(specification-version spec))
+                (source ,(string-append "./" (specification-name spec) "-"
+                                        (specification-version spec)
+                                        ".tar.gz"))
+                (build-system gnu-build-system)
+                (native-inputs
+                 `(("autoconf" ,autoconf)
+                   ("automake" ,automake)
+                   ("pkg-config" ,pkg-config)
+                   ("texinfo" ,texinfo)))
+                (inputs `(("guile" ,guile-2.2)))
+                (propagated-inputs ,(specification-dependencies spec))
+                (synopsis ,(specification-synopsis spec))
+                (description ,(specification-description spec))
+                (home-page ,(specification-home-page spec))
+                (license ,(specification-license spec)))))))
 
 ;;;;; Validators
 
@@ -134,7 +170,7 @@
 
 ;; FIXME: LICENSE should be a license object
 (define (license project-license)
-  (or (and (string? project-license) project-license)
+  (or (and (symbol? project-license) project-license)
       (throw 'hal-spec-license "PROJECT-LICENSE should be a string.")))
 
 (define (copyright project-copyrights)
@@ -145,7 +181,7 @@
 
 (define (dependencies project-dependencies)
   (match project-dependencies
-    ((((? string?) (? symbol?)) ...) project-dependencies)
+    (('quasiquote (((? string?) ('unquote (? symbol?))) ...)) project-dependencies)
     (_
      (throw 'hal-spec-dependencies
             "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."))))
