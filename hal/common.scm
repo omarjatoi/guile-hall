@@ -145,45 +145,56 @@
 
 (define (name project-name)
   (or (and (string? project-name) project-name)
-      (throw 'hal-spec-name "PROJECT-NAME should be a string.")))
+      (throw 'hal-spec-name "PROJECT-NAME should be a string."
+             project-name)))
 
 (define (version project-version)
   (or (and (string? project-version) project-version)
-      (throw 'hal-spec-version "PROJECT-VERSION should be a string.")))
+      (throw 'hal-spec-version "PROJECT-VERSION should be a string."
+             project-version)))
 
 (define (author project-author)
   (or (and (string? project-author) project-author)
-      (throw 'hal-spec-author "PROJECT-AUTHOR should be a string.")))
+      (throw 'hal-spec-author "PROJECT-AUTHOR should be a string."
+             project-author)))
 
 (define (synopsis project-synopsis)
   (or (and (string? project-synopsis) project-synopsis)
-      (throw 'hal-spec-synopsis "PROJECT-SYNOPSIS should be a string.")))
+      (throw 'hal-spec-synopsis "PROJECT-SYNOPSIS should be a string."
+             project-synopsis)))
 
 (define (description project-description)
   (or (and (string? project-description) project-description)
       (throw 'hal-spec-description
-             "PROJECT-DESCRIPTION should be a string.")))
+             "PROJECT-DESCRIPTION should be a string."
+             project-description)))
 
 (define (home-page project-home-page)
   (or (and (string? project-home-page) project-home-page)
-      (throw 'hal-spec-home-page "PROJECT-HOME-PAGE should be a string.")))
+      (throw 'hal-spec-home-page "PROJECT-HOME-PAGE should be a string."
+             project-home-page)))
 
 ;; FIXME: LICENSE should be a license object
 (define (license project-license)
   (or (and (symbol? project-license) project-license)
-      (throw 'hal-spec-license "PROJECT-LICENSE should be a string.")))
+      (throw 'hal-spec-license "PROJECT-LICENSE should be a string."
+             project-license)))
 
 (define (copyright project-copyrights)
   (match project-copyrights
     (((? number?) ...) project-copyrights)
     (_ (throw 'hal-spec-copyrights
-              "PROJECT-COPYRIGHTs should be one or more numbers."))))
+              "PROJECT-COPYRIGHTs should be one or more numbers."
+              project-copyrights))))
 
 (define (dependencies project-dependencies)
   (match project-dependencies
-    (('quasiquote (((? string?) ('unquote (? symbol?))) ...)) project-dependencies)
+    ((or ('quasiquote (()))
+         ('quasiquote (((? string?) ('unquote (? symbol?))) ...)))
+     project-dependencies)
     (_
      (throw 'hal-spec-dependencies
-            "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."))))
+            "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
+            project-dependencies))))
 
 (define (all-files files) files)
