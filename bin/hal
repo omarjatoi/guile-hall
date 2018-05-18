@@ -1,0 +1,123 @@
+#!/usr/bin/env guile
+!#
+
+;; bin/hal --- hal cli -*- coding: utf-8 -*-
+;;
+;; Copyright (C) 2018 Alex Sassmannshausen <alex@pompo.co>
+;;
+;; Author: Alex Sassmannshausen <alex@pompo.co>
+;;
+;; This file is part of guile-hal.
+;;
+;; guile-hal is free software; you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free
+;; Software Foundation; either version 3 of the License, or (at your option)
+;; any later version.
+;;
+;; guile-hal is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+;; more details.
+;;
+;; You should have received a copy of the GNU General Public License along
+;; with guile-hal; if not, contact:
+;;
+;; Free Software Foundation           Voice:  +1-617-542-5942
+;; 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
+;; Boston, MA  02111-1307,  USA       gnu@gnu.org
+
+;;; Commentary:
+;;
+;;; Code:
+
+(use-modules (config)
+             (config api)
+             (config licenses)
+             (hal clean)
+             (hal common)
+             (hal guix)
+             (hal init)
+             (hal scan)
+             (ice-9 match)
+             (srfi srfi-19))
+
+(define %configuration
+  (configuration
+   (name 'hal)
+   (version "0.1")
+   (author "Alex Sassmannshausen")
+   (copyright '(2018))
+   (license gpl3+)
+   (synopsis "Guile project manager")
+   (description "")
+   (keywords
+    (list
+     (switch (name 'execute) (character #\x)
+             (default #f) (test boolean?)
+             (synopsis "Carry out operations, instead of displaying them."))))
+   (subcommands
+    (list
+     (configuration
+      (name 'clean)
+      (synopsis "Clean your project.")
+      (wanted '((keywords execute))))
+     (configuration
+      (name 'guix)
+      (synopsis "Manage your project's Guix file.")
+      (wanted '((keywords execute))))
+     (configuration
+      (name 'init)
+      (synopsis "Create or migrate a new project.")
+      (wanted '((keywords execute)))
+      (arguments
+       (list
+        (argument (name 'name) (optional? #f)
+                  (test (negate string-null?))
+                  (synopsis "Name for the project."))))
+      (keywords
+       (list
+        (switch (name 'convert) (default #f) (test boolean?)
+                (synopsis "Convert this project to a Halcyon project."))
+        (switch (name 'author) (default "")
+                (synopsis "author of the project."))
+        (switch (name 'website) (default "")
+                (synopsis "home-page for the project."))
+        (switch (name 'license) (default 'gpl3+)
+                (handler string->symbol)
+                (example "gpl3+")
+                (synopsis "license of your project (defaults to gpl3+)")))))
+     (configuration
+      (name 'scan)
+      (synopsis "Refresh your project's Halcyon file.")
+      (wanted '((keywords execute))))))))
+
+(define* (main #:optional (args (command-line)))
+  (let* ((options (getopt-config-auto args %configuration))
+         (operation (if (option-ref options 'execute) 'exec 'show)))
+    (match (full-command options)
+      (("hal")
+       (emit-help options))
+      (("hal" "clean")
+       (clean-project (read-spec) (find-project-root-directory) operation))
+      (("hal" "guix")
+       (rewrite-guix-file (read-spec) (find-project-root-directory)
+                          operation))
+      (("hal" "init")
+       (let ((spec (values->specification (option-ref options '(name)) "0.1"
+                                          (option-ref options 'author)
+                                          `(,(date-year (current-date)))
+                                          "" ""
+                                          (option-ref options 'website)
+                                          (option-ref options 'license)
+                                          '`(()) '() '() '() '() '())))
+         (if (option-ref options 'convert)
+             (create-project-here spec '() operation)
+             (create-project spec '() operation))))
+      (("hal" "scan")
+       (scan-project (read-spec) (find-project-root-directory) operation)))))
+
+(main)
+
+;;; Local Variables:
+;;; mode: scheme
+;;; End:
