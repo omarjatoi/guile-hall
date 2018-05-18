@@ -34,6 +34,5 @@
   #:use-module (srfi srfi-1)
   #:export (rewrite-guix-file))
 
-(define (rewrite-guix-file spec operation)
-  (let ((proj-root (find-project-root-directory)))
-    ((guix-file) spec proj-root operation "")))
+(define (rewrite-guix-file spec context operation)
+  ((guix-file) spec context operation ""))
