@@ -50,4 +50,4 @@
 
 
 (define (create-project-here spec context operation)
-  (instantiate spec (append context `(,(specification-name spec))) operation))
+  (instantiate spec context operation))
