@@ -31,6 +31,8 @@
   #:use-module (hal spec)
   #:use-module (hal builders)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 pretty-print)
+  #:use-module (ice-9 regex)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:export (values->specification
@@ -40,7 +42,11 @@
 
             read-spec
 
-            guix-file))
+            guix-file
+
+            base-autotools
+
+            flatten))
 
 (define (values->specification nam versio autho copyrigh synopsi descriptio
                                home-pag licens dependencie
@@ -107,7 +113,149 @@
   `(,(guix-file)
     ,(file "halcyon" 'scheme "scm" #f)))
 
+(define (base-autotools)
+  `(,(configure-file)
+    ,(makefile-file)
+    ,(file "NEWS" 'txt #f "")
+    ,(file "AUTHORS" 'txt #f "")
+    ,(file "ChangeLog" 'txt #f "")
+    ,(file "test-env" 'in "in"
+           "
+#!/bin/sh
+
+\"@abs_top_builddir@/pre-inst-env\" \"$@\"
+
+exit $?
+")
+    ,(file "pre-inst-env" 'in "in"
+           "
+#!/bin/sh
+
+abs_top_srcdir=\"`cd \"@abs_top_srcdir@\" > /dev/null; pwd`\"
+abs_top_builddir=\"`cd \"@abs_top_builddir@\" > /dev/null; pwd`\"
+
+GUILE_LOAD_COMPILED_PATH=\"$abs_top_builddir${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH\"
+GUILE_LOAD_PATH=\"$abs_top_builddir:$abs_top_srcdir${GUILE_LOAD_PATH:+:}:$GUILE_LOAD_PATH\"
+export GUILE_LOAD_COMPILED_PATH GUILE_LOAD_PATH
+
+PATH=\"$abs_top_builddir/scripts:$PATH\"
+export PATH
+
+exec \"$@\"
+")))
+
 ;;;;; Files
+
+(define (configure-file)
+  (file "configure" 'autoconf "ac"
+        (lambda (spec)
+          (display
+           (string-append "
+dnl -*- Autoconf -*-
+
+AC_INIT(" (specification-name spec) ", " (specification-version spec) ")
+AC_CONFIG_SRCDIR(" (match (find (match-lambda (('directory . rest) #t) (_ #f))
+                                (map (cut <> '() '() 'write "")
+                                     (files-libraries
+                                      (specification-files spec))))
+                     (('directory name children) name)) ")
+AC_CONFIG_AUX_DIR([build-aux])
+AM_INIT_AUTOMAKE([1.12 gnu silent-rules subdir-objects \
+ color-tests parallel-tests -Woverride -Wno-portability])
+AM_SILENT_RULES([yes])
+
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
+AC_CONFIG_FILES([test-env], [chmod +x test-env])
+
+dnl Search for 'guile' and 'guild'.  This macro defines
+dnl 'GUILE_EFFECTIVE_VERSION'.
+GUILE_PKG([2.0 2.2])
+GUILE_PROGS
+GUILE_SITE_DIR
+if test \"x$GUILD\" = \"x\"; then
+   AC_MSG_ERROR(['guild' binary not found; please check your guile-2.x installation.])
+fi
+
+AC_SUBST([guilesitedir])
+
+AC_OUTPUT
+          ")))))
+
+(define (makefile-file)
+  (file
+   "Makefile" 'automake "am"
+   (lambda (spec)
+     (display
+      (string-append "
+GOBJECTS = $(SOURCES:%.scm=%.go)
+
+moddir=$(guilesitedir)
+godir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
+ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
+
+nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
+nobase_go_DATA = $(GOBJECTS)
+
+# Make sure source files are installed first, so that the mtime of
+# installed compiled files is greater than that of installed source
+# files.  See
+# <http://lists.gnu.org/archive/html/guile-devel/2010-07/msg00125.html>
+# for details.
+guile_install_go_files = install-nobase_goDATA
+$(guile_install_go_files): install-nobase_modDATA
+
+EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
+GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
+SUFFIXES = .scm .go
+.scm.go:
+	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o \"$@\" \"$<\"
+
+SOURCES = " (string-join
+             (flatten (map (cute <> spec '() 'raw "")
+                           (files-libraries (specification-files spec))))
+             " \\\n") "
+
+TESTS = " (string-join
+           (flatten (map (cute <> spec '() 'raw "")
+                         (files-tests (specification-files spec))))
+           " \\\n") "
+
+TEST_EXTENSIONS = .scm
+AM_TESTS_ENVIRONMENT = abs_top_srcdir=\"$(abs_top_srcdir)\"
+SCM_LOG_COMPILER = $(top_builddir)/test-env $(GUILE)
+AM_SCM_LOG_FLAGS = --no-auto-compile -L \"$(top_srcdir)\"
+
+info_TEXINFOS = " (string-join
+                   (filter (cut string-match ".*\\.texi$" <>)
+                           (flatten
+                            (map (cute <> spec '() 'raw "")
+                                 (files-documentation
+                                  (specification-files spec)))))
+                   " \\\n") "
+dvi: # Don't build dvi docs
+
+EXTRA_DIST += " (string-join
+                 (filter (negate (cut string-match ".*\\.texi$" <>))
+                         (flatten
+                          (map (cute <> spec '() 'raw "")
+                               (files-documentation
+                                (specification-files spec)))))
+                 " \\\n") " \\
+  # pre-inst-env.in				\\
+  # test-env.in					\\
+  $(TESTS)
+
+ACLOCAL_AMFLAGS = -I m4
+
+clean-go:
+	-$(RM) $(GOBJECTS)
+.PHONY: clean-go
+
+CLEANFILES =					\\
+  $(GOBJECTS)					\\
+  $(TESTS:tests/%.scm=%.log)
+")))))
 
 (define (guix-file)
   (file
@@ -200,3 +348,13 @@
             project-dependencies))))
 
 (define (all-files files) files)
+
+;;;; Utilities
+
+(define (flatten files)
+  (match files
+    (() '())
+    (((? list? first) . rest)
+     (append (flatten first) (flatten rest)))
+    ((first . rest)
+     (cons first (flatten rest)))))
