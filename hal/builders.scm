@@ -68,7 +68,9 @@
             ('exec
              (if (file-exists? fname)
                  (format #t "Skipping: ~a~%" fname)
-                 (mkdir fname))
+                 (begin
+                  (format #t "~aMaking dir: ~a~%" indentation fname)
+                  (mkdir fname)))
              (for-each proc children))
             ;; We use raw to return a list of file paths
             ('raw (map proc children))
@@ -97,18 +99,20 @@
             ('exec
              (if (file-exists? fname)
                  (format #t "Skipping: ~a~%" fname)
-                 ;; Halcyon file needs special processing here: its contents
-                 ;; are derived from spec here
-                 (with-output-to-file fname
-                   (lambda _
-                     (cond ((string=? name "halcyon")
-                            (pretty-print (specification->scm spec)
-                                          (current-output-port)))
-                           ((string? contents)
-                            (display contents))
-                           ((procedure? contents)
-                            (contents spec))
-                           (else (pretty-print contents)))))))
+                 (begin
+                   (format #t "~aMaking file: ~a~%" indentation fname)
+                   (with-output-to-file fname
+                     (lambda _
+                       (cond ((string=? name "halcyon")
+                              ;; Halcyon file needs special processing here:
+                              ;; its contents are derived from spec here
+                              (pretty-print (specification->scm spec)
+                                            (current-output-port)))
+                             ((string? contents)
+                              (display contents))
+                             ((procedure? contents)
+                              (contents spec))
+                             (else (pretty-print contents))))))))
             ('raw fname)
             ((or 'show _)
              (if (file-exists? fname)
