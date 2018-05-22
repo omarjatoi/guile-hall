@@ -71,7 +71,7 @@
       (synopsis "Manage your project's Guix file.")
       (wanted '((keywords execute))))
      (configuration
-      (name 'init)
+      (name 'initiate) (alias 'init)
       (synopsis "Create or migrate a new project.")
       (wanted '((keywords execute)))
       (arguments
@@ -110,7 +110,7 @@
       (("hal" "guix")
        (rewrite-guix-file (read-spec) (find-project-root-directory)
                           operation))
-      (("hal" "init")
+      (("hal" "initiate")
        (let ((spec (values->specification (option-ref options '(name)) "0.1"
                                           (option-ref options 'author)
                                           `(,(date-year (current-date)))
