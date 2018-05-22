@@ -110,36 +110,38 @@
 ;;;;; Files
 
 (define (guix-file)
-  (file "guix" 'scheme "scm"
-           (lambda (spec)
-             (list
-              '(use-modules (guix packages)
-                            (guix licenses)
-                            (guix download)
-                            (guix build-system gnu)
-                            (gnu packages)
-                            (gnu packages autotools)
-                            (gnu packages guile)
-                            (gnu packages pkg-config)
-                            (gnu packages texinfo))
-              `(package
-                (name ,(specification-name spec))
-                (version ,(specification-version spec))
-                (source ,(string-append "./" (specification-name spec) "-"
-                                        (specification-version spec)
-                                        ".tar.gz"))
-                (build-system gnu-build-system)
-                (native-inputs
-                 `(("autoconf" ,autoconf)
-                   ("automake" ,automake)
-                   ("pkg-config" ,pkg-config)
-                   ("texinfo" ,texinfo)))
-                (inputs `(("guile" ,guile-2.2)))
-                (propagated-inputs ,(specification-dependencies spec))
-                (synopsis ,(specification-synopsis spec))
-                (description ,(specification-description spec))
-                (home-page ,(specification-home-page spec))
-                (license ,(specification-license spec)))))))
+  (file
+   "guix" 'scheme "scm"
+   (lambda (spec)
+     (for-each (lambda (n) (pretty-print n) (newline))
+               (list
+                '(use-modules (guix packages)
+                              (guix licenses)
+                              (guix download)
+                              (guix build-system gnu)
+                              (gnu packages)
+                              (gnu packages autotools)
+                              (gnu packages guile)
+                              (gnu packages pkg-config)
+                              (gnu packages texinfo))
+                `(package
+                  (name ,(specification-name spec))
+                  (version ,(specification-version spec))
+                  (source ,(string-append "./" (specification-name spec) "-"
+                                          (specification-version spec)
+                                          ".tar.gz"))
+                  (build-system gnu-build-system)
+                  (native-inputs
+                   `(("autoconf" ,autoconf)
+                     ("automake" ,automake)
+                     ("pkg-config" ,pkg-config)
+                     ("texinfo" ,texinfo)))
+                  (inputs `(("guile" ,guile-2.2)))
+                  (propagated-inputs ,(specification-dependencies spec))
+                  (synopsis ,(specification-synopsis spec))
+                  (description ,(specification-description spec))
+                  (home-page ,(specification-home-page spec))
+                  (license ,(specification-license spec))))))))
 
 ;;;;; Validators
 

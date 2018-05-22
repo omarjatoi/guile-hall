@@ -70,6 +70,8 @@
                  (format #t "Skipping: ~a~%" fname)
                  (mkdir fname))
              (for-each proc children))
+            ;; We use raw to return a list of file paths
+            ('raw (map proc children))
             ;; show is for doing dry-runs
             ((or 'show _)
              (if (file-exists? fname)
@@ -103,11 +105,11 @@
                             (pretty-print (specification->scm spec)
                                           (current-output-port)))
                            ((string? contents)
-                            (format #t "~a~%" contents))
+                            (display contents))
                            ((procedure? contents)
-                            (for-each (lambda (n) (pretty-print n) (newline))
-                                      (contents spec)))
+                            (contents spec))
                            (else (pretty-print contents)))))))
+            ('raw fname)
             ((or 'show _)
              (if (file-exists? fname)
                  (format #t "~aSkipping: ~a~%" indentation fname)
