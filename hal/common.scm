@@ -45,6 +45,7 @@
             guix-file
 
             base-autotools
+            base-autotools-documentation base-autotools-infrastructure
 
             flatten))
 
@@ -113,12 +114,14 @@
   `(,(guix-file)
     ,(file "halcyon" 'scheme "scm" #f)))
 
-(define (base-autotools)
+(define (base-autotools-documentation)
+  `(,(file "NEWS" 'text #f "")
+    ,(file "AUTHORS" 'text #f "")
+    ,(file "ChangeLog" 'text #f "")))
+
+(define (base-autotools-infrastructure)
   `(,(configure-file)
     ,(makefile-file)
-    ,(file "NEWS" 'text #f "")
-    ,(file "AUTHORS" 'text #f "")
-    ,(file "ChangeLog" 'text #f "")
     ,(file "test-env" 'shell "in"
            "
 #!/bin/sh
@@ -143,6 +146,10 @@ export PATH
 
 exec \"$@\"
 ")))
+
+(define (base-autotools)
+  `(,@(base-autotools-documentation)
+    ,@(base-autotools-infrastructure)))
 
 ;;;;; Files
 

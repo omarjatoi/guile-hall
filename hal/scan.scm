@@ -54,16 +54,18 @@
 
 (define (actual->all-files spec context)
   (let ((spec-files (specification-files spec)))
-    (define (proc xsr)
+    (define (proc candidates)
       (filter-map (compose derive-filetypes file-system-tree
-                           (cut <> spec context 'path ""))
-                  (xsr spec-files)))
+                           (cute <> spec context 'path ""))
+                  candidates))
     `(files
-      (libraries ,(proc files-libraries))
-      (tests ,(proc files-tests))
-      (programs ,(proc files-programs))
-      (documentation ,(proc files-documentation))
-      (infrastructure ,(proc files-infrastructure)))))
+      (libraries ,(proc (files-libraries spec-files)))
+      (tests ,(proc (files-tests spec-files)))
+      (programs ,(proc (files-programs spec-files)))
+      (documentation ,(proc (append (files-documentation spec-files)
+                                    (base-autotools-documentation))))
+      (infrastructure ,(proc (append (files-infrastructure spec-files)
+                                     (base-autotools-infrastructure)))))))
 
 (define derive-filetypes
   ;; Remove the `stat' object for each file in the tree.
