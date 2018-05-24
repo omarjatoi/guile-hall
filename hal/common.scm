@@ -103,11 +103,11 @@
   `(,(directory "bin" `())))
 
 (define (base-documentation name)
-  `(,(file "README" 'txt #f "")
-    ,(file "HACKING" 'txt #f "")
-    ,(file "COPYING" 'txt #f "")
+  `(,(file "README" 'text #f "")
+    ,(file "HACKING" 'text #f "")
+    ,(file "COPYING" 'text #f "")
     ,(directory "doc"
-                `(,(file name 'texi "texi" "")))))
+                `(,(file name 'texinfo "texi" "")))))
 
 (define (base-infrastructure)
   `(,(guix-file)
@@ -116,10 +116,10 @@
 (define (base-autotools)
   `(,(configure-file)
     ,(makefile-file)
-    ,(file "NEWS" 'txt #f "")
-    ,(file "AUTHORS" 'txt #f "")
-    ,(file "ChangeLog" 'txt #f "")
-    ,(file "test-env" 'in "in"
+    ,(file "NEWS" 'text #f "")
+    ,(file "AUTHORS" 'text #f "")
+    ,(file "ChangeLog" 'text #f "")
+    ,(file "test-env" 'shell "in"
            "
 #!/bin/sh
 
@@ -127,7 +127,7 @@
 
 exit $?
 ")
-    ,(file "pre-inst-env" 'in "in"
+    ,(file "pre-inst-env" 'shell "in"
            "
 #!/bin/sh
 
