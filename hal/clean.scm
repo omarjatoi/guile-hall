@@ -46,9 +46,22 @@
               (('skipped path)
                (format #t "Skipping: ~a~%" path))
               (('delete path)
-               (format #t "Deleting: ~a~%" path)
-               (when (eq? 'exec operation)
-                 (system* "rm" "-r" path))))
+               ;; I'm real paranoid about deleting the wrong files!
+               (if (and (string=? (getcwd) (first context))
+                        (string=? (basename (getcwd))
+                                  (full-project-name spec))
+                        (string=? (substring path 0 (string-length (getcwd)))
+                                  (getcwd)))
+                   (begin
+                     (format #t "Deleting: ~a~%" path)
+                     (when (eq? 'exec operation)
+                       (system* "rm" "-r" path)))
+                   (throw 'clean-project
+                          "Filepath/project mismatch. Won't delete nothing."
+                          (getcwd)
+                          (string-append (dirname (getcwd))
+                                         file-name-separator-string
+                                         (full-project-name spec))))))
             (project-walk (specification->files-tree spec)
                           (first context)))
   (when (eq? 'show operation)
