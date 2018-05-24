@@ -34,5 +34,9 @@
   #:export (make-dist-infrastructure))
 
 (define (make-dist-infrastructure spec context operation)
+  (when (eq? 'show operation)
+    (format #t "Dryrun:~%"))
   (for-each (lambda (file) (file spec context operation ""))
-            (base-autotools)))
+            (base-autotools))
+  (when (eq? 'show operation)
+    (format #t "Finished dryrun.~%")))

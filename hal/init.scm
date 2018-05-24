@@ -45,9 +45,17 @@
           (match operation
             ('exec (mkdir fname))
             ((or 'show _) (format #t "Creating project: ~a~%" fname)))
+          (when (eq? 'show operation)
+            (format #t "Dryrun:~%"))
           (instantiate spec (append context `(,(specification-name spec)))
-                       operation)))))
+                       operation)
+          (when (eq? 'show operation)
+            (format #t "Finished dryrun.~%"))))))
 
 
 (define (create-project-here spec context operation)
-  (instantiate spec context operation))
+  (when (eq? 'show operation)
+    (format #t "Dryrun:~%"))
+  (instantiate spec context operation)
+  (when (eq? 'show operation)
+    (format #t "Finished dryrun.~%")))

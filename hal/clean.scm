@@ -38,28 +38,21 @@
   #:export (clean-project))
 
 (define (clean-project spec context operation)
-  (match operation
-    ('exec
-     (for-each (match-lambda
-                 (('keep path)
-                  (format #t "Kept: ~a~%" path))
-                 (('skipped path)
-                  (format #t "Skipped: ~a~%" path))
-                 (('delete path)
-                  (system* "rm" "-r" path)
-                  (format #t "Deleted: ~a~%" path)))
-               (project-walk (specification->files-tree spec)
-                             (first context))))
-    ((or 'show _)
-     (for-each (match-lambda
-                 (('keep path)
-                  (format #t "Keep: ~a~%" path))
-                 (('skipped path)
-                  (format #t "Skipped: ~a~%" path))
-                 (('delete path)
-                  (format #t "Delete: ~a~%" path)))
-               (project-walk (specification->files-tree spec)
-                             (first context))))))
+  (when (eq? 'show operation)
+    (format #t "Dryrun:~%"))
+  (for-each (match-lambda
+              (('keep path)
+               (format #t "Keeping: ~a~%" path))
+              (('skipped path)
+               (format #t "Skipping: ~a~%" path))
+              (('delete path)
+               (format #t "Deleting: ~a~%" path)
+               (when (eq? 'exec operation)
+                 (system* "rm" "-r" path))))
+            (project-walk (specification->files-tree spec)
+                          (first context)))
+  (when (eq? 'show operation)
+    (format #t "Finished dryrun.~%")))
 
 (define (project-walk files project-root)
   (define (shrink-path path)

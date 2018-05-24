@@ -30,10 +30,10 @@
 (define-module (hal builders)
   #:use-module (hal spec)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
-  #:use-module (ice-9 pretty-print)
   #:export (file
             directory
 
@@ -114,6 +114,12 @@
                               (contents spec))
                              (else (pretty-print contents))))))))
             ('raw fname)
+            ('show-contents
+             (cond ((string? contents)
+                    (display contents))
+                   ((procedure? contents)
+                    (contents spec))
+                   (else (pretty-print contents))))
             ((or 'show _)
              (if (file-exists? fname)
                  (format #t "~aSkipping: ~a~%" indentation fname)

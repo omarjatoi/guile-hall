@@ -50,7 +50,9 @@
            (pretty-print (specification->scm new-spec)
                          (current-output-port)))))
       ((or 'show _)
-       (pretty-print (specification->scm new-spec) (current-output-port))))))
+       (format #t "Dryrun:~%")
+       (pretty-print (specification->scm new-spec) (current-output-port))
+       (format #t "Finished dryrun.~%")))))
 
 (define (actual->all-files spec context)
   (let ((spec-files (specification-files spec)))

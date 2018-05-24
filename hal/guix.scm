@@ -35,4 +35,9 @@
   #:export (rewrite-guix-file))
 
 (define (rewrite-guix-file spec context operation)
-  ((guix-file) spec context operation ""))
+  (match operation
+    ('exec ((guix-file) spec context operation ""))
+    ((or 'show _)
+     (format #t "Dryrun:~%")
+     ((guix-file) spec context 'show-contents "")
+     (format #t "Finished dryrun.~%"))))
