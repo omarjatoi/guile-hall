@@ -164,6 +164,9 @@
     (('text . #f) `(text-file ,name))
     (('texinfo . "texi") `(texi-file ,name))
     (('shell . "sh") `(shell-file ,name))
+    (('autoconf . "ac") `(autoconf-file ,name))
+    (('automake . "am") `(automake-file ,name))
+    ((_ . "in") `(in-file ,name))
     (_ `(file ,name ,language ,extension))))
 
 (define (filetype-read type name . args)
@@ -173,8 +176,11 @@
            ('text-file '(text #f ""))
            ('texi-file '(texinfo "texi" ""))
            ('shell-file '(shell "sh" ""))
+           ('autoconf-file '(autoconf "ac" ""))
+           ('automake-file '(automake "am" ""))
+           ('in-file '(in "in" ""))
            (_ (throw 'hal-filetype-read
-                     "Unknown filetype" type)))))
+                     "Unknown filetype" type name args)))))
 
 (define (filetype-derive name)
   (let ((matches (string-match "(.*)\\.(.*)" name)))
@@ -184,5 +190,8 @@
           ((name "scm") `(scheme-file ,name))
           ((name "texi") `(texi-file ,name))
           ((name "sh") `(shell-file ,name))
-          ((name ext) `(file ,name unknown ,ext)))
+          ((name "ac") `(autoconf-file ,name))
+          ((name "am") `(automake-file ,name))
+          ((name "in") `(in-file ,name))
+          ((name ext) `(unknown-file ,(string-append name "." ext))))
         `(text-file ,name))))
