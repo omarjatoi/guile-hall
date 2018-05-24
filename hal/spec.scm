@@ -35,11 +35,12 @@
   #:use-module (srfi srfi-26)
   #:export (<specification>
             specification specification?
-            specification-name specification-version specification-author
-            specification-copyright specification-synopsis
-            specification-description specification-home-page
-            specification-license specification-dependencies
-            specification-files set-specification-files
+            specification-name specification-prefix specification-version
+            specification-author specification-copyright
+            specification-synopsis specification-description
+            specification-home-page specification-license
+            specification-dependencies specification-files
+            set-specification-files
 
             <files>
             files files?
@@ -61,10 +62,11 @@
   (infrastructure files-infrastructure))
 
 (define-immutable-record-type <specification>
-  (specification name version author copyright synopsis description home-page
-                 license dependencies files)
+  (specification name prefix version author copyright synopsis description
+                 home-page license dependencies files)
   specification?
   (name specification-name)
+  (prefix specification-prefix)
   (version specification-version)
   (author specification-author)
   (copyright specification-copyright)
@@ -86,6 +88,7 @@
 
 (define (specification->metadata spec)
   `((name ,(specification-name spec))
+    (prefix ,(specification-prefix spec))
     (version ,(specification-version spec))
     (author ,(specification-author spec))
     (copyright ,(specification-copyright spec))
