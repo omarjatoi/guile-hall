@@ -37,17 +37,17 @@
 
 ;; Fire of side-effectful project creation
 (define (create-project spec context operation)
-  (let ((fname (context->fname context (specification-name spec))))
+  (let ((fname (context->fname context (full-project-name spec))))
     (if (file-exists? fname)
         (throw 'hal-create-project "PROJECT already exists: "
-               (specification-name spec))
+               (full-project-name spec))
         (begin
           (match operation
             ('exec (mkdir fname))
             ((or 'show _) (format #t "Creating project: ~a~%" fname)))
           (when (eq? 'show operation)
             (format #t "Dryrun:~%"))
-          (instantiate spec (append context `(,(specification-name spec)))
+          (instantiate spec (append context `(,(full-project-name spec)))
                        operation)
           (when (eq? 'show operation)
             (format #t "Finished dryrun.~%"))))))

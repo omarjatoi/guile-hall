@@ -84,13 +84,15 @@
         (switch (name 'convert) (default #f) (test boolean?)
                 (synopsis "Convert this project to a Halcyon project."))
         (switch (name 'author) (default "")
-                (synopsis "author of the project."))
+                (synopsis "Author of the project."))
+        (switch (name 'prefix) (default "")
+                (synopsis "Prefix of the project."))
         (switch (name 'website) (default "")
-                (synopsis "home-page for the project."))
+                (synopsis "Home-page for the project."))
         (switch (name 'license) (default 'gpl3+)
                 (handler string->symbol)
                 (example "gpl3+")
-                (synopsis "license of your project (defaults to gpl3+)")))))
+                (synopsis "License of your project (defaults to gpl3+)")))))
      (configuration
       (name 'scan)
       (synopsis "Refresh your project's Halcyon file.")
@@ -111,7 +113,8 @@
        (rewrite-guix-file (read-spec) (find-project-root-directory)
                           operation))
       (("hal" "initiate")
-       (let ((spec (values->specification (option-ref options '(name)) "0.1"
+       (let ((spec (values->specification (option-ref options '(name))
+                                          (option-ref options 'prefix) "0.1"
                                           (option-ref options 'author)
                                           `(,(date-year (current-date)))
                                           "" ""
