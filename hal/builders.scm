@@ -37,7 +37,8 @@
   #:export (file
             directory
 
-            context->fname scm->specification scm->files
+            context->fname full-project-name
+            scm->specification scm->files
 
             filetype-read filetype-write filetype-derive))
 
@@ -49,6 +50,9 @@
                              (string-append name "." extension)
                              name)))
    file-name-separator-string))
+
+(define* (full-project-name spec)
+  (string-append (specification-prefix spec) (specification-name spec)))
 
 ;;;; Directory Constructor
 
@@ -157,8 +161,8 @@
     (('halcyon . scm)
      (apply specification
             (append (map (cute href scm <>)
-                         '(name version author copyright synopsis description
-                                home-page license dependencies))
+                         '(name prefix version author copyright synopsis
+                                description home-page license dependencies))
                     (list (scm->files (href scm 'files))))))
     (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
 

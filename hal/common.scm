@@ -49,14 +49,14 @@
 
             flatten))
 
-(define (values->specification nam versio autho copyrigh synopsi descriptio
-                               home-pag licens dependencie
+(define (values->specification nam prefi versio autho copyrigh synopsi
+                               descriptio home-pag licens dependencie
                                lib-files tst-files prog-files doc-files
                                infra-files)
   (specification
-   (name nam) (version versio) (author autho) (copyright copyrigh)
-   (synopsis synopsi) (description descriptio) (home-page home-pag)
-   (license licens) (dependencies dependencie)
+   (name nam) (prefix prefi) (version versio) (author autho)
+   (copyright copyrigh) (synopsis synopsi) (description descriptio)
+   (home-page home-pag) (license licens) (dependencies dependencie)
    (all-files
     (files (append lib-files (base-libraries nam))
            (append tst-files (base-tests))
@@ -280,9 +280,9 @@ CLEANFILES =					\\
                               (gnu packages pkg-config)
                               (gnu packages texinfo))
                 `(package
-                  (name ,(specification-name spec))
+                  (name ,(full-project-name spec))
                   (version ,(specification-version spec))
-                  (source ,(string-append "./" (specification-name spec) "-"
+                  (source ,(string-append "./" (full-project-name spec) "-"
                                           (specification-version spec)
                                           ".tar.gz"))
                   (build-system gnu-build-system)
@@ -304,6 +304,11 @@ CLEANFILES =					\\
   (or (and (string? project-name) project-name)
       (throw 'hal-spec-name "PROJECT-NAME should be a string."
              project-name)))
+
+(define (prefix project-prefix)
+  (or (and (string? project-prefix) project-prefix)
+      (throw 'hal-spec-prefix "PROJECT-prefix should be a string."
+             project-prefix)))
 
 (define (version project-version)
   (or (and (string? project-version) project-version)
