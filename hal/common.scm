@@ -351,7 +351,7 @@ CLEANFILES =					\\
 
 (define (dependencies project-dependencies)
   (match project-dependencies
-    ((or ('quasiquote (()))
+    ((or ('quasiquote ())
          ('quasiquote (((? string?) ('unquote (? symbol?))) ...)))
      project-dependencies)
     (_
