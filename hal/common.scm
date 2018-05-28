@@ -106,7 +106,53 @@
 
 (define (base-documentation name)
   `(,(file "README" 'text #f "")
-    ,(file "HACKING" 'text #f "")
+    ,(file "HACKING" 'text #f
+           ;; This will generate the basic HACKING file when the new project
+           ;; is created.  Once the dependencies have been updated in the
+           ;; halcyon file the HACKING (and the guix.scm) file will need to be
+           ;; regenerated.
+           (lambda (spec)
+             (format #t
+                     "-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: Hacking ~a
+
+* Contributing
+
+By far the easiest way to hack on ~a is to develop using Guix:
+
+#+BEGIN_SRC bash
+  # Obtain the source code
+  cd /path/to/source-code
+  guix environment --pure --container -l guix.scm
+  # In the new shell, run:
+  hal dist && autoreconf -vif && ./configure && make check
+#+END_SRC
+
+You can now hack the Config files to your heart's content, whilst testing them
+from your `guix environment' shell.
+
+** Manual Installation
+
+If you do not yet use  Guix, you will have to install this project's
+dependencies manually:
+  - autoconf
+  - automake
+  - pkg-config
+  - texinfo
+  - guile-hal~a
+
+Once those dependencies are installed you can run:
+
+#+BEGIN_SRC bash
+  hal dist && autoreconf -vif && ./configure && make check
+#+END_SRC
+"
+                     (specification-name spec) (specification-name spec)
+                     (string-join
+                      (map (match-lambda ((label var) label))
+                           (second (specification-dependencies spec)))
+                      "\n  - " 'prefix))))
     ,(file "COPYING" 'text #f
            (lambda (spec)
              (match (specification-license spec)
