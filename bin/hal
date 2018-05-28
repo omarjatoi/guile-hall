@@ -32,7 +32,7 @@
 
 (use-modules (config)
              (config api)
-             (config licenses)
+             (guix licenses)
              (hal clean)
              (hal common)
              (hal dist)

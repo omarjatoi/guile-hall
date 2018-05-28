@@ -28,6 +28,7 @@
 ;;; Code:
 
 (define-module (hal common)
+  #:use-module (guix licenses)
   #:use-module (hal spec)
   #:use-module (hal builders)
   #:use-module (ice-9 match)
@@ -106,7 +107,17 @@
 (define (base-documentation name)
   `(,(file "README" 'text #f "")
     ,(file "HACKING" 'text #f "")
-    ,(file "COPYING" 'text #f "")
+    ,(file "COPYING" 'text #f
+           (lambda (spec)
+             (match (specification-license spec)
+               ((? defined? n)
+                (let ((license (eval (specification-license spec)
+                                     (interaction-environment))))
+                  (format #t "This project's license is ~a.~%
+You can read the full license at ~a.~%"
+                          (license-name license)
+                          (license-uri license))))
+               (sym (format #t "This project's license is ~a.~%" sym)))))
     ,(directory "doc"
                 `(,(file name 'texinfo "texi" "")))))
 
