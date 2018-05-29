@@ -63,7 +63,7 @@
     (files (append lib-files (base-libraries nam))
            (append tst-files (base-tests))
            (append prog-files (base-programs))
-           (append doc-files (base-documentation nam))
+           (append doc-files (base-documentation))
            (append infra-files (base-infrastructure))))))
 
 (define (instantiate spec context operation)
@@ -105,7 +105,7 @@
 (define (base-programs)
   `(,(directory "bin" `())))
 
-(define (base-documentation name)
+(define (base-documentation)
   `(,(file "README" 'text #f "")
     ,(file "HACKING" 'text #f
            ;; This will generate the basic HACKING file when the new project
