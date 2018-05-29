@@ -480,29 +480,17 @@ CLEANFILES =					\\
     (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
 
 (define (filetype-read type name . args)
-  (define %file-templates
-    (let ((htable (make-hash-table)))
-      (for-each (lambda (file)
-                  (hash-set! htable (file '() '() 'write "")
-                             (file '() '() 'contents "")))
-                (append (base-documentation) (base-autotools-documentation)
-                        (base-autotools-infrastructure)))
-      htable))
-  (apply file name
-         (match type
-           ('scheme-file
-            `(scheme "scm" ,(hash-ref %file-templates `(,type ,name) "")))
-           ('text-file
-            `(text #f ,(hash-ref %file-templates `(,type ,name) "")))
-           ('texi-file
-            `(texinfo "texi" ,(hash-ref %file-templates `(,type ,name) "")))
-           ('shell-file
-            `(shell "sh" ,(hash-ref %file-templates `(,type ,name) "")))
-           ('autoconf-file
-            `(autoconf "ac" ,(hash-ref %file-templates `(,type ,name) "")))
-           ('automake-file
-            `(automake "am" ,(hash-ref %file-templates `(,type ,name) "")))
-           ('in-file
-            `(in "in" ,(hash-ref %file-templates `(,type ,name) "")))
-           (_ (throw 'hal-filetype-read
-                     "Unknown filetype" type name args)))))
+  ;; First element in args is considered a user specified content.
+  (let ((contents (or (and (not (null? args)) (first args))
+                      (hash-ref %file-templates `(,type ,name) ""))))
+    (apply file name
+           (match type
+             ('scheme-file `(scheme "scm" ,contents))
+             ('text-file `(text #f ,contents))
+             ('texi-file `(texinfo "texi" ,contents))
+             ('shell-file `(shell "sh" ,contents))
+             ('autoconf-file `(autoconf "ac" ,contents))
+             ('automake-file `(automake "am" ,contents))
+             ('in-file `(in "in" ,contents))
+             (_ (throw 'hal-filetype-read
+                       "Unknown filetype" type name args))))))
