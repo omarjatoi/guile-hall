@@ -33,7 +33,7 @@
   #:use-module (hal spec)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
-  #:export (create-project create-project-here))
+  #:export (create-project create-project-here recreate-project-here))
 
 ;; Fire of side-effectful project creation
 (define (create-project spec context operation)
@@ -59,3 +59,10 @@
   (instantiate spec context operation)
   (when (eq? 'show operation)
     (format #t "Finished dryrun.~%")))
+
+(define (recreate-project-here spec context operation)
+  (when (eq? operation 'exec)
+    (for-each (lambda (n)
+                (false-if-exception (delete-file n)))
+              '("guix.scm" "COPYING" "HACKING")))
+  (create-project-here spec context operation))
