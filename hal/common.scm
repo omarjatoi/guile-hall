@@ -41,7 +41,8 @@
 
             project-root-directory? find-project-root-directory
 
-            read-spec
+            read-spec filetype-read
+            scm->files scm->specification
 
             guix-file
 
@@ -427,3 +428,68 @@ CLEANFILES =					\\
      (append (flatten first) (flatten rest)))
     ((first . rest)
      (cons first (flatten rest)))))
+
+;;;; Halcyon file parser
+
+(define (href scm key)
+  (match (assoc-ref scm key)
+    ((value) value)
+    ((values ...) values)
+    (#f (throw 'hal-scm->specification "Missing expected halcyon key:" key))))
+
+(define (category-traverser files)
+  (let lp ((files files)
+           (accum '()))
+    (match files
+      (() (reverse accum))
+      ;; recurse
+      ((('directory name children) . rest)
+       (lp rest
+           (cons (directory name (lp children '())) accum)))
+      (((type name . args) . rest)
+       (lp rest
+           (cons (apply filetype-read type name args) accum)))
+      (_ (throw 'hal-category-traverser "Got muddled:" files accum)))))
+
+(define (scm->files all-files)
+  (apply files
+         (map (compose category-traverser (cute href all-files <>))
+              '(libraries tests programs documentation infrastructure))))
+
+(define (scm->specification scm)
+  (match scm
+    (('halcyon . scm)
+     (apply specification
+            (append (map (cute href scm <>)
+                         '(name prefix version author copyright synopsis
+                                description home-page license dependencies))
+                    (list (scm->files (href scm 'files))))))
+    (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
+
+(define (filetype-read type name . args)
+  (define %file-templates
+    (let ((htable (make-hash-table)))
+      (for-each (lambda (file)
+                  (hash-set! htable (file '() '() 'write "")
+                             (file '() '() 'contents "")))
+                (append (base-documentation) (base-autotools-documentation)
+                        (base-autotools-infrastructure)))
+      htable))
+  (apply file name
+         (match type
+           ('scheme-file
+            `(scheme "scm" ,(hash-ref %file-templates `(,type ,name) "")))
+           ('text-file
+            `(text #f ,(hash-ref %file-templates `(,type ,name) "")))
+           ('texi-file
+            `(texinfo "texi" ,(hash-ref %file-templates `(,type ,name) "")))
+           ('shell-file
+            `(shell "sh" ,(hash-ref %file-templates `(,type ,name) "")))
+           ('autoconf-file
+            `(autoconf "ac" ,(hash-ref %file-templates `(,type ,name) "")))
+           ('automake-file
+            `(automake "am" ,(hash-ref %file-templates `(,type ,name) "")))
+           ('in-file
+            `(in "in" ,(hash-ref %file-templates `(,type ,name) "")))
+           (_ (throw 'hal-filetype-read
+                     "Unknown filetype" type name args)))))

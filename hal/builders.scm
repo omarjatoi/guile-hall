@@ -38,9 +38,8 @@
             directory
 
             context->fname full-project-name
-            scm->specification scm->files
 
-            filetype-read filetype-write filetype-derive))
+            filetype-write filetype-derive))
 
 ;;;;; Helpers
 
@@ -97,43 +96,6 @@
     ;; - exec: perform operations on file to actually create it; used for file
     ;;   operations.
     ;; - show: print file operation to screen; used for "dry-runs".
-
-;;;; Halcyon file parser
-
-(define (href scm key)
-  (match (assoc-ref scm key)
-    ((value) value)
-    ((values ...) values)
-    (#f (throw 'hal-scm->specification "Missing expected halcyon key:" key))))
-
-(define (category-traverser files)
-  (let lp ((files files)
-           (accum '()))
-    (match files
-      (() (reverse accum))
-      ;; recurse
-      ((('directory name children) . rest)
-       (lp rest
-           (cons (directory name (lp children '())) accum)))
-      (((type name . args) . rest)
-       (lp rest
-           (cons (apply filetype-read type name args) accum)))
-      (_ (throw 'hal-category-traverser "Got muddled:" files accum)))))
-
-(define (scm->files all-files)
-  (apply files
-         (map (compose category-traverser (cute href all-files <>))
-              '(libraries tests programs documentation infrastructure))))
-
-(define (scm->specification scm)
-  (match scm
-    (('halcyon . scm)
-     (apply specification
-            (append (map (cute href scm <>)
-                         '(name prefix version author copyright synopsis
-                                description home-page license dependencies))
-                    (list (scm->files (href scm 'files))))))
-    (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
     (match operation
       ('write (filetype-write name language extension))
       ('contents contents)
@@ -183,19 +145,6 @@
     (('automake . "am") `(automake-file ,name))
     ((_ . "in") `(in-file ,name))
     (_ `(file ,name ,language ,extension))))
-
-(define (filetype-read type name . args)
-  (apply file name
-         (match type
-           ('scheme-file '(scheme "scm" ""))
-           ('text-file '(text #f ""))
-           ('texi-file '(texinfo "texi" ""))
-           ('shell-file '(shell "sh" ""))
-           ('autoconf-file '(autoconf "ac" ""))
-           ('automake-file '(automake "am" ""))
-           ('in-file '(in "in" ""))
-           (_ (throw 'hal-filetype-read
-                     "Unknown filetype" type name args)))))
 
 (define (filetype-derive name)
   (let ((matches (string-match "(.*)\\.(.*)" name)))
