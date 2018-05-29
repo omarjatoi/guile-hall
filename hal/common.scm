@@ -365,7 +365,8 @@ CLEANFILES =					\\
     (for-each (lambda (file)
                 (hash-set! htable (file '() '() 'write "")
                            (file '() '() 'contents "")))
-              (append (base-top-docs) (base-autotools-documentation)
+              (append (base-top-docs) (base-infrastructure)
+                      (base-autotools-documentation)
                       (base-autotools-infrastructure)))
     htable))
 
