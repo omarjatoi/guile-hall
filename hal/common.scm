@@ -325,39 +325,71 @@ CLEANFILES =					\\
   $(TESTS:tests/%.scm=%.log)
 ")))))
 
-(define (guix-file)
+(define (guix-package spec type)
+  `(package
+     (name ,(full-project-name spec))
+     (version ,(specification-version spec))
+     (source
+      ,(match type
+         ('local
+          (string-append "./" (full-project-name spec) "-"
+                         (specification-version spec)
+                         ".tar.gz"))
+         ('git
+          `(origin
+             (method git-fetch)
+             (uri (git-reference
+                   (url ,(specification-home-page spec))
+                   (commit "*insert git-commit-reference here*")))
+             (file-name ,(string-append
+                          (full-project-name spec) "-"
+                          (specification-version spec)
+                          "-checkout"))
+             (sha256
+              (base32 "*insert hash here*"))))
+         ('tarball
+          `(origin
+             (method url-fetch)
+             (uri ,(string-append (specification-home-page spec)
+                                  "/insert/path/to/tarball/here"))
+             (sha256
+              (base32 "*insert hash here*"))))))
+     (build-system gnu-build-system)
+     (native-inputs
+      `(("autoconf" ,autoconf)
+        ("automake" ,automake)
+        ("pkg-config" ,pkg-config)
+        ("texinfo" ,texinfo)))
+     (inputs `(("guile" ,guile-2.2)))
+     (propagated-inputs ,(specification-dependencies spec))
+     (synopsis ,(specification-synopsis spec))
+     (description ,(specification-description spec))
+     (home-page ,(specification-home-page spec))
+     (license ,(specification-license spec))))
+
+(define* (guix-file #:optional (type 'local))
   (file
    "guix" 'scheme "scm"
    (lambda (spec)
      (for-each (lambda (n) (pretty-print n) (newline))
-               (list
-                '(use-modules (guix packages)
-                              (guix licenses)
-                              (guix download)
-                              (guix build-system gnu)
-                              (gnu packages)
-                              (gnu packages autotools)
-                              (gnu packages guile)
-                              (gnu packages pkg-config)
-                              (gnu packages texinfo))
-                `(package
-                   (name ,(full-project-name spec))
-                   (version ,(specification-version spec))
-                   (source ,(string-append "./" (full-project-name spec) "-"
-                                           (specification-version spec)
-                                           ".tar.gz"))
-                   (build-system gnu-build-system)
-                   (native-inputs
-                    `(("autoconf" ,autoconf)
-                      ("automake" ,automake)
-                      ("pkg-config" ,pkg-config)
-                      ("texinfo" ,texinfo)))
-                   (inputs `(("guile" ,guile-2.2)))
-                   (propagated-inputs ,(specification-dependencies spec))
-                   (synopsis ,(specification-synopsis spec))
-                   (description ,(specification-description spec))
-                   (home-page ,(specification-home-page spec))
-                   (license ,(specification-license spec))))))))
+               (let ((lst (list (match type
+                                  ('local (guix-package spec type))
+                                  (_ `(define-public
+                                        ,(string->symbol
+                                          (full-project-name spec)) 
+                                        ,(guix-package spec type)))))))
+                 (match type
+                   ('local (cons '(use-modules (guix packages)
+                                               (guix licenses)
+                                               (guix download)
+                                               (guix build-system gnu)
+                                               (gnu packages)
+                                               (gnu packages autotools)
+                                               (gnu packages guile)
+                                               (gnu packages pkg-config)
+                                               (gnu packages texinfo))
+                                 lst))
+                   (_ lst)))))))
 
 ;; A lookup table of files that have templatized contents.
 (define %file-templates
