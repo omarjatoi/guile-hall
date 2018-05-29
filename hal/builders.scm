@@ -63,27 +63,29 @@
       (child spec (append context (list name)) operation
              (string-append indentation "  ")))
     ;; write is used for generating our specificaiton->scm
-    (if (eq? 'write operation)
-        `(directory ,name ,(map proc children))
-        (let ((fname (context->fname context name)))
-          (match operation
-            ('path fname)
-            ;; exec is for generating files & folders
-            ('exec
-             (if (file-exists? fname)
-                 (format #t "Skipping: ~a~%" fname)
-                 (begin
+    (match operation
+      ('write `(directory ,name ,(map proc children)))
+      ('contents #f)
+      (_
+       (let ((fname (context->fname context name)))
+         (match operation
+           ('path fname)
+           ;; exec is for generating files & folders
+           ('exec
+            (if (file-exists? fname)
+                (format #t "Skipping: ~a~%" fname)
+                (begin
                   (format #t "~aMaking dir: ~a~%" indentation fname)
                   (mkdir fname)))
-             (for-each proc children))
-            ;; We use raw to return a list of file paths
-            ('raw (map proc children))
-            ;; show is for doing dry-runs
-            ((or 'show _)
-             (if (file-exists? fname)
-                 (format #t "~aSkipping: ~a~%" indentation fname)
-                 (format #t "~aMaking dir: ~a~%" indentation fname))
-             (for-each proc children)))))))
+            (for-each proc children))
+           ;; We use raw to return a list of file paths
+           ('raw (map proc children))
+           ;; show is for doing dry-runs
+           ((or 'show _)
+            (if (file-exists? fname)
+                (format #t "~aSkipping: ~a~%" indentation fname)
+                (format #t "~aMaking dir: ~a~%" indentation fname))
+            (for-each proc children))))))))
 
 ;;;;; File Constructor
 
@@ -95,39 +97,6 @@
     ;; - exec: perform operations on file to actually create it; used for file
     ;;   operations.
     ;; - show: print file operation to screen; used for "dry-runs".
-    (if (eq? 'write operation)
-        (filetype-write name language extension)
-        (let ((fname (context->fname context name extension)))
-          (match operation
-            ('path fname)
-            ('exec
-             (if (file-exists? fname)
-                 (format #t "Skipping: ~a~%" fname)
-                 (begin
-                   (format #t "~aMaking file: ~a~%" indentation fname)
-                   (with-output-to-file fname
-                     (lambda _
-                       (cond ((string=? name "halcyon")
-                              ;; Halcyon file needs special processing here:
-                              ;; its contents are derived from spec here
-                              (pretty-print (specification->scm spec)
-                                            (current-output-port)))
-                             ((string? contents)
-                              (display contents))
-                             ((procedure? contents)
-                              (contents spec))
-                             (else (pretty-print contents))))))))
-            ('raw fname)
-            ('show-contents
-             (cond ((string? contents)
-                    (display contents))
-                   ((procedure? contents)
-                    (contents spec))
-                   (else (pretty-print contents))))
-            ((or 'show _)
-             (if (file-exists? fname)
-                 (format #t "~aSkipping: ~a~%" indentation fname)
-                 (format #t "~aMaking file: ~a~%" indentation fname))))))))
 
 ;;;; Halcyon file parser
 
@@ -165,6 +134,42 @@
                                 description home-page license dependencies))
                     (list (scm->files (href scm 'files))))))
     (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
+    (match operation
+      ('write (filetype-write name language extension))
+      ('contents contents)
+      (_
+       (let ((fname (context->fname context name extension)))
+         (match operation
+           ('path fname)
+           ('exec
+            (if (file-exists? fname)
+                (format #t "Skipping: ~a~%" fname)
+                (begin
+                  (format #t "~aMaking file: ~a~%" indentation fname)
+                  (with-output-to-file fname
+                    (lambda _
+                      (cond ((string=? name "halcyon")
+                             ;; Halcyon file needs special processing here:
+                             ;; its contents are derived from spec here
+                             (pretty-print (specification->scm spec)
+                                           (current-output-port)))
+                            ((string? contents)
+                             (display contents))
+                            ((procedure? contents)
+                             (contents spec))
+                            (else
+                             (pretty-print contents))))))))
+           ('raw fname)
+           ('show-contents
+            (cond ((string? contents)
+                   (display contents))
+                  ((procedure? contents)
+                   (contents spec))
+                  (else (pretty-print contents))))
+           ((or 'show _)
+            (if (file-exists? fname)
+                (format #t "~aSkipping: ~a~%" indentation fname)
+                (format #t "~aMaking file: ~a~%" indentation fname)))))))))
 
 ;;;; Filetype converters
 
