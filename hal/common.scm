@@ -63,7 +63,7 @@
     (files (append lib-files (base-libraries nam))
            (append tst-files (base-tests))
            (append prog-files (base-programs))
-           (append doc-files (base-documentation))
+           (append doc-files (base-documentation nam))
            (append infra-files (base-infrastructure))))))
 
 (define (instantiate spec context operation)
@@ -105,7 +105,7 @@
 (define (base-programs)
   `(,(directory "bin" `())))
 
-(define (base-documentation)
+(define (base-top-docs)
   `(,(file "README" 'text #f "")
     ,(file "HACKING" 'text #f
            ;; This will generate the basic HACKING file when the new project
@@ -164,7 +164,10 @@ Once those dependencies are installed you can run:
 You can read the full license at ~a.~%"
                           (license-name license)
                           (license-uri license))))
-               (sym (format #t "This project's license is ~a.~%" sym)))))
+               (sym (format #t "This project's license is ~a.~%" sym)))))))
+
+(define (base-documentation name)
+  `(,@(base-top-docs)
     ,(directory "doc"
                 `(,(file name 'texinfo "texi" "")))))
 
@@ -355,6 +358,16 @@ CLEANFILES =					\\
                    (description ,(specification-description spec))
                    (home-page ,(specification-home-page spec))
                    (license ,(specification-license spec))))))))
+
+;; A lookup table of files that have templatized contents.
+(define %file-templates
+  (let ((htable (make-hash-table)))
+    (for-each (lambda (file)
+                (hash-set! htable (file '() '() 'write "")
+                           (file '() '() 'contents "")))
+              (append (base-top-docs) (base-autotools-documentation)
+                      (base-autotools-infrastructure)))
+    htable))
 
 ;;;;; Validators
 
