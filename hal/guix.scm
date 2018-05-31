@@ -32,7 +32,7 @@
   #:use-module (hal spec)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
-  #:export (rewrite-guix-file))
+  #:export (rewrite-guix-file git-guix-recipe tarball-guix-recipe))
 
 (define (rewrite-guix-file spec context operation)
   (match operation
@@ -40,4 +40,20 @@
     ((or 'show _)
      (format #t "Dryrun:~%")
      ((guix-file) spec context 'show-contents "")
+     (format #t "Finished dryrun.~%"))))
+
+(define (git-guix-recipe spec context operation)
+  (match operation
+    ('exec ((guix-file 'git) spec context 'show-contents ""))
+    ((or 'show _)
+     (format #t "Dryrun:~%")
+     ((guix-file 'git) spec context 'show-contents "")
+     (format #t "Finished dryrun.~%"))))
+
+(define (tarball-guix-recipe spec context operation)
+  (match operation
+    ('exec ((guix-file 'tarball) spec context 'show-contents ""))
+    ((or 'show _)
+     (format #t "Dryrun:~%")
+     ((guix-file 'tarball) spec context 'show-contents "")
      (format #t "Finished dryrun.~%"))))

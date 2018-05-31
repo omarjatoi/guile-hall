@@ -40,7 +40,8 @@
              (hal init)
              (hal scan)
              (ice-9 match)
-             (srfi srfi-19))
+             (srfi srfi-19)
+             (srfi srfi-26))
 
 (define %configuration
   (configuration
@@ -69,7 +70,13 @@
      (configuration
       (name 'guix)
       (synopsis "Manage your project's Guix file.")
-      (wanted '((keywords execute))))
+      (wanted '((keywords execute)))
+      (keywords
+       (list
+        (switch (name 'type) (default 'local)
+                (test symbol?) (handler string->symbol)
+                (synopsis "Guix recipe type to generate (defaults to local)")
+                (example "local|git|tarball")))))
      (configuration
       (name 'initiate) (alias 'init)
       (synopsis "Create or migrate a new project.")
@@ -112,8 +119,12 @@
        (make-dist-infrastructure (read-spec) (find-project-root-directory)
                                  operation))
       (("hal" "guix")
-       (rewrite-guix-file (read-spec) (find-project-root-directory)
-                          operation))
+       (let ((run (cute <> (read-spec) (find-project-root-directory)
+                        operation)))
+         (match (option-ref options 'type)
+           ('local (run rewrite-guix-file))
+           ('git (run git-guix-recipe))
+           ('tarball (run tarball-guix-recipe)))))
       (("hal" "initiate")
        (let ((spec (values->specification (option-ref options '(name))
                                           (option-ref options 'prefix) "0.1"
