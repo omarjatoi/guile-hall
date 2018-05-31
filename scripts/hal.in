@@ -1,4 +1,5 @@
-#!/usr/bin/env guile
+#!@GUILE@ \
+--no-auto-compile -e main -s
 !#
 
 ;; bin/hal --- hal cli -*- coding: utf-8 -*-
@@ -29,6 +30,11 @@
 ;;; Commentary:
 ;;
 ;;; Code:
+
+(define-syntax-rule (push! elt v) (set! v (cons elt v)))
+
+(push! "@guilemoduledir@" %load-path)
+(push! "@guileobjectdir@" %load-compiled-path)
 
 (use-modules (config)
              (config api)
@@ -142,8 +148,6 @@
                (else (create-project spec '() operation)))))
       (("hal" "scan")
        (scan-project (read-spec) (find-project-root-directory) operation)))))
-
-(main)
 
 ;;; Local Variables:
 ;;; mode: scheme

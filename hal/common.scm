@@ -103,7 +103,7 @@
   `(,(directory "tests" '())))
 
 (define (base-programs)
-  `(,(directory "bin" `())))
+  `(,(directory "scripts" `())))
 
 (define (base-top-docs)
   `(,(file "README" 'text #f "")
