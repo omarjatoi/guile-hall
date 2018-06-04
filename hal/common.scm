@@ -558,6 +558,7 @@ CLEANFILES =					\\
            (match type
              ('scheme-file `(scheme "scm" ,contents))
              ('text-file `(text #f ,contents))
+             ('info-file `(info "info" ,contents))
              ('texi-file `(texinfo "texi" ,contents))
              ('shell-file `(shell "sh" ,contents))
              ('autoconf-file `(autoconf "ac" ,contents))
