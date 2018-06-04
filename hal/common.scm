@@ -221,7 +221,7 @@ exec \"$@\"
            (string-append "
 dnl -*- Autoconf -*-
 
-AC_INIT(" (specification-name spec) ", " (specification-version spec) ")
+AC_INIT(" (full-project-name spec) ", " (specification-version spec) ")
 AC_CONFIG_SRCDIR(" (match (find (match-lambda (('directory . rest) #t) (_ #f))
                                 (map (cut <> '() '() 'write "")
                                      (files-libraries
@@ -235,30 +235,68 @@ AM_SILENT_RULES([yes])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 AC_CONFIG_FILES([test-env], [chmod +x test-env])
-
+"
+                     (string-join
+                      (map (lambda (file)
+                             (let ((file (or (and=> (string-match "\\.in$" file)
+                                                    (cut regexp-substitute #f <> 'pre))
+                                             file)))
+                               (string-append "AC_CONFIG_FILES([" file
+                                              "],[chmod +x " file "])")))
+                           (flatten (map (cut <> '() '() 'raw "")
+                                         (files-programs
+                                          (specification-files spec)))))
+                      "\n")
+                     "
 dnl Search for 'guile' and 'guild'.  This macro defines
 dnl 'GUILE_EFFECTIVE_VERSION'.
-GUILE_PKG([2.0 2.2])
+GUILE_PKG([2.2 2.0])
 GUILE_PROGS
 GUILE_SITE_DIR
 if test \"x$GUILD\" = \"x\"; then
    AC_MSG_ERROR(['guild' binary not found; please check your guile-2.x installation.])
 fi
 
-AC_SUBST([guilesitedir])
+dnl Installation directories for .scm and .go files.
+guilemoduledir=\"${datarootdir}/guile/site/$GUILE_EFFECTIVE_VERSION\"
+guileobjectdir=\"${libdir}/guile/$GUILE_EFFECTIVE_VERSION/site-ccache\"
+AC_SUBST([guilemoduledir])
+AC_SUBST([guileobjectdir])
 
 AC_OUTPUT
-          ")))))
+")))))
 
+;;;; Full on cargo cult!
 (define (makefile-file)
   (file
    "Makefile" 'automake "am"
    (lambda (spec)
      (display
       (string-append "
+
+bin_SCRIPTS = " (string-join
+                 (map (lambda (file)
+                        (or (and=> (string-match "\\.in$" file)
+                                   (cut regexp-substitute #f <> 'pre))
+                            file))
+                      (flatten (map (cute <> spec '() 'raw "")
+                                    (files-programs (specification-files spec)))))
+                 " \\\n") "
+
+# Handle substitution of fully-expanded Autoconf variables.
+do_subst = $(SED)					\
+  -e 's,[@]GUILE[@],$(GUILE),g'				\
+  -e 's,[@]guilemoduledir[@],$(guilemoduledir),g'	\
+  -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\
+  -e 's,[@]localedir[@],$(localedir),g'
+
+nodist_noinst_SCRIPTS =				\
+  pre-inst-env					\
+  test-env
+
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
-moddir=$(guilesitedir)
+moddir=$(prefix)/share/guile/site/$(GUILE_EFFECTIVE_VERSION)
 godir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
