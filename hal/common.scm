@@ -108,10 +108,6 @@
 (define (base-top-docs)
   `(,(file "README" 'text #f "")
     ,(file "HACKING" 'text #f
-           ;; This will generate the basic HACKING file when the new project
-           ;; is created.  Once the dependencies have been updated in the
-           ;; halcyon file the HACKING (and the guix.scm) file will need to be
-           ;; regenerated.
            (lambda (spec)
              (format #t
                      "-*- mode: org; coding: utf-8; -*-
@@ -130,8 +126,8 @@ By far the easiest way to hack on ~a is to develop using Guix:
   hal dist && autoreconf -vif && ./configure && make check
 #+END_SRC
 
-You can now hack the Config files to your heart's content, whilst testing them
-from your `guix environment' shell.
+You can now hack this project's files to your heart's content, whilst
+testing them from your `guix environment' shell.
 
 ** Manual Installation
 
