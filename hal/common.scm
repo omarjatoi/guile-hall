@@ -36,6 +36,9 @@
   #:use-module (ice-9 regex)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
+  #:use-module (web client)
+  #:use-module (web response)
+  #:use-module (web http)
   #:export (values->specification
             instantiate
 
@@ -154,13 +157,35 @@ Once those dependencies are installed you can run:
            (lambda (spec)
              (match (specification-license spec)
                ((? defined? n)
-                (let ((license (eval (specification-license spec)
-                                     (interaction-environment))))
-                  (format #t "This project's license is ~a.~%
-You can read the full license at ~a.~%"
-                          (license-name license)
-                          (license-uri license))))
+                (fetch-license (eval (specification-license spec)
+                                     (interaction-environment))
+                               #t))
                (sym (format #t "This project's license is ~a.~%" sym)))))))
+
+(define (fetch-license license online?)
+  "Return a basic license information string for LICENSE.  If LICENSE is part
+of the GPL family, and we are ONLINE?, fetch the full license instead."
+  (define (fetch uri)
+    (catch 'getaddrinfo-error
+      (lambda _
+        (call-with-values
+            (lambda _
+              (http-get uri))
+          (lambda (response body)
+            (match (response-code response)
+              (200 (display body))
+              (301 (fetch (assq-ref (response-headers response) 'location)))
+              (_ (fetch-license license #f))))))
+      (lambda (k . args) (fetch-license license #f))))
+  (if (and online?
+           (string-match "^[AL]{0,1}GPL [1-3].*$" (license-name license)))
+      (fetch (regexp-substitute #f (string-match "\\.html$"
+                                                 (license-uri license))
+                                'pre ".txt"))
+      (format #t "This project's license is ~a.~%
+You can read the full license at ~a.~%"
+              (license-name license)
+              (license-uri license))))
 
 (define (base-documentation name)
   `(,@(base-top-docs)
