@@ -113,8 +113,8 @@
       (name 'scan)
       (synopsis "Refresh your project's Halcyon file.")
       (wanted '((keywords execute))))))
-   (directory (list (in-home ".hal/")))
-   (parser sexp-parser)))
+   (directory (in-home "."))
+   (parser simple-sexp-parser)))
 
 (define* (main #:optional (args (command-line)))
   (let* ((options (getopt-config-auto args %configuration))
