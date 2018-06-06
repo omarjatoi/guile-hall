@@ -502,7 +502,7 @@ CLEANFILES =					\\
 ;; FIXME: LICENSE should be a license object
 (define (license project-license)
   (or (and (symbol? project-license) project-license)
-      (throw 'hal-spec-license "PROJECT-LICENSE should be a string."
+      (throw 'hal-spec-license "PROJECT-LICENSE should be a symbol."
              project-license)))
 
 (define (copyright project-copyrights)
