@@ -145,6 +145,7 @@
     (('autoconf . "ac") `(autoconf-file ,name))
     (('automake . "am") `(automake-file ,name))
     ((_ . "in") `(in-file ,name))
+    ((compiled-scheme . "go") `(compiled-scheme-file ,name))
     (_ `(file ,name ,language ,extension))))
 
 (define (filetype-derive name)
@@ -159,5 +160,6 @@
           ((name "ac") `(autoconf-file ,name))
           ((name "am") `(automake-file ,name))
           ((name "in") `(in-file ,name))
+          ((name "go") `(compiled-scheme-file ,name))
           ((name ext) `(unknown-file ,(string-append name "." ext))))
         `(text-file ,name))))

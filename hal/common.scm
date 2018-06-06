@@ -585,5 +585,6 @@ CLEANFILES =					\\
              ('autoconf-file `(autoconf "ac" ,contents))
              ('automake-file `(automake "am" ,contents))
              ('in-file `(in "in" ,contents))
+             ('compiled-scheme-file `(go "go" ,contents))
              (_ (throw 'hal-filetype-read
                        "Unknown filetype" type name args))))))
