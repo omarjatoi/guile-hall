@@ -42,11 +42,11 @@
         (throw 'hal-create-project "PROJECT already exists: "
                (full-project-name spec))
         (begin
-          (match operation
-            ('exec (mkdir fname))
-            ((or 'show _) (format #t "Creating project: ~a~%" fname)))
           (when (eq? 'show operation)
             (format #t "Dryrun:~%"))
+          (format #t "Creating project: ~a~%" fname)
+          (when (eq? 'exec operation)
+            (mkdir fname))
           (instantiate spec (append context `(,(full-project-name spec)))
                        operation)
           (when (eq? 'show operation)
