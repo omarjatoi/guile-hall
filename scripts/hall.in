@@ -31,11 +31,6 @@
 ;;
 ;;; Code:
 
-(define-syntax-rule (push! elt v) (set! v (cons elt v)))
-
-(push! "@guilemoduledir@" %load-path)
-(push! "@guileobjectdir@" %load-compiled-path)
-
 (use-modules (config)
              (config api)
              (config parser sexp)
