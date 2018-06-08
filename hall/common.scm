@@ -1,23 +1,23 @@
-;; hal/common.scm --- common implementation    -*- coding: utf-8 -*-
+;; hall/common.scm --- common implementation    -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2018 Alex Sassmannshausen <alex@pompo.co>
 ;;
 ;; Author: Alex Sassmannshausen <alex@pompo.co>
 ;;
-;; This file is part of guile-hal.
+;; This file is part of guile-hall.
 ;;
-;; guile-hal is free software; you can redistribute it and/or modify it
+;; guile-hall is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
 ;; Software Foundation; either version 3 of the License, or (at your option)
 ;; any later version.
 ;;
-;; guile-hal is distributed in the hope that it will be useful, but
+;; guile-hall is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 ;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 ;; for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License along
-;; with guile-hal; if not, contact:
+;; with guile-hall; if not, contact:
 ;;
 ;; Free Software Foundation           Voice:  +1-617-542-5942
 ;; 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
@@ -27,10 +27,10 @@
 ;;
 ;;; Code:
 
-(define-module (hal common)
+(define-module (hall common)
   #:use-module (guix licenses)
-  #:use-module (hal spec)
-  #:use-module (hal builders)
+  #:use-module (hall spec)
+  #:use-module (hall builders)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
@@ -77,15 +77,15 @@
                               files-documentation files-infrastructure)))))
 
 (define (project-root-directory?)
-  (file-exists? "halcyon.scm"))
+  (file-exists? "hall.scm"))
 
 (define (find-project-root-directory)
   (let ((start (getcwd)))
     (let lp ((cwd (getcwd)))
       (cond ((project-root-directory?) `(,cwd))
             ((string=? cwd "/")
-             (throw 'hal-find-project-root-directory
-                    "No halcyon.scm file found.  Search started at:" start))
+             (throw 'hall-find-project-root-directory
+                    "No hall.scm file found.  Search started at:" start))
             (else
              (chdir "..")
              (lp (getcwd)))))))
@@ -93,7 +93,7 @@
 (define (read-spec)
   (find-project-root-directory)
   (scm->specification
-   (with-input-from-file "halcyon.scm"
+   (with-input-from-file "hall.scm"
      (lambda _ (read)))))
 
 ;;;; Defaults
@@ -126,7 +126,7 @@ By far the easiest way to hack on ~a is to develop using Guix:
   cd /path/to/source-code
   guix environment --pure --container -l guix.scm
   # In the new shell, run:
-  hal dist && autoreconf -vif && ./configure && make check
+  hall dist && autoreconf -vif && ./configure && make check
 #+END_SRC
 
 You can now hack this project's files to your heart's content, whilst
@@ -140,12 +140,12 @@ dependencies manually:
   - automake
   - pkg-config
   - texinfo
-  - guile-hal~a
+  - guile-hall~a
 
 Once those dependencies are installed you can run:
 
 #+BEGIN_SRC bash
-  hal dist && autoreconf -vif && ./configure && make check
+  hall dist && autoreconf -vif && ./configure && make check
 #+END_SRC
 "
                      (specification-name spec) (specification-name spec)
@@ -190,11 +190,11 @@ You can read the full license at ~a.~%"
 (define (base-documentation name)
   `(,@(base-top-docs)
     ,(directory "doc"
-                `(,(file name 'texinfo "texi" "")))))
+                `(,(manual-file name)))))
 
 (define (base-infrastructure)
   `(,(guix-file)
-    ,(file "halcyon" 'scheme "scm" #f)))
+    ,(file "hall" 'scheme "scm" #f)))
 
 (define (base-autotools-documentation)
   `(,(file "NEWS" 'text #f "")
@@ -234,6 +234,54 @@ exec \"$@\"
     ,@(base-autotools-infrastructure)))
 
 ;;;;; Files
+
+(define (manual-file name)
+  (file name 'texinfo "texi"
+        (lambda (spec)
+          (display
+           (string-append "
+\\input texinfo
+@c -*-texinfo-*-
+
+@c %**start of header
+@setfilename " (full-project-name spec) ".info
+@documentencoding UTF-8
+@settitle " (friendly-project-name spec) " Reference Manual
+@c %**end of header
+
+@include version.texi
+
+@copying
+Copyright @copyright{} " (string-join (map number->string
+                                           (specification-copyright spec))
+                                      ", ") " " (specification-author spec) "
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled ``GNU Free
+Documentation License''.
+@end copying
+
+@dircategory The Algorithmic Language Scheme
+@direntry
+* " (friendly-project-name spec) ": (" (full-project-name spec) ").      Declarative program configuration
+@end direntry
+
+@titlepage
+@title The " (friendly-project-name spec) " Manual
+@author " (specification-author spec) "
+
+@page
+@vskip 0pt plus 1filll
+Edition @value{EDITION} @*
+@value{UPDATED} @*
+
+@insertcopying
+@end titlepage
+
+")))))
 
 (define (configure-file)
   (file "configure" 'autoconf "ac"
@@ -456,8 +504,8 @@ CLEANFILES =					\\
     (for-each (lambda (file)
                 (hash-set! htable (file '() '() 'write "")
                            (file '() '() 'contents "")))
-              (append (base-top-docs) (base-infrastructure)
-                      (base-autotools-documentation)
+              (append (base-top-docs) (base-documentation)
+                      (base-infrastructure) (base-autotools-documentation)
                       (base-autotools-infrastructure)))
     htable))
 
@@ -465,50 +513,50 @@ CLEANFILES =					\\
 
 (define (name project-name)
   (or (and (string? project-name) project-name)
-      (throw 'hal-spec-name "PROJECT-NAME should be a string."
+      (throw 'hall-spec-name "PROJECT-NAME should be a string."
              project-name)))
 
 (define (prefix project-prefix)
   (or (and (string? project-prefix) project-prefix)
-      (throw 'hal-spec-prefix "PROJECT-prefix should be a string."
+      (throw 'hall-spec-prefix "PROJECT-prefix should be a string."
              project-prefix)))
 
 (define (version project-version)
   (or (and (string? project-version) project-version)
-      (throw 'hal-spec-version "PROJECT-VERSION should be a string."
+      (throw 'hall-spec-version "PROJECT-VERSION should be a string."
              project-version)))
 
 (define (author project-author)
   (or (and (string? project-author) project-author)
-      (throw 'hal-spec-author "PROJECT-AUTHOR should be a string."
+      (throw 'hall-spec-author "PROJECT-AUTHOR should be a string."
              project-author)))
 
 (define (synopsis project-synopsis)
   (or (and (string? project-synopsis) project-synopsis)
-      (throw 'hal-spec-synopsis "PROJECT-SYNOPSIS should be a string."
+      (throw 'hall-spec-synopsis "PROJECT-SYNOPSIS should be a string."
              project-synopsis)))
 
 (define (description project-description)
   (or (and (string? project-description) project-description)
-      (throw 'hal-spec-description
+      (throw 'hall-spec-description
              "PROJECT-DESCRIPTION should be a string."
              project-description)))
 
 (define (home-page project-home-page)
   (or (and (string? project-home-page) project-home-page)
-      (throw 'hal-spec-home-page "PROJECT-HOME-PAGE should be a string."
+      (throw 'hall-spec-home-page "PROJECT-HOME-PAGE should be a string."
              project-home-page)))
 
 ;; FIXME: LICENSE should be a license object
 (define (license project-license)
   (or (and (symbol? project-license) project-license)
-      (throw 'hal-spec-license "PROJECT-LICENSE should be a symbol."
+      (throw 'hall-spec-license "PROJECT-LICENSE should be a symbol."
              project-license)))
 
 (define (copyright project-copyrights)
   (match project-copyrights
     (((? number?) ...) project-copyrights)
-    (_ (throw 'hal-spec-copyrights
+    (_ (throw 'hall-spec-copyrights
               "PROJECT-COPYRIGHTs should be one or more numbers."
               project-copyrights))))
 
@@ -518,7 +566,7 @@ CLEANFILES =					\\
          ('quasiquote (((? string?) ('unquote (? symbol?))) ...)))
      project-dependencies)
     (_
-     (throw 'hal-spec-dependencies
+     (throw 'hall-spec-dependencies
             "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
             project-dependencies))))
 
@@ -534,13 +582,13 @@ CLEANFILES =					\\
     ((first . rest)
      (cons first (flatten rest)))))
 
-;;;; Halcyon file parser
+;;;; Hall file parser
 
 (define (href scm key)
   (match (assoc-ref scm key)
     ((value) value)
     ((values ...) values)
-    (#f (throw 'hal-scm->specification "Missing expected halcyon key:" key))))
+    (#f (throw 'hall-scm->specification "Missing expected hall key:" key))))
 
 (define (category-traverser files)
   (let lp ((files files)
@@ -554,7 +602,7 @@ CLEANFILES =					\\
       (((type name . args) . rest)
        (lp rest
            (cons (apply filetype-read type name args) accum)))
-      (_ (throw 'hal-category-traverser "Got muddled:" files accum)))))
+      (_ (throw 'hall-category-traverser "Got muddled:" files accum)))))
 
 (define (scm->files all-files)
   (apply files
@@ -563,13 +611,13 @@ CLEANFILES =					\\
 
 (define (scm->specification scm)
   (match scm
-    (('halcyon . scm)
+    (('hall-description . scm)
      (apply specification
             (append (map (cute href scm <>)
                          '(name prefix version author copyright synopsis
                                 description home-page license dependencies))
                     (list (scm->files (href scm 'files))))))
-    (_ (throw 'hal-scm->specification "Invalid halcyon data:" scm))))
+    (_ (throw 'hall-scm->specification "Invalid hall data:" scm))))
 
 (define (filetype-read type name . args)
   ;; First element in args is considered a user specified content.
@@ -586,5 +634,5 @@ CLEANFILES =					\\
              ('automake-file `(automake "am" ,contents))
              ('in-file `(in "in" ,contents))
              ('compiled-scheme-file `(go "go" ,contents))
-             (_ (throw 'hal-filetype-read
+             (_ (throw 'hall-filetype-read
                        "Unknown filetype" type name args))))))

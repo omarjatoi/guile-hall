@@ -2,26 +2,26 @@
 --no-auto-compile -e main -s
 !#
 
-;; bin/hal --- hal cli -*- coding: utf-8 -*-
+;; bin/hall --- hall cli -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2018 Alex Sassmannshausen <alex@pompo.co>
 ;;
 ;; Author: Alex Sassmannshausen <alex@pompo.co>
 ;;
-;; This file is part of guile-hal.
+;; This file is part of guile-hall.
 ;;
-;; guile-hal is free software; you can redistribute it and/or modify it under
+;; guile-hall is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free
 ;; Software Foundation; either version 3 of the License, or (at your option)
 ;; any later version.
 ;;
-;; guile-hal is distributed in the hope that it will be useful, but WITHOUT
+;; guile-hall is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 ;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 ;; more details.
 ;;
 ;; You should have received a copy of the GNU General Public License along
-;; with guile-hal; if not, contact:
+;; with guile-hall; if not, contact:
 ;;
 ;; Free Software Foundation           Voice:  +1-617-542-5942
 ;; 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
@@ -40,19 +40,19 @@
              (config api)
              (config parser sexp)
              (guix licenses)
-             (hal clean)
-             (hal common)
-             (hal dist)
-             (hal guix)
-             (hal init)
-             (hal scan)
+             (hall clean)
+             (hall common)
+             (hall dist)
+             (hall guix)
+             (hall init)
+             (hall scan)
              (ice-9 match)
              (srfi srfi-19)
              (srfi srfi-26))
 
 (define %configuration
   (configuration
-   (name 'hal)
+   (name 'hall)
    (version "0.1")
    (author "Alex Sassmannshausen")
    (copyright '(2018))
@@ -96,7 +96,7 @@
       (keywords
        (list
         (switch (name 'convert) (default #f) (test boolean?)
-                (synopsis "Convert this project to a Halcyon project."))
+                (synopsis "Convert this project to a Hall project."))
         (setting (name 'author) (default "")
                  (synopsis "Author of the project."))
         (setting (name 'prefix) (default "")
@@ -115,7 +115,7 @@
          (synopsis "Regenerate guix.scm, HACKING & COPYING files.")))))
      (configuration
       (name 'scan)
-      (synopsis "Refresh your project's Halcyon file.")
+      (synopsis "Refresh your project's Hall file.")
       (wanted '((keywords execute))))))
    (directory (in-home "."))
    (parser simple-sexp-parser)))
@@ -124,21 +124,21 @@
   (let* ((options (getopt-config-auto args %configuration))
          (operation (if (option-ref options 'execute) 'exec 'show)))
     (match (full-command options)
-      (("hal")
+      (("hall")
        (emit-help options))
-      (("hal" "clean")
+      (("hall" "clean")
        (clean-project (read-spec) (find-project-root-directory) operation))
-      (("hal" "distribute")
+      (("hall" "distribute")
        (make-dist-infrastructure (read-spec) (find-project-root-directory)
                                  operation))
-      (("hal" "guix")
+      (("hall" "guix")
        (let ((run (cute <> (read-spec) (find-project-root-directory)
                         operation)))
          (match (option-ref options 'type)
            ('local (run rewrite-guix-file))
            ('git (run git-guix-recipe))
            ('tarball (run tarball-guix-recipe)))))
-      (("hal" "initiate")
+      (("hall" "initiate")
        (let ((spec (values->specification (option-ref options '(name))
                                           (option-ref options 'prefix) "0.1"
                                           (option-ref options 'author)
@@ -150,9 +150,9 @@
          (cond ((option-ref options 'convert)
                 (create-project-here spec '() operation))
                (else (create-project spec '() operation)))))
-      (("hal" "initiate" "refresh")
+      (("hall" "initiate" "refresh")
        (recreate-project-here (read-spec) '() operation))
-      (("hal" "scan")
+      (("hall" "scan")
        (scan-project (read-spec) (find-project-root-directory) operation)))))
 
 ;;; Local Variables:

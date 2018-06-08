@@ -1,23 +1,23 @@
-;; hal/builders.scm --- builders implementation    -*- coding: utf-8 -*-
+;; hall/builders.scm --- builders implementation    -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2018 Alex Sassmannshausen <alex@pompo.co>
 ;;
 ;; Author: Alex Sassmannshausen <alex@pompo.co>
 ;;
-;; This file is part of guile-hal.
+;; This file is part of guile-hall.
 ;;
-;; guile-hal is free software; you can redistribute it and/or modify it
+;; guile-hall is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
 ;; Software Foundation; either version 3 of the License, or (at your option)
 ;; any later version.
 ;;
-;; guile-hal is distributed in the hope that it will be useful, but
+;; guile-hall is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 ;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 ;; for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License along
-;; with guile-hal; if not, contact:
+;; with guile-hall; if not, contact:
 ;;
 ;; Free Software Foundation           Voice:  +1-617-542-5942
 ;; 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
@@ -27,8 +27,8 @@
 ;;
 ;;; Code:
 
-(define-module (hal builders)
-  #:use-module (hal spec)
+(define-module (hall builders)
+  #:use-module (hall spec)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
@@ -37,7 +37,7 @@
   #:export (file
             directory
 
-            context->fname full-project-name
+            context->fname full-project-name friendly-project-name
 
             filetype-write filetype-derive))
 
@@ -51,7 +51,11 @@
    file-name-separator-string))
 
 (define* (full-project-name spec)
-  (string-append (specification-prefix spec) (specification-name spec)))
+  (string-append (specification-prefix spec) "-" (specification-name spec)))
+
+(define* (friendly-project-name spec)
+  (string-append (string-titlecase (specification-prefix spec)) " "
+                 (string-titlecase (specification-name spec))))
 
 ;;;; Directory Constructor
 
@@ -72,7 +76,7 @@
            ;; exec is for generating files & folders
            ('exec
             (if (file-exists? fname)
-                (format #t "Skipping: ~a~%" fname)
+                (format #t "~aSkipping: ~a~%" indentation fname)
                 (begin
                   (format #t "~aMaking dir: ~a~%" indentation fname)
                   (mkdir fname)))
@@ -105,19 +109,24 @@
            ('path fname)
            ('exec
             (if (file-exists? fname)
-                (format #t "Skipping: ~a~%" fname)
+                (format #t "~aSkipping: ~a~%" indentation fname)
                 (begin
                   (format #t "~aMaking file: ~a~%" indentation fname)
+                  (when (string=? name "hall")
+                    (throw 'dealing-with-texi (contents spec)))
                   (with-output-to-file fname
                     (lambda _
-                      (cond ((string=? name "halcyon")
-                             ;; Halcyon file needs special processing here:
+                      (cond ((and (string=? name "hall")
+                                  (eq? language 'scheme))
+                             ;; Hall file needs special processing here:
                              ;; its contents are derived from spec here
                              (pretty-print (specification->scm spec)
                                            (current-output-port)))
                             ((string? contents)
                              (display contents))
                             ((procedure? contents)
+                             (when (string=? name "hall")
+                               (throw 'dealing-with-texi (contents spec)))
                              (contents spec))
                             (else
                              (pretty-print contents))))))))
