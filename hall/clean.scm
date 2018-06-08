@@ -55,7 +55,7 @@
                    (begin
                      (format #t "Deleting: ~a~%" path)
                      (when (eq? 'exec operation)
-                       (system* "rm" "-r" path)))
+                       (system* "rm" "-rf" path)))
                    (throw 'clean-project
                           "Filepath/project mismatch. Won't delete nothing."
                           (getcwd)
