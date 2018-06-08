@@ -83,6 +83,7 @@
             (for-each proc children))
            ;; We use raw to return a list of file paths
            ('raw (map proc children))
+           ('raw+contents (map proc children))
            ;; show is for doing dry-runs
            ((or 'show _)
             (if (file-exists? fname)
@@ -112,8 +113,6 @@
                 (format #t "~aSkipping: ~a~%" indentation fname)
                 (begin
                   (format #t "~aMaking file: ~a~%" indentation fname)
-                  (when (string=? name "hall")
-                    (throw 'dealing-with-texi (contents spec)))
                   (with-output-to-file fname
                     (lambda _
                       (cond ((and (string=? name "hall")
@@ -125,12 +124,11 @@
                             ((string? contents)
                              (display contents))
                             ((procedure? contents)
-                             (when (string=? name "hall")
-                               (throw 'dealing-with-texi (contents spec)))
                              (contents spec))
                             (else
                              (pretty-print contents))))))))
            ('raw fname)
+           ('raw+contents `(,fname . ,contents))
            ('show-contents
             (cond ((string? contents)
                    (display contents))
