@@ -42,7 +42,8 @@
 ;; and add all files, making best guesses according to extensions.
 (define (scan-project spec context operation)
   (let ((new-spec (set-specification-files
-                   spec (scm->files (actual->all-files spec context)))))
+                   spec (scm->files (actual->all-files spec context)
+                                    (specification-name spec)))))
     (match operation
       ('exec
        (with-output-to-file "hall.scm"

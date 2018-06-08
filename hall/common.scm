@@ -499,12 +499,21 @@ CLEANFILES =					\\
                    (_ lst)))))))
 
 ;; A lookup table of files that have templatized contents.
-(define %file-templates
+(define (templatize-files project-name)
   (let ((htable (make-hash-table)))
-    (for-each (lambda (file)
-                (hash-set! htable (file '() '() 'write "")
-                           (file '() '() 'contents "")))
-              (append (base-top-docs) (base-documentation)
+    (for-each (lambda (entries)
+                (let lp ((todo (entries '() '() 'raw+contents "")))
+                  (match todo
+                    (() #t)
+                    ((((? string? fname) . contents) . rest)
+                     (hash-set! htable fname contents)
+                     (lp rest))
+                    (((? list? dir) . rest)
+                     (lp dir)
+                     (lp rest))
+                    (((? string? fname) . contents)
+                     (hash-set! htable fname contents)))))
+              (append (base-documentation project-name)
                       (base-infrastructure) (base-autotools-documentation)
                       (base-autotools-infrastructure)))
     htable))
@@ -590,23 +599,30 @@ CLEANFILES =					\\
     ((values ...) values)
     (#f (throw 'hall-scm->specification "Missing expected hall key:" key))))
 
-(define (category-traverser files)
+(define (category-traverser files project-name)
   (let lp ((files files)
-           (accum '()))
+           (accum '())
+           (path '()))
     (match files
       (() (reverse accum))
       ;; recurse
       ((('directory name children) . rest)
        (lp rest
-           (cons (directory name (lp children '())) accum)))
+           (cons (directory name (lp children '() (cons name path))) accum)
+           path))
       (((type name . args) . rest)
        (lp rest
-           (cons (apply filetype-read type name args) accum)))
+           (cons (apply filetype-read type name
+                        (file->filepath type name (reverse path))
+                        (templatize-files project-name) args)
+                 accum)
+           path))
       (_ (throw 'hall-category-traverser "Got muddled:" files accum)))))
 
-(define (scm->files all-files)
+(define (scm->files all-files project-name)
   (apply files
-         (map (compose category-traverser (cute href all-files <>))
+         (map (compose (cut category-traverser <> project-name)
+                       (cute href all-files <>))
               '(libraries tests programs documentation infrastructure))))
 
 (define (scm->specification scm)
@@ -616,13 +632,13 @@ CLEANFILES =					\\
             (append (map (cute href scm <>)
                          '(name prefix version author copyright synopsis
                                 description home-page license dependencies))
-                    (list (scm->files (href scm 'files))))))
+                    (list (scm->files (href scm 'files) (href scm 'name))))))
     (_ (throw 'hall-scm->specification "Invalid hall data:" scm))))
 
-(define (filetype-read type name . args)
+(define (filetype-read type name fname templates . args)
   ;; First element in args is considered a user specified content.
   (let ((contents (or (and (not (null? args)) (first args))
-                      (hash-ref %file-templates `(,type ,name) ""))))
+                      (hash-ref templates fname ""))))
     (apply file name
            (match type
              ('scheme-file `(scheme "scm" ,contents))
@@ -636,3 +652,17 @@ CLEANFILES =					\\
              ('compiled-scheme-file `(go "go" ,contents))
              (_ (throw 'hall-filetype-read
                        "Unknown filetype" type name args))))))
+
+(define (file->filepath type name path)
+  (context->fname path name (match type
+                              ('scheme-file "scm")
+                              ('text-file "")
+                              ('info-file "info")
+                              ('texi-file "texi")
+                              ('shell-file "sh")
+                              ('autoconf-file "ac")
+                              ('automake-file "am")
+                              ('in-file "in")
+                              ('compiled-scheme-file "go")
+                              (_ (throw 'file->filepath "Unknown extension"
+                                        type name)))))
