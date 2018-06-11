@@ -181,7 +181,7 @@ dependencies manually:
 Once those dependencies are installed you can run:
 
 #+BEGIN_SRC bash
-  hall dist && autoreconf -vif && ./configure && make check
+  hall dist -x && autoreconf -vif && ./configure && make check
 #+END_SRC
 "
                      (specification-name spec) (specification-name spec)
