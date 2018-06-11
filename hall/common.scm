@@ -92,7 +92,7 @@ filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
   ;; Currently only allow blacklisting at the top-level.
   (and (not (string=? project-root path))
        (member (string-drop path (1+ (string-length project-root)))
-               (cons ".git" skip))))
+               (cons* ".dir-locals.el" ".gitignore" ".git" skip))))
 
 (define (find-project-root-directory)
   "Find and return the project root directory path of the current project, and
