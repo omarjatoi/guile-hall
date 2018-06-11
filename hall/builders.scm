@@ -57,13 +57,19 @@ a string, add \".EXTENSION\" to the resulting filename."
   "Return the full name of the project described by specification SPEC.  The
 full name is the project's prefix and the project's name, separated by a
 \"-\"."
-  (string-append (specification-prefix spec) "-" (specification-name spec)))
+  (match (specification-prefix spec)
+    ((or #f "") (specification-name spec))
+    (prefix (string-append (specification-prefix spec) "-"
+                           (specification-name spec)))))
 
 (define* (friendly-project-name spec)
   "Return a human friendly version of the full name of the project described
 by the specification SPEC."
-  (string-append (string-titlecase (specification-prefix spec)) " "
-                 (string-titlecase (specification-name spec))))
+  (string-titlecase
+   (match (specification-prefix spec)
+     ((or #f "") (specification-name spec))
+     (prefix (string-append (specification-prefix spec) " "
+                            (specification-name spec))))))
 
 ;;;; Directory Constructor
 
