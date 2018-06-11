@@ -110,10 +110,10 @@ the list SKIP."
 (define (find-dir target candidates)
   "Return #t if the name TARGET can be matched to a directory in CANDIDATES.
 Return #f otherwise."
-  (find (match-lambda
-          (('directory (? (cute string=? target <>)) children) children)
-          (_ #f))
-        candidates))
+  (filter-map (match-lambda
+                (('directory (? (cute string=? target <>)) children) children)
+                (_ #f))
+              candidates))
 
 (define (dir-match cropped candidates)
   "Return #t if the description of the actually existing directory CROPPED can
@@ -140,4 +140,5 @@ CANDIDATES.  Return #f otherwise."
       ((dir . rest)
        (match (find-dir dir candidates)
          (#f (throw 'hall-file-match "Should not have happened."))
-         (dir (lp rest (third dir))))))))
+         (() #f)
+         (((children ...)) (lp rest children)))))))
