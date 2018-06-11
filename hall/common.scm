@@ -511,6 +511,40 @@ TYPE 'local, 'git or 'tarball."
              (sha256
               (base32 "*insert hash here*"))))))
      (build-system gnu-build-system)
+     (arguments
+      ,(match (files-programs (specification-files spec))
+         (() ``())
+         (((? procedure? p))
+          (match (p '() '() 'write "")
+            (('directory "scripts" ()) ``())
+            ;; We assume:
+            ;; - only "scripts" folder in files-programs
+            ;; - no further dirs in scripts folder
+            ;; - no files with extensions in scripts folder.
+            (('directory "scripts" ((ids files) ...))
+             ``(#:modules ((ice-9 match) (ice-9 ftw)
+                           ,@%gnu-build-system-modules)
+                #:phases (modify-phases %standard-phases
+                           (add-after 'install 'hall-wrap-binaries
+                             (lambda* (#:key outputs #:allow-other-keys)
+                               (let* ((out  (assoc-ref outputs "out"))
+                                      (bin  (string-append out "/bin/"))
+                                      (site (string-append
+                                             out "/share/guile/site")))
+                                 (match (scandir site)
+                                   (("." ".." version)
+                                    (let ((modules (string-append site "/" version))
+                                          (compiled-modules (string-append
+                                                             out "/lib/guile/" version
+                                                             "/site-ccache")))
+                                      (for-each (lambda (file)
+                                                  (wrap-program (string-append bin file)
+                                                    `("GUILE_LOAD_PATH" ":" prefix
+                                                      (,modules))
+                                                    `("GUILE_LOAD_COMPILED_PATH" ":" prefix
+                                                      (,compiled-modules))))
+                                                ,,(cons* 'list ''list files))
+                                      #t)))))))))))))
      (native-inputs
       `(("autoconf" ,autoconf)
         ("automake" ,automake)
