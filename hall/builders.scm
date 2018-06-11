@@ -44,6 +44,9 @@
 ;;;;; Helpers
 
 (define* (context->fname context name #:optional extension)
+  "Return an absolute filepath constructed using the list representation
+of the files directory at CONTEXT, and the filename of NAME.  If EXTENSION is
+a string, add \".EXTENSION\" to the resulting filename."
   (string-join
    (append context (list (if extension
                              (string-append name "." extension)
@@ -51,15 +54,24 @@
    file-name-separator-string))
 
 (define* (full-project-name spec)
+  "Return the full name of the project described by specification SPEC.  The
+full name is the project's prefix and the project's name, separated by a
+\"-\"."
   (string-append (specification-prefix spec) "-" (specification-name spec)))
 
 (define* (friendly-project-name spec)
+  "Return a human friendly version of the full name of the project described
+by the specification SPEC."
   (string-append (string-titlecase (specification-prefix spec)) " "
                  (string-titlecase (specification-name spec))))
 
 ;;;; Directory Constructor
 
 (define (directory name children)
+  "Return a hall directory procedure with the directory name NAME and a
+recursive list of hall directory or file procedures CHILDREN.  Directory
+procedures can be called with a number of operations.  See the code below to
+find out which."
   (lambda (spec context operation indentation)
     (define (proc child)
       ;; We use this procedure to recurse on our children
@@ -94,6 +106,14 @@
 ;;;;; File Constructor
 
 (define (file name language extension contents)
+  "Return a hall file procedure with the file name NAME.  The file contains
+content in LANGUAGE, a symbol describing a programming language or 'text for
+plain text.  EXTENSION should be the file's expected extension, and CONTENTS
+can be a procedure of one argument (the project's specification) or a string.
+In both cases contents describe the contents of the file.
+
+A number of operations on hall file procedures are possible.  Consult the code
+below to find out what these are."
   (lambda (spec context operation indentation)
     ;; Defined operations:
     ;; - write: emit a scheme representation of the file, but not contents;
@@ -143,6 +163,8 @@
 ;;;; Filetype converters
 
 (define (filetype-write name language extension)
+  "Return an SXML representation of the hall decsription of the file with name
+NAME, in LANGUAGE and with EXTENSION."
   (match (cons language extension)
     (('scheme . "scm") `(scheme-file ,name))
     (('text . #f) `(text-file ,name))
@@ -156,6 +178,8 @@
     (_ `(file ,name ,language ,extension))))
 
 (define (filetype-derive name)
+  "Return an SXML representation of the file with filename NAME, by analysing
+its extension."
   (let ((matches (string-match "^(.+)\\.(.*)$" name)))
     (if matches
         (match (map (cut match:substring matches  <>)

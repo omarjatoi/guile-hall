@@ -38,6 +38,11 @@
   #:export (clean-project))
 
 (define (clean-project spec context skip operation)
+  "Commandline tool for cleaning a project's folder-hierarchy.  SPEC is a hall
+specification file for the project in question.  CONTEXT is a list containing
+as its first and only element the absolute filepath to the project
+base-directory.  SKIP is a list of relative (to the project root directory)
+filepaths to be ignored by clean-project.  OPERATION can be 'show or 'exec."
   (when (eq? 'show operation)
     (format #t "Dryrun:~%"))
   (for-each (match-lambda
@@ -68,6 +73,10 @@
     (format #t "Finished dryrun.~%")))
 
 (define (project-walk files project-root skip)
+  "Return a list of operations matched to file paths describing what needs to
+be done to clean the hal project at PROJECT-ROOT, assuming the hal style files
+description FILES is complete, & ignoring the relative filepaths contained in
+the list SKIP."
   (define (shrink-path path)
     (string-split (string-drop path (1+ (string-length project-root)))
                   (string->char-set file-name-separator-string)))
@@ -99,12 +108,17 @@
     project-root)))
 
 (define (find-dir target candidates)
+  "Return #t if the name TARGET can be matched to a directory in CANDIDATES.
+Return #f otherwise."
   (find (match-lambda
           (('directory (? (cute string=? target <>)) children) children)
           (_ #f))
         candidates))
 
 (define (dir-match cropped candidates)
+  "Return #t if the description of the actually existing directory CROPPED can
+be matched to a directory in our hal representation of the files of the
+project in CANDIDATES.  Return #f otherwise."
   (let lp ((breadcrumbs cropped)
            (candidates candidates))
     (match breadcrumbs
@@ -115,6 +129,9 @@
          (children (lp rest children)))))))
 
 (define (file-match cropped candidates)
+  "Return #t if the description of the actually existing file CROPPED can be
+matched to a file in our hal representation of the files of the project in
+CANDIDATES.  Return #f otherwise."
   (let lp ((breadcrumbs cropped)
            (candidates candidates))
     (match breadcrumbs

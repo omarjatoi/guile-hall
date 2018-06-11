@@ -136,6 +136,8 @@
    (parser simple-sexp-parser)))
 
 (define* (main #:optional (args (command-line)))
+  "Entry point for the commandline application.  ARGS should be a normal
+command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
   (let* ((options (getopt-config-auto args %configuration))
          (operation (if (option-ref options 'execute) 'exec 'show)))
     (match (full-command options)

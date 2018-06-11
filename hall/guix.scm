@@ -35,6 +35,10 @@
   #:export (rewrite-guix-file git-guix-recipe tarball-guix-recipe))
 
 (define (rewrite-guix-file spec context operation)
+  "Commandline tool for re-generating a project's local guix file.  SPEC is a
+hall specification file for the project in question.  CONTEXT is a list
+containing as its first and only element the absolute filepath to the project
+base-directory.  OPERATION can be 'show or 'exec."
   (match operation
     ('exec ((guix-file) spec context operation ""))
     ((or 'show _)
@@ -43,6 +47,12 @@
      (format #t "Finished dryrun.~%"))))
 
 (define (git-guix-recipe spec context operation)
+  "Commandline tool for generating a project's guix file, assuming that we use
+a git repository for building the project.  The emitted guix file should be
+ready for adding to the Guix project.  SPEC is a hall specification file for
+the project in question.  CONTEXT is a list containing as its first and only
+element the absolute filepath to the project base-directory.  OPERATION can be
+'show or 'exec."
   (match operation
     ('exec ((guix-file 'git) spec context 'show-contents ""))
     ((or 'show _)
@@ -51,6 +61,12 @@
      (format #t "Finished dryrun.~%"))))
 
 (define (tarball-guix-recipe spec context operation)
+  "Commandline tool for generating a project's guix file, assuming that we use
+a tarball release for building the project.  The emitted guix file should be
+ready for adding to the Guix project.  SPEC is a hall specification file for
+the project in question.  CONTEXT is a list containing as its first and only
+element the absolute filepath to the project base-directory.  OPERATION can be
+'show or 'exec."
   (match operation
     ('exec ((guix-file 'tarball) spec context 'show-contents ""))
     ((or 'show _)

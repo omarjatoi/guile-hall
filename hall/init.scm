@@ -37,6 +37,10 @@
 
 ;; Fire of side-effectful project creation
 (define (create-project spec context operation)
+  "Commandline tool for creating a new project.  SPEC is a hall specification
+file for the project in question.  CONTEXT is a list containing as its first
+and only element the absolute filepath to the project base-directory.
+OPERATION can be 'show or 'exec."
   (let ((fname (context->fname context (full-project-name spec))))
     (if (file-exists? fname)
         (throw 'hall-create-project "PROJECT already exists: "
@@ -54,6 +58,10 @@
 
 
 (define (create-project-here spec context operation)
+  "Commandline tool for converting a project to use hall.  SPEC is a hall
+specification file for the project in question.  CONTEXT is a list containing
+as its first and only element the absolute filepath to the project
+base-directory.  OPERATION can be 'show or 'exec."
   (when (eq? 'show operation)
     (format #t "Dryrun:~%"))
   (instantiate spec context operation)
@@ -61,6 +69,10 @@
     (format #t "Finished dryrun.~%")))
 
 (define (recreate-project-here spec context operation)
+  "Commandline tool for refreshing a project.  SPEC is a hall specification
+file for the project in question.  CONTEXT is a list containing as its first
+and only element the absolute filepath to the project base-directory.
+OPERATION can be 'show or 'exec."
   (when (eq? operation 'exec)
     (for-each (lambda (n)
                 (false-if-exception (delete-file n)))

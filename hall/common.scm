@@ -58,6 +58,8 @@
                                descriptio home-pag licens dependencie
                                lib-files tst-files prog-files doc-files
                                infra-files)
+  "Return a hal specification of a project with the arguments.  The arguments
+are checked against basic validations before a specification is returned."
   (specification
    (name nam) (prefix prefi) (version versio) (author autho)
    (copyright copyrigh) (synopsis synopsi) (description descriptio)
@@ -70,6 +72,9 @@
            (append infra-files (base-infrastructure))))))
 
 (define (instantiate spec context operation)
+  "Carry out the operation OPERATION, a symbol that should be 'show or 'exec,
+against the projec described by the specification SPEC in the list describing
+the folder location CONTEXT."
   (for-each (cute <> spec context operation "  ")
             (apply append
                    (map (cute <> (specification-files spec))
@@ -77,15 +82,21 @@
                               files-documentation files-infrastructure)))))
 
 (define (project-root-directory?)
+  "Return #t if we believe to be in a project root directory, a directory
+containing a hall.scm file."
   (file-exists? "hall.scm"))
 
 (define (blacklisted? path project-root skip)
+  "Return #t if the absolute filepath PATH, located in the project at absolute
+filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
   ;; Currently only allow blacklisting at the top-level.
   (and (not (string=? project-root path))
        (member (string-drop path (1+ (string-length project-root)))
                (cons ".git" skip))))
 
 (define (find-project-root-directory)
+  "Find and return the project root directory path of the current project, and
+set the working directory to it, or throw an error."
   (let ((start (getcwd)))
     (let lp ((cwd (getcwd)))
       (cond ((project-root-directory?) `(,cwd))
@@ -97,6 +108,8 @@
              (lp (getcwd)))))))
 
 (define (read-spec)
+  "Set the working directory to the current project's root directory & parse
+the project's hall.scm file."
   (find-project-root-directory)
   (scm->specification
    (with-input-from-file "hall.scm"
@@ -105,16 +118,20 @@
 ;;;; Defaults
 
 (define (base-libraries name)
+  "Return the default libraries section."
   `(,(file name 'scheme "scm" "")
     ,(directory name '())))
 
 (define (base-tests)
+  "Return the default tests section."
   `(,(directory "tests" '())))
 
 (define (base-programs)
+  "Return the default programs section."
   `(,(directory "scripts" `())))
 
 (define (base-top-docs)
+  "Return the default top level documentation section."
   `(,(file "README" 'text #f "")
     ,(file "HACKING" 'text #f
            (lambda (spec)
@@ -207,20 +224,24 @@ You can read the full license at ~a.~%"
               (license-uri license))))
 
 (define (base-documentation name)
+  "Return the complete default documentation section."
   `(,@(base-top-docs)
     ,(directory "doc"
                 `(,(manual-file name)))))
 
 (define (base-infrastructure)
+  "Return the default infrastructure section."
   `(,(guix-file)
     ,(file "hall" 'scheme "scm" #f)))
 
 (define (base-autotools-documentation)
+  "Return the default autotools documentation section."
   `(,(file "NEWS" 'text #f "")
     ,(file "AUTHORS" 'text #f "")
     ,(file "ChangeLog" 'text #f "")))
 
 (define (base-autotools-infrastructure)
+  "Return the default autotools section."
   `(,(configure-file)
     ,(makefile-file)
     ,(file "test-env" 'shell "in"
@@ -249,12 +270,15 @@ exec \"$@\"
 ")))
 
 (define (base-autotools)
+  "Return the complete autotools section."
   `(,@(base-autotools-documentation)
     ,@(base-autotools-infrastructure)))
 
 ;;;;; Files
 
 (define (manual-file name)
+  "Return a hal file procedure with default contents for the project's
+manual."
   (file name 'texinfo "texi"
         (lambda (spec)
           (display
@@ -303,6 +327,8 @@ Edition @value{EDITION} @*
 ")))))
 
 (define (configure-file)
+  "Return a hal file procedure with default contents for the project's
+configure.ac file."
   (file "configure" 'autoconf "ac"
         (lambda (spec)
           (display
@@ -356,6 +382,8 @@ AC_OUTPUT
 
 ;;;; Full on cargo cult!
 (define (makefile-file)
+  "Return a hal file procedure with default contents for the project's
+Makefile.am file."
   (file
    "Makefile" 'automake "am"
    (lambda (spec)
@@ -452,6 +480,8 @@ CLEANFILES =					\\
 ")))))
 
 (define (guix-package spec type)
+  "Return a guix package description of the hal project specification SPEC, of
+TYPE 'local, 'git or 'tarball."
   `(package
      (name ,(full-project-name spec))
      (version ,(specification-version spec))
@@ -494,6 +524,8 @@ CLEANFILES =					\\
      (license ,(specification-license spec))))
 
 (define* (guix-file #:optional (type 'local))
+  "Return a hal file procedure with default contents for the project's
+guix.scm file."
   (file
    "guix" 'scheme "scm"
    (lambda (spec)
@@ -519,6 +551,8 @@ CLEANFILES =					\\
 
 ;; A lookup table of files that have templatized contents.
 (define (templatize-files project-name)
+  "Return a hash-table keyed on absolute filepaths containing the contents of
+all default files that contain non-empty contents."
   (let ((htable (make-hash-table)))
     (for-each (lambda (entries)
                 (let lp ((todo (entries '() '() 'raw+contents "")))
@@ -538,6 +572,8 @@ CLEANFILES =					\\
     htable))
 
 ;;;;; Validators
+
+;;;; Return the to be validated value or throw an error!
 
 (define (name project-name)
   (or (and (string? project-name) project-name)
@@ -603,6 +639,7 @@ CLEANFILES =					\\
 ;;;; Utilities
 
 (define (flatten files)
+  "Return a list of depth 1 from the possibly deep list FILES."
   (match files
     (() '())
     (((? list? first) . rest)
@@ -613,12 +650,16 @@ CLEANFILES =					\\
 ;;;; Hall file parser
 
 (define (href scm key)
+  "Return the value for KEY in the SXML representation of a hal specification
+SCM."
   (match (assoc-ref scm key)
     ((value) value)
     ((values ...) values)
     (#f (throw 'hall-scm->specification "Missing expected hall key:" key))))
 
 (define (category-traverser files project-name)
+  "Return a list of hal style directory or file procedures from the SXML
+representation of files FILES, under PROJECT-NAME."
   (let lp ((files files)
            (accum '())
            (path '()))
@@ -639,12 +680,16 @@ CLEANFILES =					\\
       (_ (throw 'hall-category-traverser "Got muddled:" files accum)))))
 
 (define (scm->files all-files project-name)
+  "Return a hal specification files section for the entire SXML representation
+of the files ALL-FILES under PROJECT-NAME."
   (apply files
          (map (compose (cut category-traverser <> project-name)
                        (cute href all-files <>))
               '(libraries tests programs documentation infrastructure))))
 
 (define (scm->specification scm)
+  "Return a hal specification of the SXML representation of that specification
+SCM."
   (match scm
     (('hall-description . scm)
      (apply specification
@@ -655,6 +700,9 @@ CLEANFILES =					\\
     (_ (throw 'hall-scm->specification "Invalid hall data:" scm))))
 
 (define (filetype-read type name fname templates . args)
+  "Return a hal file procedure for the SXML represented file of language TYPE,
+with name NAME, and full path name FNAME, potentially with contents found in
+the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
   ;; First element in args is considered a user specified content.
   (let ((contents (or (and (not (null? args)) (first args))
                       (hash-ref templates fname ""))))
@@ -673,6 +721,8 @@ CLEANFILES =					\\
                        "Unknown filetype" type name args))))))
 
 (define (file->filepath type name path)
+  "Return the absolute filepath of the file NAME of language TYPE at folder
+PATH."
   (context->fname path name (match type
                               ('scheme-file "scm")
                               ('text-file #f)

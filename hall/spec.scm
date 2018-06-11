@@ -87,6 +87,8 @@
 ;;;; Specification->metadata
 
 (define (specification->metadata spec)
+  "Return an SXML style association list containing all the metadata of the
+hall specification SPEC."
   `((name ,(specification-name spec))
     (prefix ,(specification-prefix spec))
     (version ,(specification-version spec))
@@ -99,6 +101,8 @@
     (dependencies ,(specification-dependencies spec))))
 
 (define (specification->files spec)
+  "Return an SXML style association list containing the files section of the
+hall specification SPEC."
   (let ((spec-files (specification-files spec)))
     (define (proc xsr)
       (map (cut <> spec '() 'write "") (xsr spec-files)))
@@ -110,9 +114,12 @@
       (infrastructure ,(proc files-infrastructure)))))
 
 (define (specification->files-tree spec)
+  "Return a list of all files, in hall format, contained by the files section
+of the hall specification SPEC."
   (apply append (map second (cdr (specification->files spec)))))
 
 (define (specification->scm spec)
+  "Return a simple sxml type representation of the hall specification SPEC."
   `(hall-description
     ,@(specification->metadata spec)
     ,(specification->files spec)))

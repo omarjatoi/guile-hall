@@ -41,6 +41,12 @@
 ;; We traverse each file category.  For each directory we encounter, we scan
 ;; and add all files, making best guesses according to extensions.
 (define (scan-project spec context skip operation)
+  "Commandline tool for scanning & returning and updated hall.scm file of the
+state of a given project.  SPEC is a hall specification file for the project
+in question.  CONTEXT is a list containing as its first and only element the
+absolute filepath to the project base-directory.  SKIP is a list of relative
+(to the project root directory) filepaths to be ignored by scan-project.
+OPERATION can be 'show or 'exec."
   (let ((new-spec (set-specification-files
                    spec (scm->files (actual->all-files spec context skip)
                                     (specification-name spec)))))
@@ -56,6 +62,12 @@
        (format #t "Finished dryrun.~%")))))
 
 (define (actual->all-files spec context skip)
+  "Return an SXML style association list containing a representation of the
+actual state of the folder hierarchy of the project described by SPEC &
+CONTEXT.  SPEC is a hall specification file for the project
+in question.  CONTEXT is a list containing as its first and only element the
+absolute filepath to the project base-directory.  SKIP is a list of relative
+(to the project root directory) filepaths to be ignored by scan-project."
   (let ((spec-files (specification-files spec)))
     (define (proc candidates)
       (filter-map (compose (cut derive-filetypes <> skip context)
@@ -71,6 +83,10 @@
                                      (base-autotools-infrastructure)))))))
 
 (define (derive-filetypes file skip context)
+  "Return a hall format file descriptor for the file or folder FILE, or #f if
+that file or folder is in the list of relative paths SKIP.  CONTEXT is a list
+containing as its first and only element the absolute filepath to the project
+base-directory."
   (let lp ((file file)
            (path context))
     ;; Remove the `stat' object for each file in the tree.
