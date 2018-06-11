@@ -42,7 +42,7 @@
   #:export (values->specification
             instantiate
 
-            project-root-directory? find-project-root-directory
+            blacklisted? project-root-directory? find-project-root-directory
 
             read-spec filetype-read
             scm->files scm->specification
@@ -78,6 +78,12 @@
 
 (define (project-root-directory?)
   (file-exists? "hall.scm"))
+
+(define (blacklisted? path project-root skip)
+  ;; Currently only allow blacklisting at the top-level.
+  (and (not (string=? project-root path))
+       (member (string-drop path (1+ (string-length project-root)))
+               (cons ".git" skip))))
 
 (define (find-project-root-directory)
   (let ((start (getcwd)))

@@ -40,9 +40,9 @@
 
 ;; We traverse each file category.  For each directory we encounter, we scan
 ;; and add all files, making best guesses according to extensions.
-(define (scan-project spec context operation)
+(define (scan-project spec context skip operation)
   (let ((new-spec (set-specification-files
-                   spec (scm->files (actual->all-files spec context)
+                   spec (scm->files (actual->all-files spec context skip)
                                     (specification-name spec)))))
     (match operation
       ('exec
@@ -55,11 +55,11 @@
        (pretty-print (specification->scm new-spec) (current-output-port))
        (format #t "Finished dryrun.~%")))))
 
-(define (actual->all-files spec context)
+(define (actual->all-files spec context skip)
   (let ((spec-files (specification-files spec)))
     (define (proc candidates)
-      (filter-map (compose derive-filetypes file-system-tree
-                           (cute <> spec context 'path ""))
+      (filter-map (compose (cut derive-filetypes <> skip context)
+                           file-system-tree (cute <> spec context 'path ""))
                   candidates))
     `(files
       (libraries ,(proc (files-libraries spec-files)))
@@ -70,17 +70,24 @@
       (infrastructure ,(proc (append (files-infrastructure spec-files)
                                      (base-autotools-infrastructure)))))))
 
-(define derive-filetypes
-  ;; Remove the `stat' object for each file in the tree.
-  ;; Also attempt to derive filetype for each individual file
-  (match-lambda
-    (#f #f)                             ; top-level category file removed
-    ((name stat)
-     (match (stat:type stat)
-       ('regular (filetype-derive name)) ; flat file
-       ('directory `(directory ,name ()))
-       ((or 'symlink 'block-special 'char-special 'fifo 'socket 'unknown)
-        (throw 'hall-derive-filetypes "Unsupported file type:"
-               (stat:type stat)))))
-    ((name stat children ...)            ; directory
-     `(directory ,name ,(map derive-filetypes children)))))
+(define (derive-filetypes file skip context)
+  (let lp ((file file)
+           (path context))
+    ;; Remove the `stat' object for each file in the tree.
+    ;; Also attempt to derive filetype for each individual file
+    (match file
+      (#f #f)                             ; top-level category file removed
+      ((name stat)
+       (match (stat:type stat)
+         ('regular                        ; flat file
+          (and (not (blacklisted? (string-join (reverse (cons name path))
+                                               file-name-separator-string)
+                                  (first context) skip))
+               (filetype-derive name)))
+         ('directory `(directory ,name ()))
+         ((or 'symlink 'block-special 'char-special 'fifo 'socket 'unknown)
+          (throw 'hall-derive-filetypes "Unsupported file type:"
+                 (stat:type stat)))))
+      ((name stat children ...)            ; directory
+       `(directory ,name ,(filter-map (cut lp <> (cons name path))
+                                      children))))))

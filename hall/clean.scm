@@ -37,7 +37,7 @@
   #:use-module (srfi srfi-26)
   #:export (clean-project))
 
-(define (clean-project spec context operation)
+(define (clean-project spec context skip operation)
   (when (eq? 'show operation)
     (format #t "Dryrun:~%"))
   (for-each (match-lambda
@@ -63,37 +63,35 @@
                                          file-name-separator-string
                                          (full-project-name spec))))))
             (project-walk (specification->files-tree spec)
-                          (first context)))
+                          (first context) skip))
   (when (eq? 'show operation)
     (format #t "Finished dryrun.~%")))
 
-(define (project-walk files project-root)
+(define (project-walk files project-root skip)
   (define (shrink-path path)
     (string-split (string-drop path (1+ (string-length project-root)))
                   (string->char-set file-name-separator-string)))
-  (define (blacklisted? path)
-    ;; Currently only allow blacklisting at the top-level.
-    (and (not (project-root? path))
-         (member (string-drop path (1+ (string-length project-root)))
-                 '(".git"))))
   (define (project-root? path)
     (string=? path project-root))
   (reverse
    (file-system-fold
     (lambda (path _ -)                  ; enter?
-      (and (not (blacklisted? path))
+      (and (not (blacklisted? path project-root skip))
            (or (project-root? path) (dir-match (shrink-path path) files))))
     (lambda (path stat result)          ; leaf
       ;; When we hit a leaf we want to check our spec for the existence of
       ;; that leaf & perform an operation against it.
-      (cons (cond ((blacklisted? path) `(skipped ,path))
+      (cons (cond ((blacklisted? path project-root skip) `(skipped ,path))
                   ((file-match (shrink-path path) files) `(keep ,path))
                   (else `(delete ,path)))
             result))
     (lambda (_ - result) result)        ; down
     (lambda (_ - result) result)        ; up
     (lambda (path stat result)          ; skip
-      (cons (if (blacklisted? path) `(skipped ,path) `(delete ,path)) result))
+      (cons (if (blacklisted? path project-root skip)
+                `(skipped ,path)
+                `(delete ,path))
+            result))
     (lambda (path stat result)          ; error
       ;; No error handling at present.
       result)

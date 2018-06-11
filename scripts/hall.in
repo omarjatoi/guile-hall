@@ -64,7 +64,15 @@
      (configuration
       (name 'clean)
       (synopsis "Clean your project.")
-      (wanted '((keywords execute))))
+      (wanted '((keywords execute)))
+      (keywords
+       (list
+        (switch
+         (name 'skip) (default '())
+         (test (match-lambda (((? string?) ...) #t) (_ #f)))
+         (handler (cut string-split <> #\,))
+         (synopsis "CSV list of files to skip.")
+         (example "scripts/foo,AUTHORS")))))
      (configuration
       (name 'distribute) (alias 'dist)
       (synopsis "Prepare your project for distribution.")
@@ -111,7 +119,15 @@
      (configuration
       (name 'scan)
       (synopsis "Refresh your project's Hall file.")
-      (wanted '((keywords execute))))))
+      (wanted '((keywords execute)))
+      (keywords
+       (list
+        (switch
+         (name 'skip) (default '())
+         (test (match-lambda (((? string?) ...) #t) (_ #f)))
+         (handler (cut string-split <> #\,))
+         (synopsis "CSV list of files to skip.")
+         (example "scripts/foo,AUTHORS")))))))
    (directory (in-home "."))
    (parser simple-sexp-parser)))
 
@@ -122,7 +138,8 @@
       (("hall")
        (emit-help options))
       (("hall" "clean")
-       (clean-project (read-spec) (find-project-root-directory) operation))
+       (clean-project (read-spec) (find-project-root-directory)
+                      (option-ref options 'skip) operation))
       (("hall" "distribute")
        (make-dist-infrastructure (read-spec) (find-project-root-directory)
                                  operation))
@@ -148,7 +165,8 @@
       (("hall" "initiate" "refresh")
        (recreate-project-here (read-spec) '() operation))
       (("hall" "scan")
-       (scan-project (read-spec) (find-project-root-directory) operation)))))
+       (scan-project (read-spec) (find-project-root-directory)
+                     (option-ref options 'skip) operation)))))
 
 ;;; Local Variables:
 ;;; mode: scheme
