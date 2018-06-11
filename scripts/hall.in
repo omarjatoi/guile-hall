@@ -115,7 +115,7 @@
         (configuration
          (name 'refresh)
          (wanted '((keywords execute)))
-         (synopsis "Regenerate guix.scm, HACKING & COPYING files.")))))
+         (synopsis "Regenerate HACKING & COPYING files.")))))
      (configuration
       (name 'scan)
       (synopsis "Refresh your project's Hall file.")

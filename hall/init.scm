@@ -64,5 +64,5 @@
   (when (eq? operation 'exec)
     (for-each (lambda (n)
                 (false-if-exception (delete-file n)))
-              '("guix.scm" "COPYING" "HACKING")))
+              '("COPYING" "HACKING")))
   (create-project-here spec context operation))
