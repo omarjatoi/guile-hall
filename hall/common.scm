@@ -130,13 +130,26 @@ By far the easiest way to hack on ~a is to develop using Guix:
 #+BEGIN_SRC bash
   # Obtain the source code
   cd /path/to/source-code
-  guix environment --pure --container -l guix.scm
+  guix environment -l guix.scm
   # In the new shell, run:
-  hall dist && autoreconf -vif && ./configure && make check
+  hall dist --execute && autoreconf -vif && ./configure && make check
 #+END_SRC
 
 You can now hack this project's files to your heart's content, whilst
 testing them from your `guix environment' shell.
+
+To try out any scripts in the project you can now use
+
+#+BEGIN_SRC bash
+  ./pre-inst-env scripts/${script-name}
+#+END_SRC
+
+If you'd like to tidy the project again, but retain the ability to test the
+project from the commandline, simply run:
+
+#+BEGIN_SRC bash
+  ./hall clean --skip \"scripts/${script-name},pre-inst-env\" --execute
+#+END_SRC
 
 ** Manual Installation
 
@@ -272,7 +285,7 @@ Documentation License''.
 
 @dircategory The Algorithmic Language Scheme
 @direntry
-* " (friendly-project-name spec) ": (" (full-project-name spec) ").      Declarative program configuration
+* " (friendly-project-name spec) ": (" (full-project-name spec) ")    " (specification-synopsis spec) "
 @end direntry
 
 @titlepage
