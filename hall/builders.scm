@@ -156,7 +156,7 @@
     (_ `(file ,name ,language ,extension))))
 
 (define (filetype-derive name)
-  (let ((matches (string-match "(.*)\\.(.*)" name)))
+  (let ((matches (string-match "^(.+)\\.(.*)$" name)))
     (if matches
         (match (map (cut match:substring matches  <>)
                     '(1 2))

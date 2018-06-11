@@ -662,7 +662,7 @@ CLEANFILES =					\\
 (define (file->filepath type name path)
   (context->fname path name (match type
                               ('scheme-file "scm")
-                              ('text-file "")
+                              ('text-file #f)
                               ('info-file "info")
                               ('texi-file "texi")
                               ('shell-file "sh")
