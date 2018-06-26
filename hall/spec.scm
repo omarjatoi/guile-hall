@@ -116,7 +116,20 @@ hall specification SPEC."
 (define (specification->files-tree spec)
   "Return a list of all files, in hall format, contained by the files section
 of the hall specification SPEC."
-  (apply append (map second (cdr (specification->files spec)))))
+  (let lp ((todo (sort (apply append (map second (cdr (specification->files spec))))
+                       (lambda (x y) (string<=? (second x) (second y)))))
+           (result '()))
+    (match todo
+      (() (reverse result))
+      ((last) (reverse (cons last result)))
+      ((('directory name1 children1) ('directory name2 children2) . rest)
+       (if (string=? name1 name2)
+           (lp rest (cons `(directory ,name1 ,(append children1 children2))
+                          result))
+           (lp (cons `(directory ,name2 ,children2) rest)
+               (cons `(directory ,name1 ,children1) result))))
+      ((first . rest)
+       (lp rest (cons first result))))))
 
 (define (specification->scm spec)
   "Return a simple sxml type representation of the hall specification SPEC."
