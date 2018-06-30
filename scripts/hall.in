@@ -34,7 +34,7 @@
 (use-modules (config)
              (config api)
              (config parser sexp)
-             (guix licenses)
+             (config licenses)
              (hall clean)
              (hall common)
              (hall dist)

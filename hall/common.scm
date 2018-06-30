@@ -28,7 +28,7 @@
 ;;; Code:
 
 (define-module (hall common)
-  #:use-module (guix licenses)
+  #:use-module (config licenses)
   #:use-module (hall spec)
   #:use-module (hall builders)
   #:use-module (ice-9 match)
@@ -63,7 +63,7 @@ are checked against basic validations before a specification is returned."
   (specification
    (name nam) (prefix prefi) (version versio) (author autho)
    (copyright copyrigh) (synopsis synopsi) (description descriptio)
-   (home-page home-pag) (license licens) (dependencies dependencie)
+   (home-page home-pag) (license-prs licens) (dependencies dependencie)
    (all-files
     (files (append lib-files (base-libraries nam))
            (append tst-files (base-tests))
@@ -646,7 +646,7 @@ all default files that contain non-empty contents."
              project-home-page)))
 
 ;; FIXME: LICENSE should be a license object
-(define (license project-license)
+(define (license-prs project-license)
   (or (and (symbol? project-license) project-license)
       (throw 'hall-spec-license "PROJECT-LICENSE should be a symbol."
              project-license)))
