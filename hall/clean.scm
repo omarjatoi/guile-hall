@@ -96,7 +96,8 @@ the list SKIP."
    (file-system-fold
     (lambda (path _ -)                  ; enter?
       (and (not (blacklisted? path project-root skip))
-           (or (project-root? path) (dir-match (shrink-path path) files))))
+           (or (project-root? path)
+               (not (null? (dir-match (shrink-path path) files))))))
     (lambda (path stat result)          ; leaf
       ;; When we hit a leaf we want to check our spec for the existence of
       ;; that leaf & perform an operation against it.
