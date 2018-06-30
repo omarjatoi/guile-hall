@@ -31,8 +31,10 @@
   #:use-module (hall builders)
   #:use-module (hall common)
   #:use-module (hall spec)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 ftw)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 receive)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:export (clean-project))
@@ -45,30 +47,38 @@ base-directory.  SKIP is a list of relative (to the project root directory)
 filepaths to be ignored by clean-project.  OPERATION can be 'show or 'exec."
   (when (eq? 'show operation)
     (format #t "Dryrun:~%"))
-  (for-each (match-lambda
-              (('keep path)
-               (format #t "Keeping: ~a~%" path))
-              (('skipped path)
-               (format #t "Skipping: ~a~%" path))
-              (('delete path)
-               ;; I'm real paranoid about deleting the wrong files!
-               (if (and (string=? (getcwd) (first context))
-                        (string=? (basename (getcwd))
-                                  (full-project-name spec))
-                        (string=? (substring path 0 (string-length (getcwd)))
-                                  (getcwd)))
-                   (begin
-                     (format #t "Deleting: ~a~%" path)
-                     (when (eq? 'exec operation)
-                       (system* "rm" "-rf" path)))
-                   (throw 'clean-project
-                          "Filepath/project mismatch. Won't delete nothing."
-                          (getcwd)
-                          (string-append (dirname (getcwd))
-                                         file-name-separator-string
-                                         (full-project-name spec))))))
-            (project-walk (specification->files-tree spec)
-                          (first context) skip))
+  (receive (delete others)
+      (partition (match-lambda (('delete . rest) #t) (_ #f))
+                 (project-walk (specification->files-tree spec)
+                               (first context) skip))
+    (format #t "  Deleting:~%")
+    (for-each
+     (compose (lambda (path)
+                ;; I'm real paranoid about deleting the wrong files!
+                (if (and (string=? (getcwd) (first context))
+                         (string=? (basename (getcwd))
+                                   (full-project-name spec))
+                         (string=? (substring path 0 (string-length (getcwd)))
+                                   (getcwd)))
+                    (begin
+                      (format #t "~0,1,4@a~%" path)
+                      (when (eq? 'exec operation)
+                        (system* "rm" "-rf" path)))
+                    (throw 'clean-project
+                           "Filepath/project mismatch. Won't delete nothing."
+                           (getcwd)
+                           (string-append (dirname (getcwd))
+                                          file-name-separator-string
+                                          (full-project-name
+                                           spec)))))
+              second)
+     delete)
+    (receive (skip keep)
+        (partition (compose (cut eq? 'skip <>) first) others)
+      (format #t "~%  Skipping:~%")
+      (for-each (compose (cute format #t "~0,1,4@a~%" <>) second) skip)
+      (format #t "~%  Keeping:~%")
+      (for-each (compose (cute format #t "~0,1,4@a~%" <>) second) keep)))
   (when (eq? 'show operation)
     (format #t "Finished dryrun.~%")))
 
@@ -90,7 +100,7 @@ the list SKIP."
     (lambda (path stat result)          ; leaf
       ;; When we hit a leaf we want to check our spec for the existence of
       ;; that leaf & perform an operation against it.
-      (cons (cond ((blacklisted? path project-root skip) `(skipped ,path))
+      (cons (cond ((blacklisted? path project-root skip) `(skip ,path))
                   ((file-match (shrink-path path) files) `(keep ,path))
                   (else `(delete ,path)))
             result))
@@ -98,7 +108,7 @@ the list SKIP."
     (lambda (_ - result) result)        ; up
     (lambda (path stat result)          ; skip
       (cons (if (blacklisted? path project-root skip)
-                `(skipped ,path)
+                `(skip ,path)
                 `(delete ,path))
             result))
     (lambda (path stat result)          ; error
