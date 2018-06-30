@@ -458,14 +458,16 @@ info_TEXINFOS = " (string-join
 dvi: # Don't build dvi docs
 
 EXTRA_DIST += " (string-join
-                 (filter (negate (cut string-match ".*\\.texi$" <>))
-                         (flatten
-                          (map (cute <> spec '() 'raw "")
-                               (files-documentation
-                                (specification-files spec)))))
+                 (append
+                  (filter (negate (cut string-match ".*\\.texi$" <>))
+                          (flatten
+                           (map (cute <> spec '() 'raw "")
+                                (files-documentation
+                                 (specification-files spec)))))
+                  (flatten (map (cute <> spec '() 'raw "")
+                                (files-infrastructure
+                                 (specification-files spec)))))
                  " \\\n") " \\
-  # pre-inst-env.in				\\
-  # test-env.in					\\
   $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
