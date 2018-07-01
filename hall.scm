@@ -28,6 +28,9 @@
          ((text-file "README")
           (text-file "HACKING")
           (text-file "COPYING")
+          (text-file "NEWS")
+          (text-file "AUTHORS")
+          (text-file "ChangeLog")
           (directory "doc" ((texi-file "hall")))))
         (infrastructure
          ((scheme-file "guix") (scheme-file "hall")))))
