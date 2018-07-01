@@ -363,6 +363,27 @@ Edition @value{EDITION} @*
 @insertcopying
 @end titlepage
 
+@contents
+
+@c *********************************************************************
+@node Top
+@top " (friendly-project-name spec) "
+
+This document describes " (friendly-project-name spec) " version @value{VERSION}.
+
+@menu
+* Introduction::                Why " (friendly-project-name spec) "?
+@end menu
+
+@c *********************************************************************
+@node Introduction
+@chapter Introduction
+
+INTRODUCTION HERE
+
+This documentation is a stub.
+
+@bye
 ")))))
 
 (define (configure-file)
