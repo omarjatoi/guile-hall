@@ -52,6 +52,8 @@
 
 ;;;; Spec Definition
 
+;; A record type that fills the files field of a <specification>: a container
+;; for the different file categories we use in a Guile project.
 (define-record-type <files>
   (files libraries tests programs documentation infrastructure)
   files?
@@ -61,6 +63,7 @@
   (documentation files-documentation)
   (infrastructure files-infrastructure))
 
+;; A container for the fundamental specification used by Hall.
 (define-immutable-record-type <specification>
   (specification name prefix version author copyright synopsis description
                  home-page license dependencies files)
@@ -77,6 +80,7 @@
   (dependencies specification-dependencies)
   (files specification-files set-specification-files))
 
+;; Reduce the noise!
 (set-record-type-printer!
  <specification>
  (lambda (spec port)
