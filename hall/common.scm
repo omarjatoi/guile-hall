@@ -132,7 +132,13 @@ the project's hall.scm file."
 
 (define (base-top-docs)
   "Return the default top level documentation section."
-  `(,(file "README" 'text #f "")
+  `(,(file "README" 'text #f
+           (lambda (spec)
+             (format #t
+                     "-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: README for ~a~%~%"
+                     (friendly-project-name spec))))
     ,(file "HACKING" 'text #f
            (lambda (spec)
              (format #t
@@ -236,9 +242,42 @@ You can read the full license at ~a.~%"
 
 (define (base-autotools-documentation)
   "Return the default autotools documentation section."
-  `(,(file "NEWS" 'text #f "")
-    ,(file "AUTHORS" 'text #f "")
-    ,(file "ChangeLog" 'text #f "")))
+  `(,(file "NEWS" 'text #f
+           (lambda (spec)
+             (format #t
+                     "-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: ~a NEWS – history of user-visible changes
+#+STARTUP: content hidestars
+
+Copyright © ~a ~a <INSERT EMAIL HERE>
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
+Please send ~a bug reports to INSERT EMAIL HERE.
+
+* Publication at ~a~%"
+                     (friendly-project-name spec)
+                     (specification-copyright spec)
+                     (specification-author spec)
+                     (friendly-project-name spec)
+                     (specification-version spec))))
+    ,(file "AUTHORS" 'text #f
+           (lambda (spec)
+             (format #t
+                     "Contributers to ~a ~a:
+
+    ~a <INSERT EMAIL HERE>~%"
+                     (friendly-project-name spec) (specification-version spec)
+                     (specification-author spec))))
+    ,(file "ChangeLog" 'text #f
+           (lambda (spec)
+             (format #t
+                     "For a complete log, please see the Git commit log at <~a/PATH/TO/LOG>.~%"
+                     (specification-home-page spec))))))
+
 
 (define (base-autotools-infrastructure)
   "Return the default autotools section."
