@@ -66,3 +66,5 @@ stability.
 
 This documentation is a stub.  Current documentation exists in the
 README file.
+
+@bye
