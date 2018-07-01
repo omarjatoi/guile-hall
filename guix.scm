@@ -11,8 +11,8 @@
 
 (package
   (name "guile-hall")
-  (version "0.1")
-  (source "./guile-hall-0.1.tar.gz")
+  (version "0.1.1")
+  (source "./guile-hall-0.1.1.tar.gz")
   (build-system gnu-build-system)
   (arguments
    `(#:modules
@@ -63,3 +63,4 @@
   (home-page
    "https://gitlab.com/a-sassmannshausen/guile-hall")
   (license gpl3+))
+
