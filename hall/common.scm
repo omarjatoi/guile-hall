@@ -396,11 +396,16 @@ configure.ac file."
 dnl -*- Autoconf -*-
 
 AC_INIT(" (full-project-name spec) ", " (specification-version spec) ")
-AC_CONFIG_SRCDIR(" (match (find (match-lambda (('directory . rest) #t) (_ #f))
-                                (map (cut <> '() '() 'write "")
-                                     (files-libraries
-                                      (specification-files spec))))
-                     (('directory name children) name)) ")
+AC_CONFIG_SRCDIR(" (let ((core-file (string-append (specification-name spec)
+                                                   ".scm")))
+                     (if (file-exists? core-file)
+                         core-file
+                         (match (find (match-lambda (('directory . rest) #t)
+                                                    (_ #f))
+                                      (map (cut <> '() '() 'write "")
+                                           (files-libraries
+                                            (specification-files spec))))
+                           (('directory name children) name)))) ")
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([1.12 gnu silent-rules subdir-objects \
  color-tests parallel-tests -Woverride -Wno-portability])
