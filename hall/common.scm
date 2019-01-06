@@ -208,7 +208,7 @@ Once those dependencies are installed you can run:
   "Return a basic license information string for LICENSE.  If LICENSE is part
 of the GPL family, and we are ONLINE?, fetch the full license instead."
   (define (fetch uri)
-    (catch 'getaddrinfo-error
+    (catch #t
       (lambda _
         (call-with-values
             (lambda _
