@@ -137,7 +137,8 @@ project in CANDIDATES.  Return #f otherwise."
       ((dir . rest)
        (match (find-dir dir candidates)
          (#f #f)
-         (children (lp rest children)))))))
+         ((children)
+          (lp rest children)))))))
 
 (define (file-match cropped candidates)
   "Return #t if the description of the actually existing file CROPPED can be
