@@ -3,9 +3,13 @@
 bin_SCRIPTS = scripts/hall
 
 # Handle substitution of fully-expanded Autoconf variables.
-do_subst = $(SED)					  -e 's,[@]GUILE[@],$(GUILE),g'				  -e 's,[@]guilemoduledir[@],$(guilemoduledir),g'	  -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	  -e 's,[@]localedir[@],$(localedir),g'
+do_subst = $(SED)					\
+  -e 's,[@]GUILE[@],$(GUILE),g'				\
+  -e 's,[@]guilemoduledir[@],$(guilemoduledir),g'	\
+  -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\
+  -e 's,[@]localedir[@],$(localedir),g'
 
-nodist_noinst_SCRIPTS =				  pre-inst-env					  test-env
+nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
@@ -31,33 +35,43 @@ SUFFIXES = .scm .go
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$<"
 
 SOURCES = hall/builders.scm \
-hall/scan.scm \
-hall/spec.scm \
-hall/common.scm \
-hall/dist.scm \
-hall/clean.scm \
-hall/init.scm \
-hall/guix.scm
+          hall/scan.scm \
+          hall/spec.scm \
+          hall/common.scm \
+          hall/dist.scm \
+          hall/clean.scm \
+          hall/init.scm \
+          hall/guix.scm
 
 TESTS = 
 
 TEST_EXTENSIONS = .scm
-AM_TESTS_ENVIRONMENT = abs_top_srcdir="$(abs_top_srcdir)"
-SCM_LOG_COMPILER = $(top_builddir)/test-env $(GUILE)
+SCM_LOG_DRIVER =                                \
+  $(top_builddir)/pre-inst-env                  \
+  $(GUILE) --no-auto-compile -e main            \
+      $(top_srcdir)/build-aux/test-driver.scm
+
+# Tell 'build-aux/test-driver.scm' to display only source file names,
+# not indivdual test names.
+AM_SCM_LOG_DRIVER_FLAGS = --brief=yes
+
 AM_SCM_LOG_FLAGS = --no-auto-compile -L "$(top_srcdir)"
+
+AM_TESTS_ENVIRONMENT = abs_top_srcdir="$(abs_top_srcdir)"
 
 info_TEXINFOS = doc/hall.texi
 dvi: # Don't build dvi docs
 
 EXTRA_DIST += README \
-HACKING \
-COPYING \
-NEWS \
-AUTHORS \
-ChangeLog \
-guix.scm \
-hall.scm \
-  $(TESTS)
+              HACKING \
+              COPYING \
+              NEWS \
+              AUTHORS \
+              ChangeLog \
+              guix.scm \
+              hall.scm \
+              build-aux/test-driver.scm \
+              $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
 
