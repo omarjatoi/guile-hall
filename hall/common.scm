@@ -622,6 +622,16 @@ AC_OUTPUT
 (define (makefile-file)
   "Return a hal file procedure with default contents for the project's
 Makefile.am file."
+  (define (align elements padding)
+    (match elements
+      (() '())
+      ((1st . rest)
+       (cons 1st
+             (map (lambda (element)
+                    (string-append
+                     (string-join (map (const " ") (iota padding)) "")
+                     element))
+                  rest)))))
   (file
    "Makefile" 'automake "am"
    (lambda (spec)
@@ -629,23 +639,25 @@ Makefile.am file."
       (string-append "
 
 bin_SCRIPTS = " (string-join
-                 (map (lambda (file)
-                        (or (and=> (string-match "\\.in$" file)
-                                   (cut regexp-substitute #f <> 'pre))
-                            file))
-                      (flatten (map (cute <> spec '() 'raw "")
-                                    (files-programs (specification-files spec)))))
+                 (align
+                  (map (lambda (file)
+                         (or (and=> (string-match "\\.in$" file)
+                                    (cut regexp-substitute #f <> 'pre))
+                             file))
+                       (flatten
+                        (map (cute <> spec '() 'raw "")
+                             (files-programs (specification-files spec)))))
+                  14)
                  " \\\n") "
 
 # Handle substitution of fully-expanded Autoconf variables.
-do_subst = $(SED)					\
-  -e 's,[@]GUILE[@],$(GUILE),g'				\
-  -e 's,[@]guilemoduledir[@],$(guilemoduledir),g'	\
-  -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\
+do_subst = $(SED)					\\
+  -e 's,[@]GUILE[@],$(GUILE),g'				\\
+  -e 's,[@]guilemoduledir[@],$(guilemoduledir),g'	\\
+  -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\\
   -e 's,[@]localedir[@],$(localedir),g'
 
-nodist_noinst_SCRIPTS =				\
-  pre-inst-env
+nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
@@ -671,19 +683,23 @@ SUFFIXES = .scm .go
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o \"$@\" \"$<\"
 
 SOURCES = " (string-join
-             (flatten (map (cute <> spec '() 'raw "")
-                           (files-libraries (specification-files spec))))
+             (align
+              (flatten (map (cute <> spec '() 'raw "")
+                            (files-libraries (specification-files spec))))
+              10)
              " \\\n") "
 
 TESTS = " (string-join
-           (flatten (map (cute <> spec '() 'raw "")
-                         (files-tests (specification-files spec))))
+           (align
+            (flatten (map (cute <> spec '() 'raw "")
+                          (files-tests (specification-files spec))))
+            8)
            " \\\n") "
 
 TEST_EXTENSIONS = .scm
-SCM_LOG_DRIVER =                                \
-  $(top_builddir)/pre-inst-env                  \
-  $(GUILE) --no-auto-compile -e main            \
+SCM_LOG_DRIVER =                                \\
+  $(top_builddir)/pre-inst-env                  \\
+  $(GUILE) --no-auto-compile -e main            \\
       $(top_srcdir)/build-aux/test-driver.scm
 
 # Tell 'build-aux/test-driver.scm' to display only source file names,
@@ -695,27 +711,31 @@ AM_SCM_LOG_FLAGS = --no-auto-compile -L \"$(top_srcdir)\"
 AM_TESTS_ENVIRONMENT = abs_top_srcdir=\"$(abs_top_srcdir)\"
 
 info_TEXINFOS = " (string-join
-                   (filter (cut string-match ".*\\.texi$" <>)
-                           (flatten
-                            (map (cute <> spec '() 'raw "")
-                                 (files-documentation
-                                  (specification-files spec)))))
+                   (align
+                    (filter (cut string-match ".*\\.texi$" <>)
+                            (flatten
+                             (map (cute <> spec '() 'raw "")
+                                  (files-documentation
+                                   (specification-files spec)))))
+                    16)
                    " \\\n") "
 dvi: # Don't build dvi docs
 
 EXTRA_DIST += " (string-join
-                 (append
-                  (filter (negate (cut string-match ".*\\.texi$" <>))
-                          (flatten
-                           (map (cute <> spec '() 'raw "")
-                                (files-documentation
-                                 (specification-files spec)))))
-                  (flatten (map (cute <> spec '() 'raw "")
-                                (files-infrastructure
-                                 (specification-files spec)))))
+                 (align
+                  (append
+                   (filter (negate (cut string-match ".*\\.texi$" <>))
+                           (flatten
+                            (map (cute <> spec '() 'raw "")
+                                 (files-documentation
+                                  (specification-files spec)))))
+                   (flatten (map (cute <> spec '() 'raw "")
+                                 (files-infrastructure
+                                  (specification-files spec)))))
+                  14)
                  " \\\n") " \\
-  build-aux/test-driver.scm \\
-  $(TESTS)
+              build-aux/test-driver.scm \\
+              $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
 
