@@ -1,18 +1,18 @@
 (use-modules
- (guix packages)
- (guix licenses)
- (guix download)
- (guix build-system gnu)
- (gnu packages)
- (gnu packages autotools)
- (gnu packages guile)
- (gnu packages pkg-config)
- (gnu packages texinfo))
+  (guix packages)
+  (guix licenses)
+  (guix download)
+  (guix build-system gnu)
+  (gnu packages)
+  (gnu packages autotools)
+  (gnu packages guile)
+  (gnu packages pkg-config)
+  (gnu packages texinfo))
 
 (package
   (name "guile-hall")
-  (version "0.1.1")
-  (source "./guile-hall-0.1.1.tar.gz")
+  (version "0.2")
+  (source "./guile-hall-0.2.tar.gz")
   (build-system gnu-build-system)
   (arguments
    `(#:modules
@@ -59,7 +59,10 @@
    `(("guile-config" ,guile-config)))
   (synopsis "Guile project tooling")
   (description
-   "Hall is a command-line application and a set of Guile libraries that allow you to quickly create and publish Guile projects.  It allows you to transparently support the GNU build system, manage a project hierarchy & provides tight coupling to Guix.")
+   "Hall is a command-line application and a set of Guile libraries that
+allow you to quickly create and publish Guile projects.  It allows you to
+transparently support the GNU build system, manage a project hierarchy &
+provides tight coupling to Guix.")
   (home-page
    "https://gitlab.com/a-sassmannshausen/guile-hall")
   (license gpl3+))

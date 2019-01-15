@@ -10,7 +10,36 @@ Copyright © 2018 Alex Sassmannshausen <alex@pompo.co>
 
 Please send Guile Hall bug reports to alex@pompo.co.
 
-* Changes in 0.1.1 (since 0.1.1)
+* Changes in 0.2 (since 0.1.1)
+
+** Bugfix: clean: handle nested subdirectories correctly.
+
+   `hall clean' is supposed to recursively walk the project.  Prior to
+   this, the walk would stope at the first subdirectory beneath the
+   project root.  Now subdirectories should be walked in their
+   entirety.
+
+** Improve output of Makefile.am generator.
+
+** Generate a fully-fledged test-driver.
+
+   The test driver parses output from srfi-64 test files.  This means
+   any such test files will now work out of the box with guile-hall.
+
+   Thanks to Catonano for the suggestion, and Mathieu Lirzin for
+   writing the original test-driver that we use in the project.
+
+** Accept all error conditions when trying to fetch license.
+
+   Should license fetching fail for any reason, then we just use a
+   placeholder text.
+
+** No longer assume we have a subdirectory with scheme files.
+
+   This means guile-hall can be used to manage single script file
+   projects.
+
+* Changes in 0.1.1 (since 0.1)
 
 ** Add more default content for various files.
 
