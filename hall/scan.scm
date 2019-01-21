@@ -38,6 +38,24 @@
   #:use-module (srfi srfi-26)
   #:export (scan-project))
 
+(define (dir->filenames directory-name)
+  "Return a list of all the file-paths in DIRECTORY-NAME."
+  (match directory-name
+    ((name stat)                        ; flat file
+     `(,name))
+    ((name stat children ...)           ; directory
+     ;; Add directory name to results, but then also recurse on children.
+     (cons name
+           (apply append
+                  (map (lambda (child)
+                         (map (compose
+                               (cut string-join <> file-name-separator-string)
+                               (match-lambda
+                                 ((? list? n) (cons name n))
+                                 (n (list name n))))
+                              (dir->filenames child)))
+                       children))))))
+
 ;; We traverse each file category.  For each directory we encounter, we scan
 ;; and add all files, making best guesses according to extensions.
 (define (scan-project spec context skip operation)
@@ -47,9 +65,20 @@ in question.  CONTEXT is a list containing as its first and only element the
 absolute filepath to the project base-directory.  SKIP is a list of relative
 (to the project root directory) filepaths to be ignored by scan-project.
 OPERATION can be 'show or 'exec."
+  (define (expand entry result)
+    "Prepend ENTRY to RESULT, or, if it is a directory, expand ENTRY to all
+filenames within it and then prepend it to result."
+    (if (and (file-exists? entry)
+             (eqv? 'directory (stat:type (stat entry))))
+        (append (dir->filenames
+                 (file-system-tree (string-trim-right entry #\/)))
+                result)
+        (cons entry result)))
   (let ((new-spec (set-specification-files
-                   spec (scm->files (actual->all-files spec context skip)
-                                    (specification-name spec)))))
+                   spec
+                   (scm->files
+                    (actual->all-files spec context (fold expand '() skip))
+                    (specification-name spec)))))
     (match operation
       ('exec
        (with-output-to-file "hall.scm"
@@ -89,21 +118,21 @@ containing as its first and only element the absolute filepath to the project
 base-directory."
   (let lp ((file file)
            (path context))
-    ;; Remove the `stat' object for each file in the tree.
-    ;; Also attempt to derive filetype for each individual file
+    (define (continue? name)
+      (not (blacklisted? (string-join (reverse (cons name path))
+                                      file-name-separator-string)
+                         (first context) skip)))
     (match file
       (#f #f)                             ; top-level category file removed
       ((name stat)
-       (match (stat:type stat)
-         ('regular                        ; flat file
-          (and (not (blacklisted? (string-join (reverse (cons name path))
-                                               file-name-separator-string)
-                                  (first context) skip))
-               (filetype-derive name)))
-         ('directory `(directory ,name ()))
-         ((or 'symlink 'block-special 'char-special 'fifo 'socket 'unknown)
-          (throw 'hall-derive-filetypes "Unsupported file type:"
-                 (stat:type stat)))))
+       (and (continue? name)
+            (match (stat:type stat)
+              ('regular (filetype-derive name))
+              ('directory `(directory ,name ()))
+              ((or 'symlink 'block-special 'char-special 'fifo 'socket 'unknown)
+               (throw 'hall-derive-filetypes "Unsupported file type:"
+                      (stat:type stat))))))
       ((name stat children ...)            ; directory
-       `(directory ,name ,(filter-map (cut lp <> (cons name path))
-                                      children))))))
+       (and (continue? name)
+            `(directory ,name ,(filter-map (cut lp <> (cons name path))
+                                           children)))))))
