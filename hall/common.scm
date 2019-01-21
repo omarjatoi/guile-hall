@@ -31,6 +31,7 @@
   #:use-module (config licenses)
   #:use-module (hall spec)
   #:use-module (hall builders)
+  #:use-module (hall workarounds)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
@@ -281,7 +282,9 @@ Please send ~a bug reports to INSERT EMAIL HERE.
 
 (define (base-autotools-infrastructure)
   "Return the default autotools section."
-  `(,(directory "build-aux"
+  `(,(directory "m4"
+                `(,(guile-m4-file)))
+    ,(directory "build-aux"
                 `(,(file "test-driver" 'scheme "scm"
                          "
 ;;;; test-driver.scm - Guile test driver for Automake testsuite harness
@@ -1019,6 +1022,7 @@ the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
              ('autoconf-file `(autoconf "ac" ,contents))
              ('automake-file `(automake "am" ,contents))
              ('in-file `(in "in" ,contents))
+             ('m4-file `(m4 "m4" ,contents))
              ('compiled-scheme-file `(go "go" ,contents))
              (_ (throw 'hall-filetype-read
                        "Unknown filetype" type name args))))))
@@ -1035,6 +1039,7 @@ PATH."
                               ('autoconf-file "ac")
                               ('automake-file "am")
                               ('in-file "in")
+                              ('m4-file "m4")
                               ('compiled-scheme-file "go")
                               (_ (throw 'file->filepath "Unknown extension"
                                         type name)))))

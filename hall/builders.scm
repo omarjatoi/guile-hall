@@ -180,6 +180,7 @@ NAME, in LANGUAGE and with EXTENSION."
     (('autoconf . "ac") `(autoconf-file ,name))
     (('automake . "am") `(automake-file ,name))
     ((_ . "in") `(in-file ,name))
+    (('m4 . "m4") `(m4-file ,name))
     ((compiled-scheme . "go") `(compiled-scheme-file ,name))
     (_ `(file ,name ,language ,extension))))
 
@@ -197,6 +198,7 @@ its extension."
           ((name "ac") `(autoconf-file ,name))
           ((name "am") `(automake-file ,name))
           ((name "in") `(in-file ,name))
+          ((name "m4") `(m4-file , name))
           ((name "go") `(compiled-scheme-file ,name))
           ((name ext) `(unknown-file ,(string-append name "." ext))))
         `(text-file ,name))))
