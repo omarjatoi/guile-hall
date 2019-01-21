@@ -20,7 +20,8 @@
             (scheme-file "dist")
             (scheme-file "clean")
             (scheme-file "init")
-            (scheme-file "guix")))))
+            (scheme-file "guix")
+            (scheme-file "workarounds")))))
         (tests ((directory "tests" ())))
         (programs
          ((directory "scripts" ((in-file "hall")))))

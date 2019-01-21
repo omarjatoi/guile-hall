@@ -41,7 +41,8 @@ SOURCES = hall/builders.scm \
           hall/dist.scm \
           hall/clean.scm \
           hall/init.scm \
-          hall/guix.scm
+          hall/guix.scm \
+          hall/workarounds.scm
 
 TESTS = 
 
