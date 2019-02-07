@@ -193,7 +193,8 @@ Once those dependencies are installed you can run:
 "
                      (specification-name spec) (specification-name spec)
                      (string-join
-                      (map (match-lambda ((label var) label))
+                      (map (match-lambda ((label . _) label))
+                           ;; first element is quasiquote
                            (second (specification-dependencies spec)))
                       "\n  - " 'prefix))))
     ,(file "COPYING" 'text #f
@@ -591,18 +592,18 @@ AM_SILENT_RULES([yes])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 "
-                     (string-join
-                      (map (lambda (file)
-                             (let ((file (or (and=> (string-match "\\.in$" file)
-                                                    (cut regexp-substitute #f <> 'pre))
-                                             file)))
-                               (string-append "AC_CONFIG_FILES([" file
-                                              "],[chmod +x " file "])")))
-                           (flatten (map (cut <> '() '() 'raw "")
-                                         (files-programs
-                                          (specification-files spec)))))
-                      "\n")
-                     "
+                           (string-join
+                            (map (lambda (file)
+                                   (let ((file (or (and=> (string-match "\\.in$" file)
+                                                          (cut regexp-substitute #f <> 'pre))
+                                                   file)))
+                                     (string-append "AC_CONFIG_FILES([" file
+                                                    "],[chmod +x " file "])")))
+                                 (flatten (map (cut <> '() '() 'raw "")
+                                               (files-programs
+                                                (specification-files spec)))))
+                            "\n")
+                           "
 dnl Search for 'guile' and 'guild'.  This macro defines
 dnl 'GUILE_EFFECTIVE_VERSION'.
 GUILE_PKG([2.2 2.0])
@@ -611,6 +612,25 @@ GUILE_SITE_DIR
 if test \"x$GUILD\" = \"x\"; then
    AC_MSG_ERROR(['guild' binary not found; please check your guile-2.x installation.])
 fi
+
+dnl Hall auto-generated guile-module dependencies
+"
+                           (string-join
+                            (filter-map
+                             (match-lambda
+                               ;; Standard Guix dependency declaration
+                               ((_ ('unquote _) . _) #f)
+                               ;; Augmented Hall dependency declaration
+                               ((_ (module ...) . _)
+                                (string-append "GUILE_MODULE_REQUIRED(["
+                                               (string-join
+                                                (map symbol->string module)
+                                                " ")
+                                               "])")))
+                             ;; first element is quasiquote
+                             (second (specification-dependencies spec)))
+                            "\n")
+                           "
 
 dnl Installation directories for .scm and .go files.
 guilemoduledir=\"${datarootdir}/guile/site/$GUILE_EFFECTIVE_VERSION\"
@@ -823,7 +843,17 @@ TYPE 'local, 'git or 'tarball."
         ("pkg-config" ,pkg-config)
         ("texinfo" ,texinfo)))
      (inputs `(("guile" ,guile-2.2)))
-     (propagated-inputs ,(specification-dependencies spec))
+     (propagated-inputs
+      ;; This arcane contraption generates a valid input assoc.
+      ,(cons 'quasiquote
+             (list (map (lambda (n)
+                          (match n
+                            ;; Standard Guix input declaration
+                            ((_ ('unquote _) . _) n)
+                            ;; Augmented Hall input declaration
+                            ((label (? list?) . rest) `(,label . ,rest))))
+                        ;; first element is quasiquote
+                        (second (specification-dependencies spec))))))
      (synopsis ,(specification-synopsis spec))
      (description ,(specification-description spec))
      (home-page ,(specification-home-page spec))
@@ -850,6 +880,7 @@ guix.scm file."
                                                (gnu packages)
                                                (gnu packages autotools)
                                                (gnu packages guile)
+                                               (gnu packages guile-xyz)
                                                (gnu packages pkg-config)
                                                (gnu packages texinfo))
                                  lst))
