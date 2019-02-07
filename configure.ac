@@ -19,9 +19,8 @@ if test "x$GUILD" = "x"; then
    AC_MSG_ERROR(['guild' binary not found; please check your guile-2.x installation.])
 fi
 
-dnl we depend on (config licenses) from guile-config
-GUILE_MODULE_REQUIRED([config licenses])
-
+dnl Our auto-generated guile-module dependencies
+GUILE_MODULE_REQUIRED([config])
 
 dnl Installation directories for .scm and .go files.
 guilemoduledir="${datarootdir}/guile/site/$GUILE_EFFECTIVE_VERSION"
