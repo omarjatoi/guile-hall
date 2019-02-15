@@ -898,7 +898,7 @@ TYPE 'local, 'git or 'tarball."
      (synopsis ,(specification-synopsis spec))
      (description ,(specification-description spec))
      (home-page ,(specification-home-page spec))
-     (license ,(specification-license spec))))
+     (license ,(symbol-append 'license: (specification-license spec)))))
 
 (define* (guix-file #:optional (type 'local))
   "Return a hal file procedure with default contents for the project's
@@ -915,7 +915,7 @@ guix.scm file."
                                         ,(guix-package spec type)))))))
                  (match type
                    ('local (cons '(use-modules (guix packages)
-                                               (guix licenses)
+                                               ((guix licenses) #:prefix license:)
                                                (guix download)
                                                (guix build-system gnu)
                                                (gnu packages)
