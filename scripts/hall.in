@@ -48,7 +48,7 @@
 (define %configuration
   (configuration
    (name 'hall)
-   (version "0.1")
+   (version "@VERSION@")
    (author "Alex Sassmannshausen")
    (copyright '(2018))
    (license gpl3+)
