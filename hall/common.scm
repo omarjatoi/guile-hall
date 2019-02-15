@@ -771,6 +771,79 @@ CLEANFILES =					\\
   $(TESTS:tests/%.scm=%.log)
 ")))))
 
+(define-syntax timed-expression
+  (lambda (x)
+    "Return expression EXP so that it will be evaluated in N+1 rounds of
+evaluation."
+    (syntax-case x ()
+      ((_ 0 exp . _) #'exp)
+      ((_ n exp)
+       #``(quote ,(timed-expression #,(1- (syntax->datum #'n)) exp))))))
+
+(define (guix-wrap-binaries spec)
+  "Return a guix arguments section, which, if spec has binaries, wraps each
+binary in such a way that it can be run without additional dependencies being
+installed in a profile."
+  (define dep-labels
+    (timed-expression 2 (map first
+                             (second (specification-dependencies spec)))))
+  (match (files-programs (specification-files spec))
+    ;; No binaries, so arguments is just `()
+    (() ``())
+    ;; Potential binaries.  First, resolve files.
+    (((? procedure? p))
+     (match (p '() '() 'write "")
+       ;; We assume:
+       ;; - only "scripts" folder in files-programs
+       ;; - no further dirs in scripts folder
+       ;; - no files with extensions in scripts folder.
+       ;; No binaries, so arguments is just `()
+       (('directory "scripts" ()) ``())
+       ;; Binaries!
+       (('directory "scripts" ((ids files) ...))
+        `(quasiquote
+          (#:modules
+           ((ice-9 match) (ice-9 ftw)
+            ,@%gnu-build-system-modules)
+           #:phases
+           (modify-phases %standard-phases
+             (add-after 'install 'hall-wrap-binaries
+               (lambda* (#:key inputs outputs #:allow-other-keys)
+                 (let* ((compiled-dir
+                         (lambda (out version)
+                           (string-append
+                            out "/lib/guile/" version "/site-ccache")))
+                        (uncompiled-dir
+                         (lambda (out version)
+                           (string-append
+                            out "/share/guile/site"
+                            (if (string-null? version) "" "/") version)))
+                        (dep-path
+                         (lambda (env modules path)
+                           (list env ":" 'prefix
+                                 (cons modules
+                                       (map (lambda (input)
+                                              (string-append
+                                               (assoc-ref inputs input)
+                                               path))
+                                            ,,dep-labels)))))
+                        (out (assoc-ref outputs "out"))
+                        (bin (string-append out "/bin/"))
+                        (site (uncompiled-dir out "")))
+                   (match (scandir site)
+                     (("." ".." version)
+                      (for-each
+                       (lambda (file)
+                         (wrap-program (string-append bin file)
+                           (dep-path "GUILE_LOAD_PATH"
+                                     (uncompiled-dir out version)
+                                     (uncompiled-dir "" version))
+                           (dep-path "GUILE_LOAD_COMPILED_PATH"
+                                     (compiled-dir out version)
+                                     (compiled-dir "" version))))
+                       ,,(timed-expression 2 files))
+                      #t)))))))))))))
+
 (define (guix-package spec type)
   "Return a guix package description of the hal project specification SPEC, of
 TYPE 'local, 'git or 'tarball."
@@ -804,39 +877,7 @@ TYPE 'local, 'git or 'tarball."
               (base32 "*insert hash here*"))))))
      (build-system gnu-build-system)
      (arguments
-      ,(match (files-programs (specification-files spec))
-         (() ``())
-         (((? procedure? p))
-          (match (p '() '() 'write "")
-            (('directory "scripts" ()) ``())
-            ;; We assume:
-            ;; - only "scripts" folder in files-programs
-            ;; - no further dirs in scripts folder
-            ;; - no files with extensions in scripts folder.
-            (('directory "scripts" ((ids files) ...))
-             ``(#:modules ((ice-9 match) (ice-9 ftw)
-                           ,@%gnu-build-system-modules)
-                #:phases (modify-phases %standard-phases
-                           (add-after 'install 'hall-wrap-binaries
-                             (lambda* (#:key outputs #:allow-other-keys)
-                               (let* ((out  (assoc-ref outputs "out"))
-                                      (bin  (string-append out "/bin/"))
-                                      (site (string-append
-                                             out "/share/guile/site")))
-                                 (match (scandir site)
-                                   (("." ".." version)
-                                    (let ((modules (string-append site "/" version))
-                                          (compiled-modules (string-append
-                                                             out "/lib/guile/" version
-                                                             "/site-ccache")))
-                                      (for-each (lambda (file)
-                                                  (wrap-program (string-append bin file)
-                                                    `("GUILE_LOAD_PATH" ":" prefix
-                                                      (,modules))
-                                                    `("GUILE_LOAD_COMPILED_PATH" ":" prefix
-                                                      (,compiled-modules))))
-                                                ,,(cons* 'list ''list files))
-                                      #t)))))))))))))
+      ,(guix-wrap-binaries spec))
      (native-inputs
       `(("autoconf" ,autoconf)
         ("automake" ,automake)
