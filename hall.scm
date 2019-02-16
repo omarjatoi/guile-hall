@@ -9,7 +9,7 @@
  (home-page "https://gitlab.com/a-sassmannshausen/guile-hall")
  (license gpl3+)
  (dependencies
-  `(("guile-config" (config) ,guile-config "out")))
+  `(("guile-config" (config) ,guile-config)))
  (files (libraries
          ((directory
            "hall"
