@@ -102,7 +102,7 @@ the list SKIP."
       ;; When we hit a leaf we want to check our spec for the existence of
       ;; that leaf & perform an operation against it.
       (cons (cond ((blacklisted? path project-root skip) `(skip ,path))
-                  ((file-match (shrink-path path) files) `(keep ,path))
+                  ((file-match (shrink-path path) stat files) `(keep ,path))
                   (else `(delete ,path)))
             result))
     (lambda (_ - result) result)        ; down
@@ -140,7 +140,7 @@ project in CANDIDATES.  Return #f otherwise."
          ((children)
           (lp rest children)))))))
 
-(define (file-match cropped candidates)
+(define (file-match cropped stat candidates)
   "Return #t if the description of the actually existing file CROPPED can be
 matched to a file in our hal representation of the files of the project in
 CANDIDATES.  Return #f otherwise."
@@ -148,7 +148,7 @@ CANDIDATES.  Return #f otherwise."
            (candidates candidates))
     (match breadcrumbs
       ((needle) 
-       (find (cute equal? (filetype-derive needle) <>) candidates))
+       (find (cute equal? (filetype-derive needle stat) <>) candidates))
       ((dir . rest)
        (match (find-dir dir candidates)
          (#f (throw 'hall-file-match "Should not have happened."))

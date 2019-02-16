@@ -127,9 +127,10 @@ base-directory."
       ((name stat)
        (and (continue? name)
             (match (stat:type stat)
-              ('regular (filetype-derive name))
+              ('regular (filetype-derive name stat))
               ('directory `(directory ,name ()))
-              ((or 'symlink 'block-special 'char-special 'fifo 'socket 'unknown)
+              ('symlink `(symlink ,name ,(readlink name)))
+              ((or 'block-special 'char-special 'fifo 'socket 'unknown)
                (throw 'hall-derive-filetypes "Unsupported file type:"
                       (stat:type stat))))))
       ((name stat children ...)            ; directory

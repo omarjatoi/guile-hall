@@ -1084,20 +1084,24 @@ the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
   ;; First element in args is considered a user specified content.
   (let ((contents (or (and (not (null? args)) (first args))
                       (hash-ref templates fname ""))))
-    (apply file name
-           (match type
-             ('scheme-file `(scheme "scm" ,contents))
-             ('text-file `(text #f ,contents))
-             ('info-file `(info "info" ,contents))
-             ('texi-file `(texinfo "texi" ,contents))
-             ('shell-file `(shell "sh" ,contents))
-             ('autoconf-file `(autoconf "ac" ,contents))
-             ('automake-file `(automake "am" ,contents))
-             ('in-file `(in "in" ,contents))
-             ('m4-file `(m4 "m4" ,contents))
-             ('compiled-scheme-file `(go "go" ,contents))
-             (_ (throw 'hall-filetype-read
-                       "Unknown filetype" type name args))))))
+    (match type
+      ('symlink (slink name contents))
+      (_
+       (apply file name
+              (match type
+                ('scheme-file `(scheme "scm" ,contents))
+                ('text-file `(text #f ,contents))
+                ('info-file `(info "info" ,contents))
+                ('texi-file `(texinfo "texi" ,contents))
+                ('shell-file `(shell "sh" ,contents))
+                ('autoconf-file `(autoconf "ac" ,contents))
+                ('automake-file `(automake "am" ,contents))
+                ('in-file `(in "in" ,contents))
+                ('m4-file `(m4 "m4" ,contents))
+                ('compiled-scheme-file `(go "go" ,contents))
+                ('org-file `(org "org" ,contents))
+                (_ (throw 'hall-filetype-read
+                          "Unknown filetype" type name args))))))))
 
 (define (file->filepath type name path)
   "Return the absolute filepath of the file NAME of language TYPE at folder
@@ -1113,5 +1117,7 @@ PATH."
                               ('in-file "in")
                               ('m4-file "m4")
                               ('compiled-scheme-file "go")
+                              ('org-file "org")
+                              ('symlink "")
                               (_ (throw 'file->filepath "Unknown extension"
                                         type name)))))

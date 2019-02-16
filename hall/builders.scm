@@ -35,6 +35,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:export (file
+            slink
             directory
 
             context->fname full-project-name friendly-project-name
@@ -71,7 +72,22 @@ by the specification SPEC."
      (prefix (string-append (specification-prefix spec) " "
                             (specification-name spec))))))
 
-;;;; Directory Constructor
+;;;; File-like objects
+;;
+;; The following operations should be defined for all file-like objecst:
+;; - write: emit a scheme representation of the file, but not contents;
+;;   used for specification->scm.
+;; - contents: display the contents of the file.
+;; - path: emit the hall path to the file.
+;; - exec: perform operations on file to actually create it; used for file
+;;   operations.
+;; - raw: emit the hall path to the file, or execute the operation on
+;;   children, if this is a directory.
+;; - raw+contents: like raw, but also emit contents of the file.
+;; - show: print file operation to screen; used for "dry-runs".
+;; - show-contents: resolve the file to its actual contents.
+
+;;;;; Directory Constructor
 
 (define (directory name children)
   "Return a hall directory procedure with the directory name NAME and a
@@ -103,6 +119,7 @@ find out which."
            ('raw (map proc children))
            ('raw+contents (map proc children))
            ;; show is for doing dry-runs
+           ;; default, so also show-contents.
            ((or 'show _)
             (if (file-exists? fname)
                 (format #t "~aSkipping: ~a~%" indentation fname)
@@ -118,15 +135,9 @@ plain text.  EXTENSION should be the file's expected extension, and CONTENTS
 can be a procedure of one argument (the project's specification) or a string.
 In both cases contents describe the contents of the file.
 
-A number of operations on hall file procedures are possible.  Consult the code
-below to find out what these are."
+A number of operations on hall file procedures are possible.  Consult the
+commentary above to find out what these are."
   (lambda (spec context operation indentation)
-    ;; Defined operations:
-    ;; - write: emit a scheme representation of the file, but not contents;
-    ;;   used for specification->scm.
-    ;; - exec: perform operations on file to actually create it; used for file
-    ;;   operations.
-    ;; - show: print file operation to screen; used for "dry-runs".
     (match operation
       ('write (filetype-write name language extension))
       ('contents contents)
@@ -166,13 +177,49 @@ below to find out what these are."
                 (format #t "~aSkipping: ~a~%" indentation fname)
                 (format #t "~aMaking file: ~a~%" indentation fname)))))))))
 
+;;;;; Symlink Constructor
+
+(define (slink name target)
+  "Return a hall symlink procedure with the file name NAME, that will point to
+TARGET.
+
+A number of operations on hall file procedures are possible.  Consult the
+commentary above to find out what these are."
+  (lambda (spec context operation indentation)
+    (match operation
+      ('write `(symlink ,name ,target))
+      ('contents (string-append "This is a symlink to " target))
+      (_
+       (let ((fname (context->fname context name))
+             (ftarget (context->fname context target)))
+         (match operation
+           ('path fname)
+           ('exec
+            (if (file-exists? fname)
+                (format #t "~aSkipping: ~a~%" indentation fname)
+                (begin
+                  (format #t "~aLinking file: ~a -> ~a~%" indentation fname
+                          ftarget)
+                  (symlink target fname))))
+           ('raw fname)
+           ('raw+contents `(,fname . ,(string-append "This is a symlink to "
+                                                     ftarget)))
+           ('show-contents
+            `(,fname . ,(string-append "This is a symlink to " ftarget)))
+           ((or 'show _)
+            (if (file-exists? fname)
+                (format #t "~aSkipping: ~a~%" indentation fname)
+                (format #t "~aLinking file: ~a -> ~a~%" indentation fname
+                        ftarget)))))))))
+
 ;;;; Filetype converters
 
 (define (filetype-write name language extension)
-  "Return an SXML representation of the hall decsription of the file with name
+  "Return an SXML representation of the hall description of the file with name
 NAME, in LANGUAGE and with EXTENSION."
   (match (cons language extension)
     (('scheme . "scm") `(scheme-file ,name))
+    (('org . "org") `(org-file ,name))
     (('text . #f) `(text-file ,name))
     (('info . "info") `(info-file ,name))
     (('texinfo . "texi") `(texi-file ,name))
@@ -184,21 +231,24 @@ NAME, in LANGUAGE and with EXTENSION."
     ((compiled-scheme . "go") `(compiled-scheme-file ,name))
     (_ `(file ,name ,language ,extension))))
 
-(define (filetype-derive name)
+(define (filetype-derive name stat)
   "Return an SXML representation of the file with filename NAME, by analysing
 its extension."
-  (let ((matches (string-match "^(.+)\\.(.*)$" name)))
-    (if matches
-        (match (map (cut match:substring matches  <>)
-                    '(1 2))
-          ((name "scm") `(scheme-file ,name))
-          ((name "texi") `(texi-file ,name))
-          ((name "info") `(info-file ,name))
-          ((name "sh") `(shell-file ,name))
-          ((name "ac") `(autoconf-file ,name))
-          ((name "am") `(automake-file ,name))
-          ((name "in") `(in-file ,name))
-          ((name "m4") `(m4-file , name))
-          ((name "go") `(compiled-scheme-file ,name))
-          ((name ext) `(unknown-file ,(string-append name "." ext))))
-        `(text-file ,name))))
+  (if (eqv? (stat:type stat) 'symlink)
+      `(symlink ,name ,(readlink name))
+      (let ((matches (string-match "^(.+)\\.(.*)$" name)))
+        (if matches
+            (match (map (cut match:substring matches  <>)
+                        '(1 2))
+              ((name "scm") `(scheme-file ,name))
+              ((name "texi") `(texi-file ,name))
+              ((name "info") `(info-file ,name))
+              ((name "sh") `(shell-file ,name))
+              ((name "ac") `(autoconf-file ,name))
+              ((name "am") `(automake-file ,name))
+              ((name "in") `(in-file ,name))
+              ((name "m4") `(m4-file , name))
+              ((name "go") `(compiled-scheme-file ,name))
+              ((name "org") `(org-file ,name))
+              ((name ext) `(unknown-file ,(string-append name "." ext))))
+            `(text-file ,name)))))
