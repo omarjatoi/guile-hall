@@ -11,7 +11,7 @@ By far the easiest way to hack on hall is to develop using Guix:
   cd /path/to/source-code
   guix environment -l guix.scm
   # In the new shell, run:
-  hall dist --execute && autoreconf -vif && ./configure && make check
+  autoreconf -vif && ./configure && make check
 #+END_SRC
 
 You can now hack this project's files to your heart's content, whilst
@@ -43,5 +43,5 @@ dependencies manually:
 Once those dependencies are installed you can run:
 
 #+BEGIN_SRC bash
-  hall dist -x && autoreconf -vif && ./configure && make check
+  autoreconf -vif && ./configure && make check
 #+END_SRC
