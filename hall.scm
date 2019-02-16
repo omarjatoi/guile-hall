@@ -26,7 +26,8 @@
         (programs
          ((directory "scripts" ((in-file "hall")))))
         (documentation
-         ((text-file "README")
+         ((org-file "README")
+          (symlink "README" "README.org")
           (text-file "HACKING")
           (text-file "COPYING")
           (text-file "NEWS")
