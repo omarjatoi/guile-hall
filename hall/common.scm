@@ -133,13 +133,14 @@ the project's hall.scm file."
 
 (define (base-top-docs)
   "Return the default top level documentation section."
-  `(,(file "README" 'text #f
+  `(,(file "README" 'org "org"
            (lambda (spec)
              (format #t
                      "-*- mode: org; coding: utf-8; -*-
 
 #+TITLE: README for ~a~%~%"
                      (friendly-project-name spec))))
+    ,(slink "README" "README.org")
     ,(file "HACKING" 'text #f
            (lambda (spec)
              (format #t
