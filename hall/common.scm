@@ -575,6 +575,10 @@ configure.ac file."
 dnl -*- Autoconf -*-
 
 AC_INIT(" (full-project-name spec) ", " (specification-version spec) ")
+AC_SUBST(HVERSION, \"\\\"" (specification-version spec) "\\\"\")
+AC_SUBST(AUTHOR, \"\\\"" (specification-author spec) "\\\"\")
+AC_SUBST(COPYRIGHT, \"'" (object->string (specification-copyright spec)) "\")
+AC_SUBST(LICENSE, " (symbol->string (specification-license spec)) ")
 AC_CONFIG_SRCDIR(" (let ((core-file (string-append (specification-name spec)
                                                    ".scm")))
                      (if (file-exists? core-file)
