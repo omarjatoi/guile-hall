@@ -47,24 +47,853 @@ Edition @value{EDITION} @*
 This document describes Guile Hall version @value{VERSION}.
 
 @menu
-* Introduction::                Why Guile Hall?
+* Introduction::                What now Guile Hall?
+* Installation::                How now Guile Hall?
+* Quickstart::                  What's in a project
+* The Subcommands::             In which all is revealed…
+* The Hall Specification::      Spec ops, grunt!
+* A Hall Spec File::            Hall's spec file
+* A Script File::               Hall's script file
+
 @end menu
 
 @c *********************************************************************
 @node Introduction
 @chapter Introduction
 
-Guile Hall is a program to manage the infrastructure with proper Guile
-projects.  This means that any Guile project using Hall will be GNU
-build system compliant; have tight integration with Guile's defacto
-package manager, Guix; have access to utilities that make testing &
-building Guile projects pleasurable.
+@flushright
+                                  Look, Simba, everything the
+                                  light touches is our kingdom.
+                                                  -- Mufasa
+@end flushright
+
+There's more to being king than getting your way all the time.  And so
+it is with managing your own coding project!
+
+Guile Hall is meant to make that @emph{more} easy to manage.  But what
+is this @emph{more}?
+
+Here is a non-exhaustive list:
+@itemize
+@item
+Providing a way for others to install your software (this is generally
+done using a @emph{build system};
+@item
+Ensuring that installation method works in different environments;
+@item
+Writing documentation for your project;
+@item
+Ensuring the documentation is available to the end user;
+@item
+Writing tests for your project;
+@item
+Ensuring your tests play nicely with your build system;
+@item
+Providing files as part of the source code that document the build
+system & the current status of the project;
+@item
+Managing your version number;
+@item
+Choosing and installing your license;
+@item
+Maintaining a Guix recipe for development & contribution;
+@end itemize
+
+Hall leverages existing tooling, like autotools, where feasible and
+provides additional tools for the Guile specific parts.
 
 Guile Hall is in early stages of development.  No guarantees are made
 as to efficiency or elegance of code; nor do we guarantee API
 stability.
 
-This documentation is a stub.  Current documentation exists in the
-README file.
+@display
+@group
+Super Saiyan mode:
+Whenever you encounter a block such as this, feel free to ignore it
+when first learning about Hall.  It is intended for advanced use!
+@end group
+@end display
+
+
+@c *********************************************************************
+@node Installation
+@chapter Installation
+
+@flushright
+                                    Look Dave, I can see you're
+                                    really upset about this.
+                                                  -- Hal 9000
+@end flushright
+
+At present there are two ways to install Hall:
+@itemize
+@item
+Use @emph{Guix}, Guile's unofficial package manager
+@item
+Go the manual route.
+@end itemize
+
+below you will find instructions for both.
+
+@heading Using Guix
+
+This is the preferred approach.  Hall provides tight coupling to Guix,
+and installing Hall through Guix is by far the simplest way to go.
+I'm not gonna lie here, my agenda is to get you to install Guix.
+
+Go get it from @uref{https://gnu.org/s/guix, the Guix website}!
+
+Once you've set it up, all you have to do is run
+@code{guix package -i guile-hall}.
+
+@heading Using Autotools
+
+This route is somewhat more manual.  Even so, installing Guile Hall
+should be as easy as:
+@enumerate
+@item
+Install the dependencies:
+@itemize
+@item
+autoconf
+@item
+automake
+@item
+pkg-config
+@item
+guile
+@item
+git
+@item
+texinfo
+@item
+guile-config
+@end itemize
+@item 
+Clone the Guile Hall repository
+@item
+Run @code{autoreconf -vif && ./configure && make check && sudo make install}
+@end enumerate
+
+Exactly how you install the dependencies will depend on your distro.
+Below you will find the instructions for the entire installation
+procedure under Debian.
+
+While installing Guile libraries using autotools you will need to
+augment the @env{GUILE_LOAD_PATH} and the
+@env{GUILE_LOAD_COMPILED_PATH} environment variables to ensure that
+the installed code will be available to Guile & Guile applications.
+See the example instructions below for one way to do this.
+
+@example
+# Install the dependencies
+sudo apt install autoconf automake pkg-config \
+                 texinfo guile guile-2.0-dev git
+
+# Clone the guile-config repository & cd
+git clone https://gitlab.com/a-sassmannshausen/guile-config
+cd guile-config
+
+# Install guile-config by doing the Autotools dance!
+autoreconf -vif && ./configure && make check
+sudo make install
+cd ..
+
+# By default guile libraries will be installed in /usr/local/
+# so we must set the environment variables
+export GUILE_LOAD_PATH=/usr/local/share/guile/site/2.0/
+export GUILE_LOAD_COMPILED_PATH=/usr/local/lib/guile/2.0/site-ccache/
+
+# Now we can install guile-hall
+# Clone the repository & cd
+git clone https://gitlab.com/a-sassmannshausen/guile-hall
+cd guile-hall
+
+# Autotools dance!
+autoreconf -vif && ./configure && make check
+sudo make install
+
+# The application will be installed in /usr/local/bin/
+# If hall --version does not work, try:
+export PATH=/usr/local/bin/:$PATH
+
+# Now you can run hall!
+
+hall --version
+
+# To make the above permanent, you could add the commands to your
+# ~/.bashrc:
+echo export GUILE_LOAD_PATH=/usr/local/share/guile/site/2.0/ >> ~/.bashrc
+echo export GUILE_LOAD_COMPILED_PATH= /usr/local/lib/guile/2.0/site-ccache/ >> ~/.bashrc
+echo export PATH=/usr/local/bin/:$PATH >>~/.bashrc
+@end example
+
+@c *********************************************************************
+@node Quickstart
+@chapter Quickstart
+
+Sometimes the best way to learn is to dive right in.  Below you'll
+find some examples of how to use Hall.  Hopefully you will be able to
+derive about 99% of your Hall usage from these!
+
+For more detailed information on each of the commands see the
+following chapter.
+
+@heading Creating a New Project
+
+@example
+cd /to/some/directory/
+hall init --author "Jane Doe" frobnigator --execute
+# Creating project: frobnigator
+# ...
+cd frobnigator
+# Do some hacking
+emacs hall.scm # Add other Guile dependencies
+# Add new files to our hall.scm
+hall scan
+# Dryrun:
+#...
+hall scan -x # Add new files.
+@end example
+
+@heading Converting an Existing Project
+
+@example
+cd /to/some/guile-project/
+hall init --convert --author "Jane Doe" --prefix guile frobnigator --execute
+# Creating project: guile-frobnigator
+# ...
+emacs hall.scm # Add other Guile dependencies, and tweak project settings.
+# Add new files to our hall.scm
+hall scan
+# Remove cruft
+hall clean
+@end example
+
+@heading Getting Ready for Distribution
+
+@example
+# Get ready to test commandline or distribute:
+hall dist -x # create the build infrastructure
+
+# Oops, we made a mistake
+hall clean -x # undo previous step
+
+# Let's re-generate the guix file.
+rm guix.scm && hal guix -x # re-generate guix file
+
+# Now let's create the build infrastructure
+hall dist -x # recreate build infrastructure
+
+# Let's build it!
+guix environment -l guix.scm
+autoreconf -vif && ./configure && make && exit
+
+# Let's run it!
+./pre-inst-env guile # Here we can load our local libraries!
+./pre-inst-env scripts/$script # Or run our scripts
+
+# We're ready for a tarball
+guix environment -l guix.scm
+make dist
+@end example
+
+@c *********************************************************************
+@node The Subcommands
+@chapter The Subcommands
+
+Hall is sub-divided into different subcommands designed to achieve
+specific tasks.  You can pass the @option{--help} switch to any of the
+subcommands to get concise documentation.
+
+The following sections describe the Hall subcommands in detail.
+
+A few general principle apply to all of Hall's commands though, and it
+might behoove us to cover these first:
+@itemize
+@item
+All commands are cowardly by nature --- they will not change any files
+unless the @option{--execute} switch is used.
+@item
+The special switches @option{--help}, @option{--version},
+@option{--usage} and @option{--cmdtree} are always available.  They
+will act as your guides as you explore the lands of Hall.
+@item
+Hall has a configuration file located at @file{~/.hall}.  You can set
+some settings there, to provide default values for all your projects.
+@item
+@end itemize
+
+Finally, at Hall's core lies the notion of a hall specification.  This
+specification is defined in the project's @file{hall.scm} file.  All
+commands do @emph{something} with that file: @command{initiate}
+generates it; @command{scan} updates it; @command{clean} reads it to
+tidy the project; @command{guix} and @command{distribute} read it to
+generate additional files.
+
+You can edit the specification manually though I hope to expose
+commands to manipulate all aspect of it in the near future.  For now,
+the files section in particular, should normally only be changed
+through the @command{scan} command.
+
+@c *********************************************************************
+@node Hall Initiate
+@section Hall Initiate
+
+Use @command{hall initiate} to create new Guile projects, or to
+convert an existing Guile project to use Hall (using the
+@option{--convert} option.
+
+Outside of the standard options, @command{init} also accepts
+@option{--author}, @option{--license}, @option{--prefix} and
+@option{--website}.  All of these can be set in the @file{~/.hall}
+configuration file.
+
+It also accepts the special @option{--convert} switch, which will
+probably become a subcommand in the near future.
+
+@deftypevr Setting string --author
+The name of the project author.  You can enclose it in quotation marks
+when specifying it on the command-line to accomodate multiple parts.
+
+At present, author is treated as a single string.  In future we aim to
+support multiple authors more elegantly by accepting a list of
+strings.
+
+The author is set in the project's @file{hall.scm} file, from whence
+it is pushed to the autotools infrastructure, as well as the Guix recipe.
+
+@display
+@group
+Super Saiyan mode:
+You can access the author variable in your @file{scripts/*.in} script
+files using the @var{@@AUTHOR@@} variable.
+@end group
+@end display
+@end deftypevr
+
+@deftypevr Setting license --license
+The license under which the project is licensed.  Any license
+supported by Guile Config is supported here.
+
+The most common licenses are @code{agpl3+} & @code{gpl3+}.  For a full
+list, please consult
+@url{https://gitlab.com/a-sassmannshausen/guile-config/blob/master/config/licenses.scm,
+Guile Config's licenses.scm}.
+
+If you use a GNU project license Hall will automatically create a
+@file{COPYING} file for you in the project directory.  This feature
+requires an active internet connection.  If you are not online, or if
+you use a non-GNU license, @file{COPYING} will simply contain some
+placeholder text.
+
+The license passed here will be set in the project's @file{hall.scm}
+file, from whence it is pushed to the autotools & guix infrastructure.
+
+@display
+@group
+Super Saiyan mode:
+You can access the license variable in your @file{scripts/*.in} script
+files using the @var{@@LICENSE@@} variable.
+@end group
+@end display
+@end deftypevr
+
+@deftypevr Setting string --prefix
+An optional prefix for the project.  In Guix, we like to name packages
+with a prefix according to the language they belong to.  So your
+wonderful cat meme library may be called @emph{kittehs}, but in Guix
+it would be packaged as @emph{guile-kittehs}.
+
+Similarly, the directory in which Hall would create the project would
+also be guile-kittehs.
+
+The full list of places in which the prefix will be used is:
+@itemize
+@item
+The project's root folder when a project is created using Hall;
+@item
+The project's manual file name;
+@item
+The project's name in the autotools infrastructure (and thus any
+tarballs generated);
+@item
+The project's guix recipe;
+@end itemize
+
+The prefix and project name are automatically separated by a `-`, so
+for instance
+@example
+hall init kittehs --prefix=guile
+@end example
+would result in a `full-project-name` of guile-kittehs.
+@end deftypevr
+
+@deftypevr Setting url --website
+The website where the project lives.
+
+The url passed here will be set in the project's @file{hall.scm} file,
+from whence it is pushed to the guix recipe.
+@end deftypevr
+
+@deftypevr Switch boolean --convert
+The convert switch allows you to create a hall specification file in
+an existing Guile project that has hitherto not used Hall.  You can
+use this tool to migrate to Hall!
+
+In effect, we run the same process as for @command{initiate}, but do
+not first create the project root directory.  The process is simply
+run in the current directory.
+
+Of course, no files are overwritten in the process, so you may wish to
+delete some files (e.g. COPYING) prior to running this command if you
+would like Hall to regenerate them for you.
+@end deftypevr
+
+@c *********************************************************************
+@node Hall Initiate Refresh
+@subsection Hall Initiate Refresh
+
+This simple command will regenerate the @file{HACKING} &
+@file{COPYING} files for your project.
+
+Do be aware that the dry-run command won't show you this, but this
+command is one of the few that actively deletes & then recreates the
+affected files.
+
+Nonetheless, this command is convenient for when you didn't have
+access to the internet at the time you originally created the project.
+
+@c *********************************************************************
+@node Hall Scan
+@section Hall Scan
+
+Use @command{hall scan} when you want add files you recently created
+to your @file{hall.scm} file.
+
+Hall maintains a description of your project in the @file{hall.scm}
+specification file.  The first part of the specification file is
+concerned with basic metadata.  The second part, recorded in the
+@code{files} section, is concerned with the files that your project is
+composed of.
+
+Hall needs to know about 5 different types of files:
+@itemize
+@item
+@emph{Library files}, which are stored in the @code{libraries}
+section, are all the modules that your Guile project provides.  This
+can be a single file, or it could be a complicated tree of files.
+@item
+@emph{Tests} are your unit tests.  They are captured in the
+@code{tests} section.
+@item
+@emph{programs} are the scripts, if any, your project provides to the
+end-user.  They are assumed to exist in the project's @file{scripts/}
+sub-folder and are described in the @code{programs} section.
+@item
+@emph{documentation files}, which are stored in the
+@code{documentation} section, consist of your project's manual; but
+also if the repository's additional resources: README, HACKING,
+COPYING, NEWS, AUTHORs, etc.
+@item
+Finally, @emph{infrastructure files} cover those files that are used
+by the project for distribution and maintenance purposes.  At the very
+least this section will contain your @file{hall.scm} file, but it will
+likely include your @file{guix.scm} file and possibly some others.
+These files are enumerated in the @code{infrastructure} section.
+@end itemize
+
+You can probably tweak the @code{files} section yourself if you
+desire.  On a day-to-day basis though, it's probably easier to let
+Hall do the heavy-lifting: the scan command recursively walks your
+project and adds additional files it encounters to the appropriate
+sub-section of the @code{files} section.
+
+At present, the algorithm it uses is very straightforward: any
+@file{.scm} files it encounters in the project name's subdirectory are
+added to the @code{libraries} section.  Any such files in the
+@file{tests/} folder are added to the @code{tests} section.
+
+Any files it encounters it finds in the @file{scripts/} subdirectory
+are added to the @code{programs} section, and any files in the
+@file{doc/} folder are added to the @code{documentation} section.
+
+The infrastructure section needs to be managed manually, but generally
+does not change very often at all!
+
+@command{hall scan} is rather paranoid, and will often complain about
+files of an unknown file type.  You have several options:
+@enumerate
+@item
+Use @command{hall clean} to remove all files that are cruft from your project.
+@item
+Manually remove files that cause interference.
+@item
+Use the @option{--skip} switch to tell scan to ignore files.  See below.
+@end enumerate
+
+@deftypevr Switch list --skip
+A comma delimited string, in which each item points to an individual
+file, or a folder to be skipped during the scan operation.
+
+@example
+hall scan --skip=SKIP.me,cruft-folder
+@end example
+@end deftypevr
+
+@c *********************************************************************
+@node Hall Clean
+@section Hall Clean
+
+If you are anything like me then you will regularly fill a project
+with any number of snippet files, throw-away notes or false starts.
+You may also regularly find yourself removing files that are
+automatically generated as part of distribution or compilation
+testing.
+
+Hall provides the @command{clean} subcommand to remove any files from
+your project that are not registered in the @file{hall.scm} spec file.
+
+Usage is very simple: running @command{hall clean} will display a list
+of files that will be either deleted or kept, as well as a third group
+of files that were skipped, and will be ignored by @command{clean}.
+
+Re-running the command with the @option{--execute} switch will carry
+out the cleaning process.
+
+@command{hall clean} ignores a few files by default (they are always
+shown in the @emph{Skipping} group), but you can manually add to this
+list using the @option{--skip} switch.
+
+@deftypevr Switch list --skip
+A comma delimited string, in which each item points to an individual
+file, or a folder to be skipped during the clean operation.
+
+@example
+hall clean --skip=SKIP.me,important-folder
+@end example
+@end deftypevr
+
+@c *********************************************************************
+@node Hall Guix
+@section Hall Guix
+
+Hall can generate Guix recipes.  These can be used for local
+development, for distribution with your code repository and for
+contributing your project to Guix itself.
+
+The @command{hall guix} command will print your project's Guix recipe
+to standard out (normally your terminal).  The recipe it prints will
+be of type @emph{local}.  This means that the recipe points to a
+tarball of your project in the project's root directory.
+
+You can use the @option{--type} switch to change this behaviour:
+
+@deftypevr Switch string --type
+Either @emph{local}, @emph{git} or @emph{tarball}.  The only
+difference between the three is the @code{source} section of the Guix
+recipe: in the first case it points to a local tarball; in the second
+it points to a template git repository derived from the home page set
+in your @file{hall.scm} spec file.  In the third case it points to a
+remote tarball template.  This is again derived from your project's
+home page.
+
+@example
+hall guix --type=local|git|tarball
+@end example
+@end deftypevr
+
+@c *********************************************************************
+@node Hall Distribute
+@section Hall Distribute
+
+Our final subcommand, the @command{distribute} command, auto-generates
+files that you will want to include before distributing your project.
+
+There are several approaches you can take here:
+@enumerate
+@item
+Minimalist --- make Hall a dependency of your project so that you only
+need to have the bare minimum number of files in your project.  When
+you roll a new release tarball, you can run the following command
+sequence:
+
+@example
+# install dependencies for distribution
+guix environment -l guix
+# generate build infrastructure
+hall dist -x
+# build tarball
+autoreconf -vif && ./configure && make distcheck
+@end example
+
+This approach is particularly suited if you have a tarball release
+model.
+@item
+Compromise --- Run @command{hall dist} and commit the resulting files
+to your repository.  You can periodically repeat this process if your
+build infrastructure needs to be updated (e.g. you added new library
+files to your project).
+
+When it's time to build a release tarball you only have to run
+@command{autoreconf -vif && ./configure && make distcheck}.
+
+Anyone else can install your library from your repository by doing:
+@example
+# install dependencies for distribution
+guix environment -l guix
+# build tarball
+autoreconf -vif && ./configure && make distcheck
+@end example
+
+This approach is suited to git release based approaches.
+@end enumerate
+
+@c *********************************************************************
+@node The Hall Specification
+@chapter The Hall Specification
+
+I like to think the Hall specification is relatively easy on the eye,
+and self-explanatory --- especially if you have previously worked with
+Guix.  Regardless, any new format can be daunting at first, and this
+section aims to take the edge off grokking your project's spec file.
+
+A Hall specification contains several fields:
+
+@table @asis
+
+@item @code{name}
+Your project's name.  This should be a string, which means text
+enclosed by quotation marks (`"`).
+
+The value of this field is used throughout Hall in its operations,
+particularly when generating your build/distribution infrastructure &
+Guix recipe.
+
+
+@item @code{prefix}
+An optional prefix for the project.  In Guix, packages are named with
+a prefix according to the language they belong to.  So your wonderful
+cat meme library may be called @emph{kittehs}, but in Guix it would be
+packaged as @emph{guile-kittehs}.
+
+Similarly, the directory in which Hall would create the project would
+also be guile-kittehs.
+
+The full list of places in which the prefix will be used is:
+@itemize
+@item
+The project's root folder when a project is created using Hall;
+@item
+The project's manual file name;
+@item
+The project's name in the autotools infrastructure (and thus any
+tarballs generated);
+@item
+The project's guix recipe;
+@end itemize
+
+The prefix and project name are automatically separated by a `-`, so
+for instance
+@example
+hall init kittehs --prefix=guile
+@end example
+would result in a `full-project-name` of guile-kittehs.
+
+
+@item @code{version}
+The current version of your project.  This should be a string that
+that has a capacity for some form of incremental ordering.  String
+representations of numbers are pretty good.
+
+The value of the version field is used in generating the autotools
+infrastructure and Guix recipes.
+
+@display
+@group
+Super Saiyan mode:
+You can access the version variable in your @file{scripts/*.in} script
+files using the @var{@@HVERSION@@} variable.
+
+It has a silly name because @var{@@VERSION@@} is already taken by the
+autotools infrastructure but behaves subtly differently from Hall's
+propagated variables.  Feel free to use either!
+@end group
+@end display
+
+
+@item @code{author}
+The name of the project author.  
+
+At present, author is treated as a single string.  In future we aim to
+support multiple authors more elegantly by accepting a list of
+strings.
+
+The value of the author field is pushed to the autotools
+infrastructure, as well as the Guix recipe.
+
+@display
+@group
+Super Saiyan mode:
+You can access the author variable in your @file{scripts/*.in} script
+files using the @var{@@AUTHOR@@} variable.
+@end group
+@end display
+
+
+@item @code{copyright}
+The years for which the author claims copyright over the project.
+This should be a literal list of numbers (years).
+
+This value is used when first building various files, such as the
+manual template & the NEWS file.
+
+@display
+@group
+Super Saiyan mode:
+You can access the copyright variable in your @file{scripts/*.in}
+script files using the @var{@@COPYRIGHT@@} variable.
+@end group
+@end display
+
+
+@item @code{synopsis}
+This should be a short (maximum 70 characters) description of your
+project.
+
+It is used when generating Guix recipes
+
+
+@item @code{description}
+This can be a full description of your project.
+
+It is used when generating Guix recipes
+
+
+@item @code{home-page}
+The website where the project lives.
+
+This field is used when generating Guix recipes.
+
+
+@item @code{license}
+The license under which the project is licensed.  Any license
+supported by Guile Config is supported here.
+
+The most common licenses are @code{agpl3+} & @code{gpl3+}.  For a full
+list, please consult
+@url{https://gitlab.com/a-sassmannshausen/guile-config/blob/master/config/licenses.scm,
+Guile Config's licenses.scm}.
+
+If you use a GNU project license Hall will automatically create a
+@file{COPYING} file for you in the project directory.  This feature
+requires an active internet connection.  If you are not online, or if
+you use a non-GNU license, @file{COPYING} will simply contain some
+placeholder text.
+
+The license set in your spec file, from is pushed to the autotools &
+guix infrastructure.
+
+@display
+@group
+Super Saiyan mode:
+You can access the license variable in your @file{scripts/*.in} script
+files using the @var{@@LICENSE@@} variable.
+@end group
+@end display
+
+
+@item @code{dependencies}
+The dependencies field is designed to hold your project's Guile
+dependencies, so any other Guile modules that your project depends
+on.
+
+It is primarily used when generating Guix recipes.
+
+The format of the field is at heart the same as the one used by Guix's
+dependencies field. It looks as follows:
+@indentedblock
+`((label [library-configure-test] ,guix-package-name)
+  ...)
+@end indentedblock
+
+In the above, LABEL should be a string of your choosing.  It is the
+label by which the dependency can be referred to in Guix code.
+
+LIBRARY-CONFIGURE-TEST is an optional Guile module specification
+which, when present, is used at configure time to ensure the
+dependency is present on the system.  In other words, when the
+end-user runs @command{./configure}, the configure script will try to
+load LIBRARY-CONFIGURE-TEST in a Guile session to see if it is
+available on the system.  If not, @command{./configure} exits with an
+error.
+
+GUIX-PACKAGE-NAME is the name of the Guile dependency in Guix.
+
+The `...` means that you can specify multiple dependencies in this
+manner.
+
+As an example:
+@example
+`(("guile-hall" (hall common) ,guile-hall)
+  ("guix" ,guix))
+@end example
+
+The above is a valid dependencies declaration which says the
+following:
+@itemize
+@item
+We depend on the Guix packages @var{guile-hall} and @var{guix};
+@item
+We should test for the existence of @var{guile-hall} at configure time
+by attempting to load the @code{(hall common)} library.
+@end itemize
+
+
+@item @code{files}
+This section is generally managed by Hall itself, through the
+@command{init} and @command{scan} subcommands.
+
+In short, it contains a representation of the important files in your
+project.
+
+More information is available in the section on the @command{scan}
+subcommand.
+
+
+@end table
+
+@c *********************************************************************
+@node A Hall Spec File
+@appendix A Hall Spec File
+
+As an example of a healthy looking hall specification file, please see
+below for Hall's own current @file{hall.scm} file.
+
+@lisp
+@verbatiminclude hall.scm
+@end lisp
+
+@c *********************************************************************
+@node A Script File
+@appendix A Script File
+
+Hall's specification file should be the single place where you need to
+maintain your project's metadata.  To this end, it may be useful to
+see how you can use this metadata in your project's script files.
+
+Below you will find how Hall itself does it in its
+@file{scripts/hall.in} file.
+
+Please note, the technique used to draw @var{version}, @var{author},
+@var{copyright} & @var{license} into the script works through the
+autotools infrastructure.  It will only work in @file{.in} files, and
+only for such files under the scripts directory.
+
+Let me know if this is not good enough for you!
+
+@lisp
+@verbatiminclude scripts/hall.in
+@end lisp
 
 @bye
