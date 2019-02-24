@@ -48,10 +48,10 @@
 (define %configuration
   (configuration
    (name 'hall)
-   (version "@VERSION@")
-   (author "Alex Sassmannshausen")
-   (copyright '(2018))
-   (license gpl3+)
+   (version @HVERSION@)
+   (author @AUTHOR@)
+   (copyright @COPYRIGHT@)
+   (license @LICENSE@)
    (synopsis "Guile project manager")
    (description "Hall is a command-line application and a set of Guile
 libraries that allow you to quickly create and publish Guile projects.  It
