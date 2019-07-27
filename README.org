@@ -77,6 +77,15 @@ with docstrings.
      hall dist -x # create the build infrastructure
 
      # Oops, we made a mistake
+     #
+     # WARNING
+     #
+     # The clean command is destructive - it will remove not only infrastructure files
+     # as created by the dist command above, but also any other files, including source
+     # files, that hall does not know about (presumably, unless added by the scan command)...
+     #
+     # WARNING
+     #
      hall clean -x # undo previous step
 
      # Let's re-generate the guix file.
