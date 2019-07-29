@@ -82,7 +82,8 @@ with docstrings.
      #
      # The clean command is destructive - it will remove not only infrastructure files
      # as created by the dist command above, but also any other files, including source
-     # files, that hall does not know about (presumably, unless added by the scan command)...
+     # files, that hall does not know about.
+     # You can register new files with Hall by using the scan command.
      #
      # WARNING
      #
