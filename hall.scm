@@ -1,7 +1,7 @@
 (hall-description
  (name "hall")
  (prefix "guile")
- (version "0.2")
+ (version "0.2.1")
  (author "Alex Sassmannshausen")
  (copyright (2018))
  (synopsis "Guile project tooling")

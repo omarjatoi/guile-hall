@@ -31,7 +31,6 @@
   #:use-module (config licenses)
   #:use-module (hall spec)
   #:use-module (hall builders)
-  #:use-module (hall workarounds)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
@@ -284,9 +283,7 @@ Please send ~a bug reports to INSERT EMAIL HERE.
 
 (define (base-autotools-infrastructure)
   "Return the default autotools section."
-  `(,(directory "m4"
-                `(,(guile-m4-file)))
-    ,(directory "build-aux"
+  `(,(directory "build-aux"
                 `(,(file "test-driver" 'scheme "scm"
                          "
 ;;;; test-driver.scm - Guile test driver for Automake testsuite harness
@@ -611,7 +608,7 @@ AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
                            "
 dnl Search for 'guile' and 'guild'.  This macro defines
 dnl 'GUILE_EFFECTIVE_VERSION'.
-GUILE_PKG([3.2 3.0 2.9 2.2 2.0])
+GUILE_PKG([3.0 2.2 2.0])
 GUILE_PROGS
 GUILE_SITE_DIR
 if test \"x$GUILD\" = \"x\"; then
