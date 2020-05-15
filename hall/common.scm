@@ -968,7 +968,7 @@ TYPE 'local, 'git or 'tarball."
         ("automake" ,automake)
         ("pkg-config" ,pkg-config)
         ("texinfo" ,texinfo)))
-     (inputs `(("guile" ,guile-2.2)))
+     (inputs `(("guile" ,guile-3.0)))
      (propagated-inputs
       ;; This arcane contraption generates a valid input assoc.
       ,(cons 'quasiquote
