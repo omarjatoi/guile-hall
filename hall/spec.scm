@@ -48,7 +48,15 @@
             files-infrastructure
 
             specification->metadata specification->files
-            specification->files-tree specification->scm))
+            specification->files-tree specification->scm
+
+            <filetype>
+            filetype filetype?
+            filetype-type filetype-extension filetype-language
+            filetype->sxml sxml->filetype
+            filetypes-register
+
+            filetype-find))
 
 ;;;; Spec Definition
 
@@ -140,3 +148,43 @@ of the hall specification SPEC."
   `(hall-description
     ,@(specification->metadata spec)
     ,(specification->files spec)))
+
+;;;; filetypes
+
+(define-record-type <filetype>
+  (filetype type extension language)
+  filetype?
+  (type filetype-type)
+  (extension filetype-extension)
+  (language filetype-language))
+
+(define (sxml->filetype spec)
+  "Return a filetype record derived from SPEC. SPEC is a list of 3 ordered
+elements: the symbol type, the string or #f extension, and the symbol
+language."
+  (apply filetype spec))
+
+(define (filetype->sxml ft)
+  "Return an sxml representation of the filetype FT."
+  (list
+   (filetype-type ft)
+   (filetype-extension ft)
+   (filetype-language ft)))
+
+(define filetypes-register
+  (make-parameter
+   (list (filetype 'symlink "" 'symlink) (filetype 'directory "" 'directory)
+         (filetype 'scheme-file "scm" 'scheme)
+         (filetype 'text-file #f 'text)
+         (filetype 'info-file "info" 'info)
+         (filetype 'texi-file "texi" 'texinfo)
+         (filetype 'shell-file "sh" 'shell)
+         (filetype 'autoconf-file "ac" 'autoconf)
+         (filetype 'automake-file "am" 'automake)
+         (filetype 'in-file "in" #f)
+         (filetype 'm4-file "m4" 'm4)
+         (filetype 'compiled-scheme-file "go" 'go)
+         (filetype 'org-file "org" 'org))))
+
+(define* (filetype-find pred #:optional (accessor filetype-type))
+  (find (compose (cut and=> <> pred) accessor) (filetypes-register)))
