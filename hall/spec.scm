@@ -52,11 +52,17 @@
 
             <filetype>
             filetype filetype?
-            filetype-type filetype-extension filetype-language
+            filetype-type filetype-extension filetype-language filetype-notes
             filetype->sxml sxml->filetype
             filetypes-register
 
-            filetype-find))
+            filetype-find
+
+            symlink-filetype directory-filetype log-file-filetype
+            test-result-filetype scheme-filetype text-filetype info-filetype
+            tex-filetype texi-filetype shell-filetype autoconf-filetype
+            automake-filetype in-filetype m4-filetype c-filetype
+            compiled-scheme-filetype org-filetype xml-filetype))
 
 ;;;; Spec Definition
 
@@ -152,11 +158,12 @@ of the hall specification SPEC."
 ;;;; filetypes
 
 (define-record-type <filetype>
-  (filetype type extension language)
+  (filetype type extension language notes)
   filetype?
   (type filetype-type)
   (extension filetype-extension)
-  (language filetype-language))
+  (language filetype-language)
+  (notes filetype-notes))
 
 (define (sxml->filetype spec)
   "Return a filetype record derived from SPEC. SPEC is a list of 3 ordered
@@ -171,24 +178,57 @@ language."
    (filetype-extension ft)
    (filetype-language ft)))
 
+(define symlink-filetype (filetype 'symlink "" 'symlink '()))
+
+(define directory-filetype (filetype 'directory "" 'directory '()))
+
+(define log-file-filetype (filetype 'log-file "log" 'text '()))
+
+(define test-result-filetype (filetype 'test-result-file "trs" 'text '()))
+
+(define scheme-filetype (filetype 'scheme-file "scm" 'scheme '()))
+
+(define text-filetype (filetype 'text-file #f 'text '()))
+
+(define info-filetype (filetype 'info-file "info" 'info '()))
+
+(define tex-filetype (filetype 'tex-file "tex" 'texinfo '()))
+
+(define texi-filetype (filetype 'texi-file "texi" 'texinfo '()))
+
+(define shell-filetype (filetype 'shell-file "sh" 'shell '()))
+
+(define autoconf-filetype (filetype 'autoconf-file "ac" 'autoconf '()))
+
+(define automake-filetype (filetype 'automake-file "am" 'automake '()))
+
+(define in-filetype (filetype 'in-file "in" #f '()))
+
+(define m4-filetype (filetype 'm4-file "m4" 'm4 '()))
+
+(define c-filetype (filetype 'c-file "c" 'c
+                             '("
+Your project includes C files. Unfortunately Hall does not yet support
+autogenerating build infrastructure files that include C files. You will have
+to tweak your configure.ac and automake.am files yourself.
+")))
+
+(define compiled-scheme-filetype
+  (filetype 'compiled-scheme-file "go" 'go '()))
+
+(define org-filetype (filetype 'org-file "org" 'org '()))
+
+(define xml-filetype (filetype 'xml-file "xml" 'xml '()))
+
+;; ft
+
 (define filetypes-register
   (make-parameter
-   (list (filetype 'symlink "" 'symlink) (filetype 'directory "" 'directory)
-         (filetype 'log-file "log" 'text)
-         (filetype 'test-result-file "trs" 'text)
-         (filetype 'scheme-file "scm" 'scheme)
-         (filetype 'text-file #f 'text)
-         (filetype 'info-file "info" 'info)
-         (filetype 'texi-file "tex" 'texinfo)
-         (filetype 'texi-file "texi" 'texinfo)
-         (filetype 'shell-file "sh" 'shell)
-         (filetype 'autoconf-file "ac" 'autoconf)
-         (filetype 'automake-file "am" 'automake)
-         (filetype 'in-file "in" #f)
-         (filetype 'm4-file "m4" 'm4)
-         (filetype 'compiled-scheme-file "go" 'go)
-         (filetype 'org-file "org" 'org)
-         (filetype 'xml-file "xml" 'xml))))
+   (list symlink-filetype directory-filetype log-file-filetype
+         test-result-filetype scheme-filetype text-filetype info-filetype
+         tex-filetype texi-filetype shell-filetype autoconf-filetype
+         automake-filetype in-filetype m4-filetype c-filetype
+         compiled-scheme-filetype org-filetype xml-filetype)))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
   (find (compose (cut and=> <> pred) accessor) (filetypes-register)))

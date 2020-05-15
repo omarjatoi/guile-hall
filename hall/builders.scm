@@ -128,21 +128,21 @@ find out which."
 
 ;;;;; File Constructor
 
-(define (file name language extension contents)
-  "Return a hall file procedure with the file name NAME.  The file contains
-content in LANGUAGE, a symbol describing a programming language or 'text for
-plain text.  EXTENSION should be the file's expected extension, and CONTENTS
-can be a procedure of one argument (the project's specification) or a string.
-In both cases contents describe the contents of the file.
+(define (file name filetype contents)
+  "Return a hall file procedure with the file name NAME.  FILETYPE is a
+filetype record and specifies metadata for the file.  CONTENTS can be a
+procedure of one argument (the project's specification) or a string.  In both
+cases contents describe the contents of the file.
 
 A number of operations on hall file procedures are possible.  Consult the
 commentary above to find out what these are."
   (lambda (spec context operation indentation)
     (match operation
-      ('write (filetype-write name language extension))
+      ('write (filetype-write name filetype))
       ('contents contents)
       (_
-       (let ((fname (context->fname context name extension)))
+       (let ((fname (context->fname context name
+                                    (filetype-extension filetype))))
          (match operation
            ('path fname)
            ('exec
@@ -214,17 +214,10 @@ commentary above to find out what these are."
 
 ;;;; Filetype converters
 
-(define (filetype-write name language extension)
+(define (filetype-write name filetype)
   "Return an SXML representation of the hall description of the file with name
 NAME, in LANGUAGE and with EXTENSION."
-  (match (find (λ (ft)
-                 (or (and (eqv? (filetype-language ft) language)
-                          (equal? (filetype-extension ft) extension))
-                     (and=> (filetype-extension ft)
-                            (cut equal? <> extension))))
-               (filetypes-register))
-    (#f `(file ,name ,language ,extension))
-    (ft `(,(filetype-type ft) ,name))))
+  `(,(filetype-type filetype) ,name))
 
 (define (filetype-derive name stat)
   "Return an SXML representation of the file with filename NAME, by analysing

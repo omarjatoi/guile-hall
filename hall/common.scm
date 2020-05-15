@@ -119,7 +119,7 @@ the project's hall.scm file."
 
 (define (base-libraries name)
   "Return the default libraries section."
-  `(,(file name 'scheme "scm" "")
+  `(,(file name scheme-filetype "")
     ,(directory name '())))
 
 (define (base-tests)
@@ -132,7 +132,7 @@ the project's hall.scm file."
 
 (define (base-top-docs)
   "Return the default top level documentation section."
-  `(,(file "README" 'org "org"
+  `(,(file "README" org-filetype
            (lambda (spec)
              (format #t
                      "-*- mode: org; coding: utf-8; -*-
@@ -140,7 +140,7 @@ the project's hall.scm file."
 #+TITLE: README for ~a~%~%"
                      (friendly-project-name spec))))
     ,(slink "README" "README.org")
-    ,(file "HACKING" 'text #f
+    ,(file "HACKING" text-filetype
            (lambda (spec)
              (format #t
                      "-*- mode: org; coding: utf-8; -*-
@@ -197,7 +197,7 @@ Once those dependencies are installed you can run:
                            ;; first element is quasiquote
                            (second (specification-dependencies spec)))
                       "\n  - " 'prefix))))
-    ,(file "COPYING" 'text #f
+    ,(file "COPYING" text-filetype
            (lambda (spec)
              (match (specification-license spec)
                ((? defined? n)
@@ -240,11 +240,11 @@ You can read the full license at ~a.~%"
 (define (base-infrastructure)
   "Return the default infrastructure section."
   `(,(guix-file)
-    ,(file "hall" 'scheme "scm" #f)))
+    ,(file "hall" scheme-filetype #f)))
 
 (define (base-autotools-documentation)
   "Return the default autotools documentation section."
-  `(,(file "NEWS" 'text #f
+  `(,(file "NEWS" text-filetype
            (lambda (spec)
              (format #t
                      "-*- mode: org; coding: utf-8; -*-
@@ -266,7 +266,7 @@ Please send ~a bug reports to INSERT EMAIL HERE.
                      (specification-author spec)
                      (friendly-project-name spec)
                      (specification-version spec))))
-    ,(file "AUTHORS" 'text #f
+    ,(file "AUTHORS" text-filetype
            (lambda (spec)
              (format #t
                      "Contributers to ~a ~a:
@@ -274,7 +274,7 @@ Please send ~a bug reports to INSERT EMAIL HERE.
     ~a <INSERT EMAIL HERE>~%"
                      (friendly-project-name spec) (specification-version spec)
                      (specification-author spec))))
-    ,(file "ChangeLog" 'text #f
+    ,(file "ChangeLog" text-filetype
            (lambda (spec)
              (format #t
                      "For a complete log, please see the Git commit log at <~a/PATH/TO/LOG>.~%"
@@ -284,7 +284,7 @@ Please send ~a bug reports to INSERT EMAIL HERE.
 (define (base-autotools-infrastructure)
   "Return the default autotools section."
   `(,(directory "build-aux"
-                `(,(file "test-driver" 'scheme "scm"
+                `(,(file "test-driver" scheme-filetype
                          "
 ;;;; test-driver.scm - Guile test driver for Automake testsuite harness
 
@@ -467,7 +467,7 @@ current output port is supposed to be redirected to a '.log' file.\"
 ")))
     ,(configure-file)
     ,(makefile-file)
-    ,(file "pre-inst-env" 'shell "in"
+    ,(file "pre-inst-env" shell-filetype
            "
 #!/bin/sh
 
@@ -494,7 +494,7 @@ exec \"$@\"
 (define (manual-file name)
   "Return a hal file procedure with default contents for the project's
 manual."
-  (file name 'texinfo "texi"
+  (file name texi-filetype
         (lambda (spec)
           (display
            (string-append "
@@ -565,7 +565,7 @@ This documentation is a stub.
 (define (configure-file)
   "Return a hal file procedure with default contents for the project's
 configure.ac file."
-  (file "configure" 'autoconf "ac"
+  (file "configure" autoconf-filetype
         (lambda (spec)
           (display
            (string-append "
@@ -658,7 +658,7 @@ Makefile.am file."
                      element))
                   rest)))))
   (file
-   "Makefile" 'automake "am"
+   "Makefile" automake-filetype
    (lambda (spec)
      (display
       (string-append "
@@ -906,7 +906,7 @@ TYPE 'local, 'git or 'tarball."
   "Return a hal file procedure with default contents for the project's
 guix.scm file."
   (file
-   "guix" 'scheme "scm"
+   "guix" scheme-filetype
    (lambda (spec)
      (for-each (lambda (n) (pretty-print n) (newline))
                (let ((lst (list (match type
@@ -1092,8 +1092,7 @@ the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
                  "Unknown filetype" type name args))
       (ft (if (eqv? (filetype-type ft) 'symlink)
               (slink name contents)
-              (file name (filetype-language ft) (filetype-extension ft)
-                    contents))))))
+              (file name ft contents))))))
 
 (define (file->filepath type name path)
   "Return the absolute filepath of the file NAME of language TYPE at folder
