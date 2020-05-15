@@ -52,7 +52,13 @@
             base-autotools
             base-autotools-documentation base-autotools-infrastructure
 
-            flatten))
+            flatten
+
+            quit-with-error))
+
+(define (quit-with-error msg . args)
+  (apply format (current-error-port) (string-append msg "~%") args)
+  (exit 1))
 
 (define (values->specification nam prefi versio autho copyrigh synopsi
                                descriptio home-pag licens dependencie
@@ -101,8 +107,13 @@ set the working directory to it, or throw an error."
     (let lp ((cwd (getcwd)))
       (cond ((project-root-directory?) `(,cwd))
             ((string=? cwd "/")
-             (throw 'hall-find-project-root-directory
-                    "No hall.scm file found.  Search started at:" start))
+             (quit-with-error
+              "We were unable to locate your hall.scm file.  We started our
+search at ~a.
+
+Are you sure this is a hall project?
+
+Perhaps you want to create a new hall project using `hall init'?" start))
             (else
              (chdir "..")
              (lp (getcwd)))))))
@@ -957,52 +968,59 @@ all default files that contain non-empty contents."
 
 (define (name project-name)
   (or (and (string? project-name) project-name)
-      (throw 'hall-spec-name "PROJECT-NAME should be a string."
-             project-name)))
+      (quit-with-error
+       "PROJECT-NAME should be a string."
+       project-name)))
 
 (define (prefix project-prefix)
   (or (and (string? project-prefix) project-prefix)
-      (throw 'hall-spec-prefix "PROJECT-prefix should be a string."
-             project-prefix)))
+      (quit-with-error
+       "PROJECT-prefix should be a string."
+       project-prefix)))
 
 (define (version project-version)
   (or (and (string? project-version) project-version)
-      (throw 'hall-spec-version "PROJECT-VERSION should be a string."
-             project-version)))
+      (quit-with-error
+       "PROJECT-VERSION should be a string."
+       project-version)))
 
 (define (author project-author)
   (or (and (string? project-author) project-author)
-      (throw 'hall-spec-author "PROJECT-AUTHOR should be a string."
-             project-author)))
+      (quit-with-error
+       "PROJECT-AUTHOR should be a string."
+       project-author)))
 
 (define (synopsis project-synopsis)
   (or (and (string? project-synopsis) project-synopsis)
-      (throw 'hall-spec-synopsis "PROJECT-SYNOPSIS should be a string."
-             project-synopsis)))
+      (quit-with-error
+       "PROJECT-SYNOPSIS should be a string."
+       project-synopsis)))
 
 (define (description project-description)
   (or (and (string? project-description) project-description)
-      (throw 'hall-spec-description
-             "PROJECT-DESCRIPTION should be a string."
-             project-description)))
+      (quit-with-error
+       "PROJECT-DESCRIPTION should be a string."
+       project-description)))
 
 (define (home-page project-home-page)
   (or (and (string? project-home-page) project-home-page)
-      (throw 'hall-spec-home-page "PROJECT-HOME-PAGE should be a string."
-             project-home-page)))
+      (quit-with-error
+       "PROJECT-HOME-PAGE should be a string."
+       project-home-page)))
 
 ;; FIXME: LICENSE should be a license object
 (define (license-prs project-license)
   (or (and (symbol? project-license) project-license)
-      (throw 'hall-spec-license "PROJECT-LICENSE should be a symbol."
-             project-license)))
+      (quit-with-error
+       "PROJECT-LICENSE should be a symbol."
+       project-license)))
 
 (define (copyright project-copyrights)
   (match project-copyrights
     (((? number?) ...) project-copyrights)
-    (_ (throw 'hall-spec-copyrights
-              "PROJECT-COPYRIGHTs should be one or more numbers."
-              project-copyrights))))
+    (_ (quit-with-error
+        "PROJECT-COPYRIGHTs should be one or more numbers."
+        project-copyrights))))
 
 (define (dependencies project-dependencies)
   (match project-dependencies
@@ -1010,9 +1028,9 @@ all default files that contain non-empty contents."
          ('quasiquote (((? string?) ('unquote (? symbol?))) ...)))
      project-dependencies)
     (_
-     (throw 'hall-spec-dependencies
-            "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
-            project-dependencies))))
+     (quit-with-error
+      "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
+      project-dependencies))))
 
 (define (all-files files) files)
 
@@ -1077,7 +1095,10 @@ SCM."
                          '(name prefix version author copyright synopsis
                                 description home-page license dependencies))
                     (list (scm->files (href scm 'files) (href scm 'name))))))
-    (_ (throw 'hall-scm->specification "Invalid hall data:" scm))))
+    (_
+     (quit-with-error
+      "It looks like your hall file has been corrupted.  You may have to
+regenerate it."))))
 
 (define (filetype-read type name fname templates . args)
   "Return a hal file procedure for the SXML represented file of language TYPE,
@@ -1088,8 +1109,13 @@ the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
                       (first args)
                       (hash-ref templates fname ""))))
     (match (filetype-find (cut eqv? <> type))
-      (#f (throw 'hall-filetype-read
-                 "Unknown filetype" type name args))
+      (#f
+       (quit-with-error
+        "
+Your project contains a file (~a) of a type that is not supported by Hall yet
+(~a).  Please report this at our website
+(https://gitlab.com/a-sassmannshausen/guile-hall/)."
+        name type))
       (ft (if (equal? ft symlink-filetype)
               (slink name contents)
               (file name ft contents))))))
@@ -1099,5 +1125,11 @@ the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
 PATH."
   (context->fname path name
                   (match (filetype-find (cut eqv? <> type))
-                    (#f (throw 'file->filepath "Unknown type!" type name))
+                    (#f
+                     (quit-with-error
+                      "
+Your project contains a file (~a) of a type that is not supported by Hall yet
+(~a).  Please report this at our website
+(https://gitlab.com/a-sassmannshausen/guile-hall/)."
+                      name type))
                     (ft (filetype-extension ft)))))

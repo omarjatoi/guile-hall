@@ -43,8 +43,9 @@ and only element the absolute filepath to the project base-directory.
 OPERATION can be 'show or 'exec."
   (let ((fname (context->fname context (full-project-name spec))))
     (if (file-exists? fname)
-        (throw 'hall-create-project "PROJECT already exists: "
-               (full-project-name spec))
+        (quit-with-error
+         "The project you are trying to create (~a) already exists!"
+         (full-project-name spec))
         (begin
           (when (eq? 'show operation)
             (format #t "Dryrun:~%"))

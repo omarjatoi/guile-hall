@@ -131,8 +131,11 @@ base-directory."
               ('directory `(directory ,name ()))
               ('symlink `(symlink ,name ,(readlink name)))
               ((or 'block-special 'char-special 'fifo 'socket 'unknown)
-               (throw 'hall-derive-filetypes "Unsupported file type:"
-                      (stat:type stat))))))
+               (quit-with-error
+                "Your project contains a file of a type that is not supported
+by Hall yet (~a).  Please report this at our website
+(https://gitlab.com/a-sassmannshausen/guile-hall/)."
+                (stat:type stat))))))
       ((name stat children ...)            ; directory
        (and (continue? name)
             `(directory ,name ,(filter-map (cut lp <> (cons name path))
