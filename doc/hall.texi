@@ -321,7 +321,6 @@ will act as your guides as you explore the lands of Hall.
 @item
 Hall has a configuration file located at @file{~/.hall}.  You can set
 some settings there, to provide default values for all your projects.
-@item
 @end itemize
 
 Finally, at Hall's core lies the notion of a hall specification.  This
@@ -332,7 +331,7 @@ tidy the project; @command{guix} and @command{distribute} read it to
 generate additional files.
 
 You can edit the specification manually though I hope to expose
-commands to manipulate all aspect of it in the near future.  For now,
+commands to manipulate all aspects of it in the future.  For now,
 the files section in particular, should normally only be changed
 through the @command{scan} command.
 

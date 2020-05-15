@@ -75,7 +75,7 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
             (let ((target (filetype-derive fn (stat filename))))
               (if (find (λ (f) (equal? f target)) files)
                   files
-                  (cons tg files)))
+                  (cons target files)))
             ;; Incorrect depth.  Does the next level of filename's directory
             ;; exist in spec?
             (match (find (match-lambda
