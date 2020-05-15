@@ -76,7 +76,7 @@
       ("automake" ,automake)
       ("pkg-config" ,pkg-config)
       ("texinfo" ,texinfo)))
-  (inputs `(("guile" ,guile-2.2)))
+  (inputs `(("guile" ,guile-3.0)))
   (propagated-inputs
     `(("guile-config" ,guile-config)))
   (synopsis "Guile project tooling")
