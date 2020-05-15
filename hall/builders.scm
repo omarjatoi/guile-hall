@@ -153,7 +153,7 @@ commentary above to find out what these are."
                   (with-output-to-file fname
                     (lambda _
                       (cond ((and (string=? name "hall")
-                                  (eq? language 'scheme))
+                                  (equal? filetype scheme-filetype))
                              ;; Hall file needs special processing here:
                              ;; its contents are derived from spec here
                              (pretty-print (specification->scm spec)

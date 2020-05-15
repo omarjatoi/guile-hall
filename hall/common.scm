@@ -1090,7 +1090,7 @@ the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
     (match (filetype-find (cut eqv? <> type))
       (#f (throw 'hall-filetype-read
                  "Unknown filetype" type name args))
-      (ft (if (eqv? (filetype-type ft) 'symlink)
+      (ft (if (equal? ft symlink-filetype)
               (slink name contents)
               (file name ft contents))))))
 
