@@ -29,6 +29,7 @@
 
 (define-module (hall builders)
   #:use-module (hall spec)
+  #:use-module (ice-9 hash-table)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
@@ -40,7 +41,24 @@
 
             context->fname full-project-name friendly-project-name
 
-            filetype-write filetype-derive))
+            filetype-write filetype-derive
+
+            emit-notes %global-notes))
+
+(define %global-notes
+  (make-hash-table))
+
+(define (register-notes notes)
+  (and (not (hash-ref %global-notes notes))
+       (hash-set! %global-notes notes 1)))
+
+(define* (emit-notes #:optional (port (current-output-port)))
+  (hash-remove! %global-notes '())
+  (hash-for-each (λ (k _)
+                   (for-each (compose (cut format port "~a~%" <>)
+                                      (cut string-trim-both <>))
+                             k))
+                 %global-notes))
 
 ;;;;; Helpers
 
@@ -138,7 +156,9 @@ A number of operations on hall file procedures are possible.  Consult the
 commentary above to find out what these are."
   (lambda (spec context operation indentation)
     (match operation
-      ('write (filetype-write name filetype))
+      ('write
+       (register-notes (filetype-notes filetype))
+       (filetype-write name filetype))
       ('contents contents)
       (_
        (let ((fname (context->fname context name
@@ -146,6 +166,7 @@ commentary above to find out what these are."
          (match operation
            ('path fname)
            ('exec
+            (register-notes (filetype-notes filetype))
             (if (file-exists? fname)
                 (format #t "~aSkipping: ~a~%" indentation fname)
                 (begin
@@ -167,12 +188,14 @@ commentary above to find out what these are."
            ('raw fname)
            ('raw+contents `(,fname . ,contents))
            ('show-contents
+            (register-notes (filetype-notes filetype))
             (cond ((string? contents)
                    (display contents))
                   ((procedure? contents)
                    (contents spec))
                   (else (pretty-print contents))))
            ((or 'show _)
+            (register-notes (filetype-notes filetype))
             (if (file-exists? fname)
                 (format #t "~aSkipping: ~a~%" indentation fname)
                 (format #t "~aMaking file: ~a~%" indentation fname)))))))))

@@ -35,6 +35,7 @@
              (config api)
              (config parser sexp)
              (config licenses)
+             (hall builders)
              (hall clean)
              (hall common)
              (hall dist)
@@ -216,7 +217,8 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
        (recreate-project-here (read-spec) '() operation))
       (("hall" "scan")
        (scan-project (read-spec) (find-project-root-directory)
-                     (option-ref options 'skip) operation)))))
+                     (option-ref options 'skip) operation)))
+    (emit-notes)))
 
 ;;; Local Variables:
 ;;; mode: scheme
