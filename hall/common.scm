@@ -1084,42 +1084,21 @@ SCM."
 with name NAME, and full path name FNAME, potentially with contents found in
 the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
   ;; First element in args is considered a user specified content.
-  (let ((contents (or (and (not (null? args)) (first args))
+  (let ((contents (if (not (null? args))
+                      (first args)
                       (hash-ref templates fname ""))))
-    (match type
-      ('symlink (slink name contents))
-      (_
-       (apply file name
-              (match type
-                ('scheme-file `(scheme "scm" ,contents))
-                ('text-file `(text #f ,contents))
-                ('info-file `(info "info" ,contents))
-                ('texi-file `(texinfo "texi" ,contents))
-                ('shell-file `(shell "sh" ,contents))
-                ('autoconf-file `(autoconf "ac" ,contents))
-                ('automake-file `(automake "am" ,contents))
-                ('in-file `(in "in" ,contents))
-                ('m4-file `(m4 "m4" ,contents))
-                ('compiled-scheme-file `(go "go" ,contents))
-                ('org-file `(org "org" ,contents))
-                (_ (throw 'hall-filetype-read
-                          "Unknown filetype" type name args))))))))
+    (match (filetype-find (cut eqv? <> type))
+      (#f (throw 'hall-filetype-read
+                 "Unknown filetype" type name args))
+      (ft (if (eqv? (filetype-type ft) 'symlink)
+              (slink name contents)
+              (file name (filetype-language ft) (filetype-extension ft)
+                    contents))))))
 
 (define (file->filepath type name path)
   "Return the absolute filepath of the file NAME of language TYPE at folder
 PATH."
-  (context->fname path name (match type
-                              ('scheme-file "scm")
-                              ('text-file #f)
-                              ('info-file "info")
-                              ('texi-file "texi")
-                              ('shell-file "sh")
-                              ('autoconf-file "ac")
-                              ('automake-file "am")
-                              ('in-file "in")
-                              ('m4-file "m4")
-                              ('compiled-scheme-file "go")
-                              ('org-file "org")
-                              ('symlink "")
-                              (_ (throw 'file->filepath "Unknown extension"
-                                        type name)))))
+  (context->fname path name
+                  (match (filetype-find (cut eqv? <> type))
+                    (#f (throw 'file->filepath "Unknown type!" type name))
+                    (ft (filetype-extension ft)))))
