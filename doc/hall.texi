@@ -529,15 +529,17 @@ Use @command{hall clean} to remove all files that are cruft from your project.
 @item
 Manually remove files that cause interference.
 @item
-Use the @option{--skip} switch to tell scan to ignore files.  See below.
+Use the @option{--skip} switch to tell scan to ignore files matching
+specific regexp patterns.  See below.
 @end enumerate
 
 @deftypevr Switch list --skip
-A comma delimited string, in which each item points to an individual
-file, or a folder to be skipped during the scan operation.
+A comma delimited string, in which each entry is a Guile style regexp
+pattern which will be used to skip files and/or folders during the
+scan operation.
 
 @example
-hall scan --skip=SKIP.me,cruft-folder
+hall scan --skip="SKIP.me,cruft-folder,^hall.*$"
 @end example
 @end deftypevr
 
@@ -566,11 +568,12 @@ shown in the @emph{Skipping} group), but you can manually add to this
 list using the @option{--skip} switch.
 
 @deftypevr Switch list --skip
-A comma delimited string, in which each item points to an individual
-file, or a folder to be skipped during the clean operation.
+A comma delimited string, in which each entry is a Guile style regexp
+pattern which will be used to skip files and/or folders during the
+clean operation.
 
 @example
-hall clean --skip=SKIP.me,important-folder
+hall clean --skip="SKIP.me,cruft-folder,^hall.*$"
 @end example
 @end deftypevr
 

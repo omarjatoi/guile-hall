@@ -95,10 +95,15 @@ containing a hall.scm file."
 (define (blacklisted? path project-root skip)
   "Return #t if the absolute filepath PATH, located in the project at absolute
 filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
-  ;; Currently only allow blacklisting at the top-level.
   (and (not (string=? project-root path))
-       (member (string-drop path (1+ (string-length project-root)))
-               (cons* ".dir-locals.el" ".gitignore" ".git" skip))))
+       (let ((file (string-drop path (1+ (string-length project-root)))))
+         (catch 'X
+           (λ _
+             (for-each (λ (p) (and (string-match p file) (throw 'X)))
+                       (cons* "^\\.dir-locals.el" "^\\.gitignore$" "^\\.git$"
+                              "^.*~$" "^#.*#$" skip))
+             #f)
+           (const #t)))))
 
 (define (find-project-root-directory)
   "Find and return the project root directory path of the current project, and
