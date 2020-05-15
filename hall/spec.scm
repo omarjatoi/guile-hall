@@ -174,6 +174,8 @@ language."
 (define filetypes-register
   (make-parameter
    (list (filetype 'symlink "" 'symlink) (filetype 'directory "" 'directory)
+         (filetype 'log-file "log" 'text)
+         (filetype 'test-result-file "trs" 'text)
          (filetype 'scheme-file "scm" 'scheme)
          (filetype 'text-file #f 'text)
          (filetype 'info-file "info" 'info)
