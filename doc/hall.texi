@@ -543,6 +543,25 @@ hall scan --skip="SKIP.me,cruft-folder,^hall.*$"
 @end example
 @end deftypevr
 
+You can also add individual files to your @file{hall.scm} file, by
+invoking @command{hall scan} with 2 optional positional arguments:
+
+@deftypevr Argument string filename
+The file, relative to your project root, to be added to your
+@file{hall.scm} file.
+@end deftypevr
+
+@deftypevr Argument string section
+The section that @code{filename} should be added to.  This should be
+one of the five sections enumerated above.
+@end deftypevr
+
+@example
+# To add the file frobnigator.scm inside the tests directory to the
+# tests section of your hall.scm file, run
+hall scan tests/frobnigator.scm tests
+@end example
+
 @c *********************************************************************
 @node Hall Clean
 @section Hall Clean
