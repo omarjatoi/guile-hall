@@ -184,7 +184,8 @@ language."
          (filetype 'in-file "in" #f)
          (filetype 'm4-file "m4" 'm4)
          (filetype 'compiled-scheme-file "go" 'go)
-         (filetype 'org-file "org" 'org))))
+         (filetype 'org-file "org" 'org)
+         (filetype 'xml-file "xml" 'xml))))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
   (find (compose (cut and=> <> pred) accessor) (filetypes-register)))
