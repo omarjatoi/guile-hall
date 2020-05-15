@@ -36,7 +36,8 @@
   #:use-module (ice-9 pretty-print)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
-  #:export (scan-project))
+  #:export (scan-project
+            add-to-project))
 
 (define (dir->filenames directory-name)
   "Return a list of all the file-paths in DIRECTORY-NAME."
@@ -55,6 +56,73 @@
                                  (n (list name n))))
                               (dir->filenames child)))
                        children))))))
+
+(define (add-to-project spec context filename section operation)
+  "Commandline tool for adding a single file within the project to the
+hall.scm file.  SPEC is a hall specification file for the project in question.
+CONTEXT is a list containing as its first and only element the absolute
+filepath to the project base-directory.  FILENAME is the file to be added.
+SECTION is the spec file section to add it to.  OPERATION can be 'show or
+'exec."
+  (define (tweak files)
+    (let lp ((tokens (filter (negate string-null?)
+                             (string-split filename #\/)))
+             (files (map (cut <> spec context 'write "") files)))
+      (let* ((fn (first tokens)))
+        (if (= (length tokens) 1)
+            ;; We're at the correct depth.  Check if filename already exists
+            ;; at this depth.
+            (let ((target (filetype-derive fn (stat filename))))
+              (if (find (λ (f) (equal? f target)) files)
+                  files
+                  (cons tg files)))
+            ;; Incorrect depth.  Does the next level of filename's directory
+            ;; exist in spec?
+            (match (find (match-lambda
+                           (('directory (? (cut string=? <> fn)) _) #t)
+                           (_ #f))
+                         files)
+              (#f
+               ;; No, so insert filename here.
+               (cons
+                (let ((rtokens (reverse tokens)))
+                  (fold (λ (next result)
+                          `(directory ,next (,result)))
+                        (filetype-derive (first rtokens) (stat filename))
+                        (cdr rtokens)))
+                files))
+              ;; Yes, so descend to next level.
+              ((_ name children)
+               `((directory ,name
+                            ,(lp (cdr tokens) children)))))))))
+  (when (eqv? (stat:type (stat filename)) 'directory)
+    (quit-with-error
+     "You cannot currently add directories.  Instead you have to add each
+individual file in the directory you wish to add."))
+  (let* ((setr (match section
+                 ('documentation set-files-documentation)
+                 ('programs set-files-programs)
+                 ('tests set-files-tests)
+                 ('infrastructure set-files-infrastructure)
+                 ('libraries set-files-libraries)))
+         (xsr (record-accessor <files> section))
+         (files (specification-files spec))
+         (new-spec (set-specification-files spec (setr (specification-files
+                                                        spec)
+                                                       (category-traverser
+                                                        (tweak (xsr
+                                                                files))
+                                                        "test")))))
+    (match operation
+      ('exec
+       (with-output-to-file "hall.scm"
+         (lambda _
+           (pretty-print (specification->scm new-spec)
+                         (current-output-port)))))
+      ((or 'show _)
+       (format #t "Dryrun:~%")
+       (pretty-print (specification->scm new-spec) (current-output-port))
+       (format #t "Finished dryrun.~%")))))
 
 ;; We traverse each file category.  For each directory we encounter, we scan
 ;; and add all files, making best guesses according to extensions.

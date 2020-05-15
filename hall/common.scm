@@ -44,7 +44,7 @@
 
             blacklisted? project-root-directory? find-project-root-directory
 
-            read-spec filetype-read
+            read-spec filetype-read category-traverser
             scm->files scm->specification
 
             guix-file

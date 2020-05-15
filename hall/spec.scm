@@ -46,6 +46,8 @@
             files files?
             files-libraries files-tests files-programs files-documentation
             files-infrastructure
+            set-files-libraries set-files-tests set-files-programs
+            set-files-documentation set-files-infrastructure
 
             specification->metadata specification->files
             specification->files-tree specification->scm
@@ -68,14 +70,14 @@
 
 ;; A record type that fills the files field of a <specification>: a container
 ;; for the different file categories we use in a Guile project.
-(define-record-type <files>
+(define-immutable-record-type <files>
   (files libraries tests programs documentation infrastructure)
   files?
-  (libraries files-libraries)
-  (tests files-tests)
-  (programs files-programs)
-  (documentation files-documentation)
-  (infrastructure files-infrastructure))
+  (libraries files-libraries set-files-libraries)
+  (tests files-tests set-files-tests)
+  (programs files-programs set-files-programs)
+  (documentation files-documentation set-files-documentation)
+  (infrastructure files-infrastructure set-files-infrastructure))
 
 ;; A container for the fundamental specification used by Hall.
 (define-immutable-record-type <specification>

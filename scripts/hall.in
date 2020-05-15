@@ -169,6 +169,20 @@ Once you are happy with the result, pass the '--execute' flag to actually
 generate the new hall.scm file.  You will want to delete the old hall.scm file
 first.")
       (wanted '((keywords execute)))
+      (arguments
+       (list
+        (argument
+         (name 'filename) (default #f)
+         (test (match-lambda ((or #f (? file-exists?)) #t) (_ #f)))
+         (synopsis "Add a single file to your hall.scm file.")
+         (example "tests/frobnigator.scm"))
+        (argument
+         (name 'section) (default #f)
+         (test (λ (t) (member t '(programs tests documentation infrastructure
+                                           libraries))))
+         (handler string->symbol)
+         (synopsis "The section under which you want to add the file.")
+         (example "programs|tests|documentation|infrastructure|libraries"))))
       (keywords
        (list
         (switch
@@ -216,8 +230,13 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
       (("hall" "initiate" "refresh")
        (recreate-project-here (read-spec) '() operation))
       (("hall" "scan")
-       (scan-project (read-spec) (find-project-root-directory)
-                     (option-ref options 'skip) operation)))
+       (match (cons (option-ref options '(filename))
+                    (option-ref options '(section)))
+         ((#f . #f) (scan-project (read-spec) (find-project-root-directory)
+                                  (option-ref options 'skip) operation))
+         ((or (#f . _) (_ . #f)) (emit-help options))
+         ((fn . sc) (add-to-project (read-spec) (find-project-root-directory)
+                                    fn sc operation)))))
     (emit-notes)))
 
 ;;; Local Variables:
