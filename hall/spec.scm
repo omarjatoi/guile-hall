@@ -177,6 +177,7 @@ language."
          (filetype 'scheme-file "scm" 'scheme)
          (filetype 'text-file #f 'text)
          (filetype 'info-file "info" 'info)
+         (filetype 'texi-file "tex" 'texinfo)
          (filetype 'texi-file "texi" 'texinfo)
          (filetype 'shell-file "sh" 'shell)
          (filetype 'autoconf-file "ac" 'autoconf)
