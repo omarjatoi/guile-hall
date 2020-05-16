@@ -10,7 +10,14 @@ Copyright © 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 
 Please send Guile Hall bug reports to alex@pompo.co.
 
-* Changes in 0.3 (since 0.2.1)
+* Changles in O.3.1 (since 0.3.0)
+
+** Fix texinfo syntax so the manual appears in (Top)
+
+   A missing '.' (gaah!) caused the Hall manual to not show up in the manual
+   index, despite existing.  This was gracefully pointed out by Catonano.
+
+* Changes in 0.3.0 (since 0.2.1)
 
 ** Allow adding single files to hall.scm using `hall scan'
 
