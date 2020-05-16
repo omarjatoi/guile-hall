@@ -550,7 +550,7 @@ current output port is supposed to be redirected to a '.log' file.\"
 ")))
     ,(configure-file)
     ,(makefile-file)
-    ,(file "pre-inst-env" shell-filetype
+    ,(file "pre-inst-env" in-filetype
            "
 #!/bin/sh
 
