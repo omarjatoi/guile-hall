@@ -607,7 +607,7 @@ Documentation License''.
 
 @dircategory The Algorithmic Language Scheme
 @direntry
-* " (friendly-project-name spec) ": (" (full-project-name spec) ")    " (specification-synopsis spec) "
+* " (friendly-project-name spec) ": (" (full-project-name spec) ").   " (specification-synopsis spec) "
 @end direntry
 
 @titlepage
