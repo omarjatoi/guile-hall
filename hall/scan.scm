@@ -1,6 +1,6 @@
 ;; hall/scan.scm --- scan implementation    -*- coding: utf-8 -*-
 ;;
-;; Copyright (C) 2018 Alex Sassmannshausen <alex@pompo.co>
+;; Copyright (C) 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 ;;
 ;; Author: Alex Sassmannshausen <alex@pompo.co>
 ;;
