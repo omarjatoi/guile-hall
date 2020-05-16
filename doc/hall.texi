@@ -1,4 +1,3 @@
-
 \input texinfo
 @c -*-texinfo-*-
 
@@ -23,7 +22,7 @@ Documentation License''.
 
 @dircategory The Algorithmic Language Scheme
 @direntry
-* Guile Hall: (guile-hall)    Guile project tooling
+* Guile Hall: (guile-hall).      Guile project bootstrapping
 @end direntry
 
 @titlepage
@@ -52,9 +51,14 @@ This document describes Guile Hall version @value{VERSION}.
 * Quickstart::                  What's in a project
 * The Subcommands::             In which all is revealed…
 * The Hall Specification::      Spec ops, grunt!
+
+* Contributing::                Contributing to the Guile Hall project
+* Acknowledgments::             Thanks!
+
 * A Hall Spec File::            Hall's spec file
 * A Script File::               Hall's script file
 
+* General Index::               Concepts, functions, variables - Oh My!
 @end menu
 
 @c *********************************************************************
@@ -231,6 +235,9 @@ echo export PATH=/usr/local/bin/:$PATH >>~/.bashrc
 @c *********************************************************************
 @node Quickstart
 @chapter Quickstart
+@cindex New Projects
+@cindex Converting Projects
+@cindex Distribution
 
 Sometimes the best way to learn is to dive right in.  Below you'll
 find some examples of how to use Hall.  Hopefully you will be able to
@@ -338,6 +345,8 @@ through the @command{scan} command.
 @c *********************************************************************
 @node Hall Initiate
 @section Hall Initiate
+@pindex Init
+@pindex Initiate
 
 Use @command{hall initiate} to create new Guile projects, or to
 convert an existing Guile project to use Hall (using the
@@ -452,6 +461,7 @@ would like Hall to regenerate them for you.
 @c *********************************************************************
 @node Hall Initiate Refresh
 @subsection Hall Initiate Refresh
+@pindex Refresh
 
 This simple command will regenerate the @file{HACKING} &
 @file{COPYING} files for your project.
@@ -466,6 +476,13 @@ access to the internet at the time you originally created the project.
 @c *********************************************************************
 @node Hall Scan
 @section Hall Scan
+@pindex Scan
+@cindex Types of Files
+@cindex Library Files
+@cindex Tests
+@cindex Programs
+@cindex Documentation Files
+@cindex Infrastructure Files
 
 Use @command{hall scan} when you want add files you recently created
 to your @file{hall.scm} file.
@@ -564,6 +581,7 @@ hall scan tests/frobnigator.scm tests
 @c *********************************************************************
 @node Hall Clean
 @section Hall Clean
+@pindex Clean
 
 If you are anything like me then you will regularly fill a project
 with any number of snippet files, throw-away notes or false starts.
@@ -598,6 +616,7 @@ hall clean --skip="SKIP.me,cruft-folder,^hall.*$"
 @c *********************************************************************
 @node Hall Guix
 @section Hall Guix
+@pindex Guix
 
 Hall can generate Guix recipes.  These can be used for local
 development, for distribution with your code repository and for
@@ -627,6 +646,8 @@ hall guix --type=local|git|tarball
 @c *********************************************************************
 @node Hall Distribute
 @section Hall Distribute
+@pindex Dist
+@pindex Distribute
 
 Our final subcommand, the @command{distribute} command, auto-generates
 files that you will want to include before distributing your project.
@@ -684,6 +705,7 @@ A Hall specification contains several fields:
 @table @asis
 
 @item @code{name}
+@tindex name
 Your project's name.  This should be a string, which means text
 enclosed by quotation marks (`"`).
 
@@ -693,6 +715,7 @@ Guix recipe.
 
 
 @item @code{prefix}
+@tindex prefix
 An optional prefix for the project.  In Guix, packages are named with
 a prefix according to the language they belong to.  So your wonderful
 cat meme library may be called @emph{kittehs}, but in Guix it would be
@@ -723,6 +746,7 @@ would result in a `full-project-name` of guile-kittehs.
 
 
 @item @code{version}
+@tindex version
 The current version of your project.  This should be a string that
 that has a capacity for some form of incremental ordering.  String
 representations of numbers are pretty good.
@@ -744,6 +768,7 @@ propagated variables.  Feel free to use either!
 
 
 @item @code{author}
+@tindex author
 The name of the project author.  
 
 At present, author is treated as a single string.  In future we aim to
@@ -763,6 +788,7 @@ files using the @var{@@AUTHOR@@} variable.
 
 
 @item @code{copyright}
+@tindex copyright
 The years for which the author claims copyright over the project.
 This should be a literal list of numbers (years).
 
@@ -779,6 +805,7 @@ script files using the @var{@@COPYRIGHT@@} variable.
 
 
 @item @code{synopsis}
+@tindex synopsis
 This should be a short (maximum 70 characters) description of your
 project.
 
@@ -786,18 +813,21 @@ It is used when generating Guix recipes
 
 
 @item @code{description}
+@tindex description
 This can be a full description of your project.
 
 It is used when generating Guix recipes
 
 
 @item @code{home-page}
+@tindex home-page
 The website where the project lives.
 
 This field is used when generating Guix recipes.
 
 
 @item @code{license}
+@tindex license
 The license under which the project is licensed.  Any license
 supported by Guile Config is supported here.
 
@@ -825,6 +855,7 @@ files using the @var{@@LICENSE@@} variable.
 
 
 @item @code{dependencies}
+@tindex dependencies
 The dependencies field is designed to hold your project's Guile
 dependencies, so any other Guile modules that your project depends
 on.
@@ -872,6 +903,7 @@ by attempting to load the @code{(hall common)} library.
 
 
 @item @code{files}
+@tindex files
 This section is generally managed by Hall itself, through the
 @command{init} and @command{scan} subcommands.
 
@@ -883,6 +915,25 @@ subcommand.
 
 
 @end table
+
+@c *********************************************************************
+@node Contributing
+@chapter Contributing
+
+Guile Hall is an open project and I actively invite contribution.  Get
+in touch with the project on @email{alex@@komputilo.eu} or on the
+project website at https://gitlab.com/a-sassmannshausen/guile-hall.
+The project welcomes ideas, bug reports, patches, or feedback.
+
+Please see the HACKING file that comes with the Guile Hall source code
+for practical details about contributions.
+
+@c *********************************************************************
+@node Acknowledgments
+@chapter Acknowledgments
+
+Guile Hall is intended as a gift to the Guile & Guix communities,
+without whom I would never have learned to program.
 
 @c *********************************************************************
 @node A Hall Spec File
@@ -917,4 +968,17 @@ Let me know if this is not good enough for you!
 @verbatiminclude scripts/hall.in
 @end lisp
 
+@c *********************************************************************
+@node General Index
+@unnumbered General Index
+@syncodeindex tp fn
+@syncodeindex vr fn
+@syncodeindex cp fn
+@syncodeindex pg fn
+@printindex fn
+
 @bye
+
+@c Local Variables:
+@c ispell-local-dictionary: "american";
+@c End:
