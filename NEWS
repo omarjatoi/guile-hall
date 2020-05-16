@@ -2,13 +2,74 @@
 #+TITLE: Guile Hall NEWS – history of user-visible changes
 #+STARTUP: content hidestars
 
-Copyright © 2018 Alex Sassmannshausen <alex@pompo.co>
+Copyright © 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright
   notice and this notice are preserved.
 
 Please send Guile Hall bug reports to alex@pompo.co.
+
+* Changes in 0.3 (since 0.2.1)
+
+** Allow adding single files to hall.scm using `hall scan'
+
+   `hall scan' now accepts two optional arguments so that you can quickly add
+   individual files to your hall.scm file, even if your project state is
+   dirty.  This is an alternative to running the full auto-magic `hall scan'
+   command.
+
+** Emit user friendly error messages for common failures
+
+   Hitherto we simply used `throw' to error out of unexpected situations.
+   This would happen even in the case of user error or predictable situations.
+
+   I consider the codebase solid enough to emit more user-friendly error
+   messages in predictable situations.
+
+** Allow use of fully-fledged regexp to --skip files
+
+   The `scan' and `clean' subcommands accept a --skip keyword to exclude
+   specific (classes of) files from their operation.  So far they had to be
+   precise files.  The --skip keyword now expects Guile style regex pattern
+   strings for increased flexibility.
+
+** Add a notes system for giving advice to the user
+
+   Hall aims to understand your project and the files it contains, even if it
+   does not fully support your use case.  To this end, its architecture
+   creates a representation of your project in the hall.scm file.
+
+   Hall now has a facility for emitting useful commentary when creating or
+   manipulating this representation.
+
+   A current case in point at present is that we understand that Guile
+   projects may include C files — but Hall does not support them in its build
+   infrastructure.  So we want to allow & support users who include C files,
+   but we want to warn them about Hall's short-comings in this area.
+
+** Change the filetype architecture
+
+   So far, filetype registration code was spread out over the codebase.  From
+   this version we support a simple <filetype> interface.  Supported filetypes
+   are declared in /hall/spec.scm.
+
+   Supporting more filetypes is as easy as adding a simple declaration there.
+
+   This sets up a further development allowing individual projects to specify
+   filetypes above and beyond Hall's built-in filetypes.
+
+** Support XML, C, .log, .trs, .tex, & emacs autosave/backup files
+
+   A simple development thanks to the above.
+
+** Add a default .gitignore file
+
+   Hall has strong opinions about development, primarily to stop new
+   developers from having to make bewildering choices.  Currently it pushes
+   strong git & guix integration, as well as a specific documentation and
+   folder structure.  As such we now add a standard .gitignore file that
+   should cover the vast majority of use cases.
 
 * Changes in 0.2 (since 0.1.1)
 
