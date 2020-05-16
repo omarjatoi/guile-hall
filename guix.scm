@@ -12,8 +12,8 @@
 
 (package
   (name "guile-hall")
-  (version "0.3.0")
-  (source "./guile-hall-0.3.0.tar.gz")
+  (version "0.3.1")
+  (source "./guile-hall-0.3.1.tar.gz")
   (build-system gnu-build-system)
   (arguments
     `(#:modules
