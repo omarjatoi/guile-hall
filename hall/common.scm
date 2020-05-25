@@ -52,7 +52,7 @@
             base-autotools
             base-autotools-documentation base-autotools-infrastructure
 
-            flatten
+            flatten merge-skip
 
             quit-with-error))
 
@@ -1104,6 +1104,13 @@ all default files that contain non-empty contents."
       "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
       project-dependencies))))
 
+(define (skip project-skip)
+  (match project-skip
+    (((? string) ...) project-skip)
+    (quit-with-error
+     "PROJECT-SKIP should be a list of strings."
+     project-skip)))
+
 (define (all-files files) files)
 
 ;;;; Utilities
@@ -1116,6 +1123,10 @@ all default files that contain non-empty contents."
      (append (flatten first) (flatten rest)))
     ((first . rest)
      (cons first (flatten rest)))))
+
+(define (merge-skip spec skip)
+  "Return a new, valid, skip list by merging the skip field in SPEC and SKIP."
+  (append (or (specification-skip spec) '()) skip))
 
 ;;;; Hall file parser
 
