@@ -29,6 +29,7 @@
 
 (define-module (hall workarounds)
   #:use-module (hall builders)
+  #:use-module (hall spec)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:export (guile-m4-file))
@@ -44,7 +45,7 @@ http://lists.gnu.org/archive/html/guile-devel/2018-12/msg00002.html.
 This section should be removed when that patch has become part of
 guile-stable."
   (file
-   "guile" 'm4 "m4"
+   "guile" m4-filetype
    "## Autoconf macros for working with Guile.
 ##
 ##   Copyright (C) 1998,2001, 2006, 2010, 2012, 2013, 2014 Free Software Foundation, Inc.
