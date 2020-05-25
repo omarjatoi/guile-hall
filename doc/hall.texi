@@ -901,6 +901,20 @@ We should test for the existence of @var{guile-hall} at configure time
 by attempting to load the @code{(hall common)} library.
 @end itemize
 
+@item @code{skip}
+@tindex skip
+The skip field can be used to set default @option{--skip} values for
+your project.  The value of this field should be a list of strings,
+where each string would be a valid @option{--skip} pattern.
+
+For example:
+@example
+(skip ("hello.scm" ".*\\.xml"))
+@end example
+
+The above would set default @option{--skip} values for @command{scan}
+and @command{clean} to ignore the @file{hello.scm} file and all files
+matching the xml regex.
 
 @item @code{files}
 @tindex files
