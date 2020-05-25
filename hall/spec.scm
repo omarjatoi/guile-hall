@@ -39,7 +39,7 @@
             specification-author specification-copyright
             specification-synopsis specification-description
             specification-home-page specification-license
-            specification-dependencies specification-files
+            specification-dependencies specification-skip specification-files
             set-specification-files
 
             <files>
@@ -82,7 +82,7 @@
 ;; A container for the fundamental specification used by Hall.
 (define-immutable-record-type <specification>
   (specification name prefix version author copyright synopsis description
-                 home-page license dependencies files)
+                 home-page license dependencies skip files)
   specification?
   (name specification-name)
   (prefix specification-prefix)
@@ -94,6 +94,7 @@
   (home-page specification-home-page)
   (license specification-license)
   (dependencies specification-dependencies)
+  (skip specification-skip)
   (files specification-files set-specification-files))
 
 ;; Reduce the noise!
@@ -118,7 +119,8 @@ hall specification SPEC."
     (description ,(specification-description spec))
     (home-page ,(specification-home-page spec))
     (license ,(specification-license spec))
-    (dependencies ,(specification-dependencies spec))))
+    (dependencies ,(specification-dependencies spec))
+    (skip ,(specification-skip spec))))
 
 (define (specification->files spec)
   "Return an SXML style association list containing the files section of the

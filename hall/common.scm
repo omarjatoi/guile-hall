@@ -61,7 +61,7 @@
   (exit 1))
 
 (define (values->specification nam prefi versio autho copyrigh synopsi
-                               descriptio home-pag licens dependencie
+                               descriptio home-pag licens dependencie ski
                                lib-files tst-files prog-files doc-files
                                infra-files)
   "Return a hal specification of a project with the arguments.  The arguments
@@ -70,6 +70,7 @@ are checked against basic validations before a specification is returned."
    (name nam) (prefix prefi) (version versio) (author autho)
    (copyright copyrigh) (synopsis synopsi) (description descriptio)
    (home-page home-pag) (license-prs licens) (dependencies dependencie)
+   (skip ski)
    (all-files
     (files (append lib-files (base-libraries nam))
            (append tst-files (base-tests))
@@ -1136,7 +1137,12 @@ SCM."
   (match (assoc-ref scm key)
     ((value) value)
     ((values ...) values)
-    (#f (throw 'hall-scm->specification "Missing expected hall key:" key))))
+    (#f
+     (match key
+       ;; FIXME: 2020-05-25: Added temporary allowance for optional skip.
+       ;; This is to help migration of specs from 0.4 and earlier to 0.5.
+       ('skip '())
+       (throw 'hall-scm->specification "Missing expected hall key:" key)))))
 
 (define (category-traverser files project-name)
   "Return a list of hal style directory or file procedures from the SXML
@@ -1176,7 +1182,7 @@ SCM."
      (apply specification
             (append (map (cute href scm <>)
                          '(name prefix version author copyright synopsis
-                                description home-page license dependencies))
+                                description home-page license dependencies skip))
                     (list (scm->files (href scm 'files) (href scm 'name))))))
     (_
      (quit-with-error

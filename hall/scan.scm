@@ -145,7 +145,9 @@ filenames within it and then prepend it to result."
   (let ((new-spec (set-specification-files
                    spec
                    (scm->files
-                    (actual->all-files spec context (fold expand '() skip))
+                    (actual->all-files spec context
+                                       (fold expand '()
+                                             (merge-skip spec skip)))
                     (specification-name spec)))))
     (match operation
       ('exec

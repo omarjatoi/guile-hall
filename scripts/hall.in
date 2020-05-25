@@ -223,7 +223,7 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                                           "" ""
                                           (option-ref options 'website)
                                           (option-ref options 'license)
-                                          '`() '() '() '() '() '())))
+                                          '`() '() '() '() '() '() '())))
          (cond ((option-ref options 'convert)
                 (create-project-here spec '() operation))
                (else (create-project spec '() operation)))))
