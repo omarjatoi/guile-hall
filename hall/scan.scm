@@ -191,7 +191,7 @@ base-directory."
     (define (continue? name)
       (not (blacklisted? (string-join (reverse (cons name path))
                                       file-name-separator-string)
-                         (first context) skip)))
+                         (first context) skip #t)))
     (match file
       (#f #f)                             ; top-level category file removed
       ((name stat)

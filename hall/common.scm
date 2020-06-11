@@ -93,7 +93,7 @@ the folder location CONTEXT."
 containing a hall.scm file."
   (file-exists? "hall.scm"))
 
-(define (blacklisted? path project-root skip)
+(define* (blacklisted? path project-root skip #:optional conservative?)
   "Return #t if the absolute filepath PATH, located in the project at absolute
 filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
   (and (not (string=? project-root path))
@@ -101,8 +101,10 @@ filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
          (catch 'X
            (λ _
              (for-each (λ (p) (and (string-match p file) (throw 'X)))
-                       (cons* "^\\.dir-locals.el" "^\\.gitignore$" "^\\.git$"
-                              "^.*~$" "^#.*#$" skip))
+                       (append (if conservative?
+                                   '()
+                                   '("^\\.dir-locals.el" "^\\.gitignore$"))
+                               (cons* "^.*~$" "^#.*#$" "^\\.git$" skip)))
              #f)
            (const #t)))))
 
