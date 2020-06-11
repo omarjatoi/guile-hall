@@ -169,9 +169,24 @@ absolute filepath to the project base-directory.  SKIP is a list of relative
 (to the project root directory) filepaths to be ignored by scan-project."
   (let ((spec-files (specification-files spec)))
     (define (proc candidates)
-      (filter-map (compose (cut derive-filetypes <> skip context)
-                           file-system-tree (cute <> spec context 'path ""))
-                  candidates))
+      ;; This procedure is invoked once per subsection of the spec files. It
+      ;; checks each entry in that subsection.  If it exists and is a file,
+      ;; retain it.  If it exists and is a folder, scan the entire folder,
+      ;; keep any files that are in it and add any new files in the folder.
+      ;; Remove files that do not exist (they are filtered out as #f).
+      ;; We use a fold to augment skip with the file/folder just added at each
+      ;; iteration, so we never add the same file/folder twice.
+      (filter identity
+              (car
+               (fold (λ (current result)
+                       (let ((f (file-system-tree
+                                 (current spec context 'path ""))))
+                         (cons
+                          (cons (derive-filetypes f (cdr result) context)
+                                (car result))
+                          (cons (first f) (cdr result)))))
+                     `(() . ,skip)
+                     candidates))))
     `(files
       (libraries ,(proc (files-libraries spec-files)))
       (tests ,(proc (files-tests spec-files)))
