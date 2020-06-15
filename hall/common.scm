@@ -154,7 +154,7 @@ the project's hall.scm file."
   `(,(file "README" org-filetype
            (lambda (spec)
              (format #t
-                     "-*- mode: org; coding: utf-8; -*-
+                     "# -*- mode: org; coding: utf-8; -*-
 
 #+TITLE: README for ~a~%~%"
                      (friendly-project-name spec))))
@@ -162,7 +162,7 @@ the project's hall.scm file."
     ,(file "HACKING" text-filetype
            (lambda (spec)
              (format #t
-                     "-*- mode: org; coding: utf-8; -*-
+                     "# -*- mode: org; coding: utf-8; -*-
 
 #+TITLE: Hacking ~a
 
@@ -333,7 +333,7 @@ tmp
   `(,(file "NEWS" text-filetype
            (lambda (spec)
              (format #t
-                     "-*- mode: org; coding: utf-8; -*-
+                     "# -*- mode: org; coding: utf-8; -*-
 
 #+TITLE: ~a NEWS – history of user-visible changes
 #+STARTUP: content hidestars
