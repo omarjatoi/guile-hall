@@ -1,4 +1,4 @@
--*- mode: org -*-
+# -*- mode: org -*-
 
                                              Good morning, Maeve.
                                                   -- Hall 9000
