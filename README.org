@@ -37,7 +37,9 @@ with docstrings.
 
 * What's in the box?
 
-  Beneath you will find some basic usage examples.
+  This section details some basic usage examples of Hall.  If you are
+  interested in reading a full tutorial, [[https://write.as/jeko/hall-a-project-manager-for-the-guile-programming-language][check out Jérémy Korwin-Zmijowski
+  post]]!
 
 ** Creating a New Project
 

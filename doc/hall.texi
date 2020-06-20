@@ -241,7 +241,10 @@ echo export PATH=/usr/local/bin/:$PATH >>~/.bashrc
 
 Sometimes the best way to learn is to dive right in.  Below you'll
 find some examples of how to use Hall.  Hopefully you will be able to
-derive about 99% of your Hall usage from these!
+derive about 99% of your Hall usage from these!  If you are interested
+in reading a full tutorial,
+@url{https://write.as/jeko/hall-a-project-manager-for-the-guile-programming-language,
+check out Jérémy Korwin-Zmijowski post}!
 
 For more detailed information on each of the commands see the
 following chapter.
