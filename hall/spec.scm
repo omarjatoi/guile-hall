@@ -224,6 +224,35 @@ to tweak your configure.ac and automake.am files yourself.
 
 (define xml-filetype (filetype 'xml-file "xml" 'xml '()))
 
+(define cache-filetype (filetype 'cache-file "cache" 'binary '()))
+
+(define markdown-filetype (filetype 'markdown-file "md" 'markdown '()))
+
+(define configuration-filetype
+  (filetype 'configuration-file "conf" 'text '()))
+
+(define template-filetype (filetype 'template-file "tpl" 'text '()))
+
+(define csv-filetype (filetype 'csv-file "csv" 'csv '()))
+
+(define json-filetype (filetype 'json-file "json" 'json '()))
+
+(define css-filetype (filetype 'css-file "css" 'css '()))
+
+(define html-filetype (filetype 'html-file "html" 'html '()))
+
+(define js-filetype (filetype 'javascript-file "js" 'javascript '()))
+
+(define ts-filetype (filetype 'typescript-file "ts" 'typescript '()))
+
+(define jpg-filetype (filetype 'jpg-file "jpg" 'binary '()))
+
+(define png-filetype (filetype 'png-file "png" 'binary '()))
+
+(define db-filetype (filetype 'database-file "db" 'binary '()))
+
+(define ico-filetype (filetype 'icon-file "ico" 'binary '()))
+
 ;; ft
 
 (define filetypes-register
@@ -232,7 +261,10 @@ to tweak your configure.ac and automake.am files yourself.
          test-result-filetype scheme-filetype text-filetype info-filetype
          tex-filetype texi-filetype shell-filetype autoconf-filetype
          automake-filetype in-filetype m4-filetype c-filetype
-         compiled-scheme-filetype org-filetype xml-filetype)))
+         compiled-scheme-filetype org-filetype xml-filetype cache-filetype
+         markdown-filetype configuration-filetype template-filetype
+         csv-filetype json-filetype css-filetype html-filetype js-filetype
+         ts-filetype jpg-filetype png-filetype db-filetype ico-filetype)))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
   (find (compose (cut and=> <> pred) accessor) (filetypes-register)))
