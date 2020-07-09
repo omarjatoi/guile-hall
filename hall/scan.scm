@@ -176,17 +176,22 @@ absolute filepath to the project base-directory.  SKIP is a list of relative
       ;; Remove files that do not exist (they are filtered out as #f).
       ;; We use a fold to augment skip with the file/folder just added at each
       ;; iteration, so we never add the same file/folder twice.
-      (filter identity
-              (car
-               (fold (λ (current result)
-                       (let ((f (file-system-tree
-                                 (current spec context 'path ""))))
-                         (cons
-                          (cons (derive-filetypes f (cdr result) context)
-                                (car result))
-                          (cons (first f) (cdr result)))))
-                     `(() . ,skip)
-                     candidates))))
+      (car                              ; We're only interested in accum
+       (fold (λ (current result)
+               (match (file-system-tree (current spec context 'path ""))
+                 (#f result)            ; current does not exist -> move on
+
+                 ;; FIXME: I don't think `derive-filetypes' ever
+                 ;; returns #f unless you pass it #f.  But acting
+                 ;; on this assumption requires a robust test
+                 ;; suite.  This section can be simplified once we
+                 ;; have such a suite.
+                 (f (match (derive-filetypes f (cdr result) context)
+                      (#f result)       ; does not interest us -> move on
+                      (x (cons (cons x (car result))               ; accum
+                               (cons (first f) (cdr result)))))))) ; skip
+             `(() . ,skip)   ; (accum . skip)
+             candidates)))
     `(files
       (libraries ,(proc (files-libraries spec-files)))
       (tests ,(proc (files-tests spec-files)))
