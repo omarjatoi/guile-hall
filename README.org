@@ -92,7 +92,7 @@ with docstrings.
      hall clean -x # undo previous step
 
      # Let's re-generate the guix file.
-     rm guix.scm && hal guix -x # re-generate guix file
+     rm guix.scm && hall guix -x # re-generate guix file
 
      # Now let's create the build infrastructure
      hall dist -x # recreate build infrastructure
@@ -114,7 +114,7 @@ with docstrings.
 
                                     Look Dave, I can see you're really
                                       upset about this.
-                                                  -- Hal 9000
+                                                  -- Hall 9000
 
   In general, Hall uses the autotool infrastructure.  This *should*
   make installation straight-forward.  There are two ways to get Hall
@@ -209,7 +209,7 @@ with docstrings.
      + retain 'file' as fall back for additional "languages"
 
    - [X] Need halcyon.scm parser
-     + Need utilities to read hal records (e.g. halref, file parser)
+     + Need utilities to read hall records (e.g. halref, file parser)
       
    - [X] Implement halcyon file scanner:
      - scan current directory for halcyon.scm
@@ -218,33 +218,33 @@ with docstrings.
      - -> error out
 
    - define operations:
-     - [X] hal init : create new hal project
-       - [X] hal init --here : create halcyon file here, & standard files.
-       - [X] hal init --refresh : scan & regenerate guix.scm, HACKING, COPYING.
-     - [X] hal scan : derive new halcyon file from project
-       - [X] hal scan: … Basic re-generation.
-     - [X] hal clean : remove all files not in specification.
-     - [X] hal guix : Guix tooling
-       - [X] hal guix : … generate a local dev guix file
-       - [X] hal guix --type=tarball|git : generate a guix recipe for
+     - [X] hall init : create new hall project
+       - [X] hall init --here : create halcyon file here, & standard files.
+       - [X] hall init --refresh : scan & regenerate guix.scm, HACKING, COPYING.
+     - [X] hall scan : derive new halcyon file from project
+       - [X] hall scan: … Basic re-generation.
+     - [X] hall clean : remove all files not in specification.
+     - [X] hall guix : Guix tooling
+       - [X] hall guix : … generate a local dev guix file
+       - [X] hall guix --type=tarball|git : generate a guix recipe for
          tarball or git (hub) based distribution
-         - tarball dist : recipe for guix assuming no hal dependency
-         - git dist : depends on gnu build infrastructure & hal
-     - [-] hal dist : generate distribution tarball
-       - [ ] hal dist : generate a tarball, and tidy project
-       - [X] hal dist --infrastructure : only generate autotools
+         - tarball dist : recipe for guix assuming no hall dependency
+         - git dist : depends on gnu build infrastructure & hall
+     - [-] hall dist : generate distribution tarball
+       - [ ] hall dist : generate a tarball, and tidy project
+       - [X] hall dist --infrastructure : only generate autotools
          infrastructure files
          + this will be part of the guix building process with "guile
-           build system" (i.e. when building from a hal project
+           build system" (i.e. when building from a hall project
            (e.g. from git checkout or other source)).
 
    - [X] define cli
-     - [X] hal
-     - [X] hal init
-     - [X] hal clean
-     - [X] hal scan
-     - [X] hal guix
-     - [X] hal dist
+     - [X] hall
+     - [X] hall init
+     - [X] hall clean
+     - [X] hall scan
+     - [X] hall guix
+     - [X] hall dist
 
    - [X] Develop build system & prepare for release
      - [X] Bootstrap build system from ourselves
@@ -282,9 +282,9 @@ with docstrings.
          - project.in
          - project-too.scm
 
-** `hal` Spec
+** `hall` Spec
 
-   `hal` needs to be able to create a project from a spec.  The spec
+   `hall` needs to be able to create a project from a spec.  The spec
    needs to include the following bits of information:
    - name
    - version
@@ -304,7 +304,7 @@ with docstrings.
 
 ** Defaults
 
-   `hal` uses:
+   `hall` uses:
    - %base-libraries:
      + `(,(directory "$project" '()))
    - %base-programs:
@@ -316,7 +316,7 @@ with docstrings.
      + `(,(directory "tests" '()))
    - %base-infrastructure:
      + `(,(guix-file metadata)
-         ,(hal-file metadata))
+         ,(hall-file metadata))
     
    - In addition, for generating the guix.scm file we default to:
      - name: guile-$project
@@ -326,7 +326,7 @@ with docstrings.
             ("automake" ,automake)
             ("pkg-config" ,pkg-config)
             ("texinfo" ,texinfo)
-            ("guile-hal" ,guile-hal)))
+            ("guile-hall" ,guile-hall)))
      - (inputs `(("guile" ,guile-2.2)))
      - (arguments
           '(#:phases (modify-phases %standard-phases
@@ -337,10 +337,10 @@ with docstrings.
                                         "guilesitedir = \
  $(datadir)/guile/site/$(GUILE_EFFECTIVE_VERSION)\n"))
                                #t))
-                       (add-after 'unpack 'hal-dist
+                       (add-after 'unpack 'hall-dist
                                   (lambda _
-                                    (zero? (system* "hal" "dist"))))
-                       (add-after 'hal-dist 'autoreconf
+                                    (zero? (system* "hall" "dist"))))
+                       (add-after 'hall-dist 'autoreconf
                                   (lambda _
                                     (zero? (system* "autoreconf" "-vif")))))))
 

@@ -84,7 +84,7 @@ filepaths to be ignored by clean-project.  OPERATION can be 'show or 'exec."
 
 (define (project-walk files project-root skip)
   "Return a list of operations matched to file paths describing what needs to
-be done to clean the hal project at PROJECT-ROOT, assuming the hal style files
+be done to clean the hall project at PROJECT-ROOT, assuming the hall style files
 description FILES is complete, & ignoring the relative filepaths contained in
 the list SKIP."
   (define (shrink-path path)
@@ -128,7 +128,7 @@ Return #f otherwise."
 
 (define (dir-match cropped candidates)
   "Return #t if the description of the actually existing directory CROPPED can
-be matched to a directory in our hal representation of the files of the
+be matched to a directory in our hall representation of the files of the
 project in CANDIDATES.  Return #f otherwise."
   (let lp ((breadcrumbs cropped)
            (candidates candidates))
@@ -142,7 +142,7 @@ project in CANDIDATES.  Return #f otherwise."
 
 (define (file-match cropped stat candidates)
   "Return #t if the description of the actually existing file CROPPED can be
-matched to a file in our hal representation of the files of the project in
+matched to a file in our hall representation of the files of the project in
 CANDIDATES.  Return #f otherwise."
   (let lp ((breadcrumbs cropped)
            (candidates candidates))

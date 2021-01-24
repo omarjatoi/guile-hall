@@ -126,7 +126,7 @@ when first learning about Hall.  It is intended for advanced use!
 @flushright
                                     Look Dave, I can see you're
                                     really upset about this.
-                                                  -- Hal 9000
+                                                  -- Hall 9000
 @end flushright
 
 At present there are two ways to install Hall:
@@ -290,7 +290,7 @@ hall dist -x # create the build infrastructure
 hall clean -x # undo previous step
 
 # Let's re-generate the guix file.
-rm guix.scm && hal guix -x # re-generate guix file
+rm guix.scm && hall guix -x # re-generate guix file
 
 # Now let's create the build infrastructure
 hall dist -x # recreate build infrastructure
