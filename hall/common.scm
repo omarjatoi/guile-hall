@@ -64,7 +64,7 @@
                                descriptio home-pag licens dependencie ski
                                lib-files tst-files prog-files doc-files
                                infra-files)
-  "Return a hal specification of a project with the arguments.  The arguments
+  "Return a hall specification of a project with the arguments.  The arguments
 are checked against basic validations before a specification is returned."
   (specification
    (name nam) (prefix prefi) (version versio) (author autho)
@@ -578,7 +578,7 @@ exec \"$@\"
 ;;;;; Files
 
 (define (manual-file name)
-  "Return a hal file procedure with default contents for the project's
+  "Return a hall file procedure with default contents for the project's
 manual."
   (file name texi-filetype
         (lambda (spec)
@@ -649,7 +649,7 @@ This documentation is a stub.
 ")))))
 
 (define (configure-file)
-  "Return a hal file procedure with default contents for the project's
+  "Return a hall file procedure with default contents for the project's
 configure.ac file."
   (file "configure" autoconf-filetype
         (lambda (spec)
@@ -731,7 +731,7 @@ AC_OUTPUT
 
 ;;;; Full on cargo cult!
 (define (makefile-file)
-  "Return a hal file procedure with default contents for the project's
+  "Return a hall file procedure with default contents for the project's
 Makefile.am file."
   (define (align elements padding)
     (match elements
@@ -933,7 +933,7 @@ installed in a profile."
                       #t)))))))))))))
 
 (define (guix-package spec type)
-  "Return a guix package description of the hal project specification SPEC, of
+  "Return a guix package description of the hall project specification SPEC, of
 TYPE 'local, 'git or 'tarball."
   `(package
      (name ,(full-project-name spec))
@@ -989,7 +989,7 @@ TYPE 'local, 'git or 'tarball."
      (license ,(symbol-append 'license: (specification-license spec)))))
 
 (define* (guix-file #:optional (type 'local))
-  "Return a hal file procedure with default contents for the project's
+  "Return a hall file procedure with default contents for the project's
 guix.scm file."
   (file
    "guix" scheme-filetype
@@ -1134,7 +1134,7 @@ all default files that contain non-empty contents."
 ;;;; Hall file parser
 
 (define (href scm key)
-  "Return the value for KEY in the SXML representation of a hal specification
+  "Return the value for KEY in the SXML representation of a hall specification
 SCM."
   (match (assoc-ref scm key)
     ((value) value)
@@ -1147,7 +1147,7 @@ SCM."
        (throw 'hall-scm->specification "Missing expected hall key:" key)))))
 
 (define (category-traverser files project-name)
-  "Return a list of hal style directory or file procedures from the SXML
+  "Return a list of hall style directory or file procedures from the SXML
 representation of files FILES, under PROJECT-NAME."
   (let lp ((files files)
            (accum '())
@@ -1169,7 +1169,7 @@ representation of files FILES, under PROJECT-NAME."
       (_ (throw 'hall-category-traverser "Got muddled:" files accum)))))
 
 (define (scm->files all-files project-name)
-  "Return a hal specification files section for the entire SXML representation
+  "Return a hall specification files section for the entire SXML representation
 of the files ALL-FILES under PROJECT-NAME."
   (apply files
          (map (compose (cut category-traverser <> project-name)
@@ -1177,7 +1177,7 @@ of the files ALL-FILES under PROJECT-NAME."
               '(libraries tests programs documentation infrastructure))))
 
 (define (scm->specification scm)
-  "Return a hal specification of the SXML representation of that specification
+  "Return a hall specification of the SXML representation of that specification
 SCM."
   (match scm
     (('hall-description . scm)
@@ -1192,7 +1192,7 @@ SCM."
 regenerate it."))))
 
 (define (filetype-read type name fname templates . args)
-  "Return a hal file procedure for the SXML represented file of language TYPE,
+  "Return a hall file procedure for the SXML represented file of language TYPE,
 with name NAME, and full path name FNAME, potentially with contents found in
 the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
   ;; First element in args is considered a user specified content.
