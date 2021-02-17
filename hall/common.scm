@@ -1198,29 +1198,14 @@ the hash-table keyed on FNAMEs TEMPLATES, or in ARGS."
   ;; First element in args is considered a user specified content.
   (let ((contents (if (not (null? args))
                       (first args)
-                      (hash-ref templates fname ""))))
-    (match (filetype-find (cut eqv? <> type))
-      (#f
-       (quit-with-error
-        "
-Your project contains a file (~a) of a type that is not supported by Hall yet
-(~a).  Please report this at our website
-(https://gitlab.com/a-sassmannshausen/guile-hall/)."
-        name type))
-      (ft (if (equal? ft symlink-filetype)
-              (slink name contents)
-              (file name ft contents))))))
+                      (hash-ref templates fname "")))
+        (ft (filetype-find (cut eqv? <> type))))
+    (if (equal? ft symlink-filetype)
+        (slink name contents)
+        (file name ft contents))))
 
 (define (file->filepath type name path)
   "Return the absolute filepath of the file NAME of language TYPE at folder
 PATH."
   (context->fname path name
-                  (match (filetype-find (cut eqv? <> type))
-                    (#f
-                     (quit-with-error
-                      "
-Your project contains a file (~a) of a type that is not supported by Hall yet
-(~a).  Please report this at our website
-(https://gitlab.com/a-sassmannshausen/guile-hall/)."
-                      name type))
-                    (ft (filetype-extension ft)))))
+                  (filetype-extension (filetype-find (cut eqv? <> type)))))

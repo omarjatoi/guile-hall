@@ -59,6 +59,7 @@
             filetypes-register
 
             filetype-find
+            unknown-filetype?
 
             symlink-filetype directory-filetype log-file-filetype
             test-result-filetype scheme-filetype text-filetype info-filetype
@@ -253,6 +254,17 @@ to tweak your configure.ac and automake.am files yourself.
 
 (define ico-filetype (filetype 'icon-file "ico" 'binary '()))
 
+(define unknown-filetype (filetype 'unknown-type #f 'unknown
+'("
+Your project includes files of type unknown to Hall. This should be fine, but
+if you run into problems as a result of this, please let the project know at
+https://gitlab.com/a-sassmannshausen/guile-hall/-/issues/.
+")))
+
+(define (unknown-filetype? ft)
+  "Return #t if the filetype FT is an unknown-type <filetype>."
+  (eqv? 'unknown-type (filetype-type ft)))
+
 ;; ft
 
 (define filetypes-register
@@ -267,4 +279,5 @@ to tweak your configure.ac and automake.am files yourself.
          ts-filetype jpg-filetype png-filetype db-filetype ico-filetype)))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
-  (find (compose (cut and=> <> pred) accessor) (filetypes-register)))
+  (or (find (compose (cut and=> <> pred) accessor) (filetypes-register))
+      unknown-filetype))

@@ -251,5 +251,5 @@ its extension."
         (#f `(text-file ,name))
         (m (match (filetype-find (cute string=? <> (match:substring m 2))
                                  filetype-extension)
-             (#f `(unknown-file ,(string-append name)))
+             ((? unknown-filetype? ft) (list (filetype-type ft) name))
              (ft (list (filetype-type ft) (match:substring m 1))))))))
