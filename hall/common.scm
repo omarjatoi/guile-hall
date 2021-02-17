@@ -237,9 +237,12 @@ of the GPL family, and we are ONLINE?, fetch the full license instead."
           (lambda (response body)
             (match (response-code response)
               (200 (display body))
-              (301 (fetch (assq-ref (response-headers response) 'location)))
-              (_ (fetch-license license #f))))))
-      (lambda (k . args) (fetch-license license #f))))
+              ((or 301 302)
+               (fetch (assq-ref (response-headers response) 'location)))
+              (_
+               (fetch-license license #f))))))
+      (lambda (k . args)
+        (fetch-license license #f))))
   (if (and online?
            (string-match "^[AL]{0,1}GPL [1-3].*$" (license-name license)))
       (fetch (regexp-substitute #f (string-match "\\.html$"
