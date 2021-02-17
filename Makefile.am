@@ -44,7 +44,7 @@ SOURCES = hall/builders.scm \
           hall/guix.scm \
           hall/workarounds.scm
 
-TESTS = 
+TESTS = tests/hall.scm
 
 TEST_EXTENSIONS = .scm
 SCM_LOG_DRIVER =                                \
