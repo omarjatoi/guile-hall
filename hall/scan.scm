@@ -72,7 +72,7 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
         (if (= (length tokens) 1)
             ;; We're at the correct depth.  Check if filename already exists
             ;; at this depth.
-            (let ((target (filetype-derive fn (stat filename))))
+            (let ((target (filetype-derive fn (lstat filename))))
               (if (find (λ (f) (equal? f target)) files)
                   files
                   (cons target files)))
@@ -88,14 +88,14 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
                 (let ((rtokens (reverse tokens)))
                   (fold (λ (next result)
                           `(directory ,next (,result)))
-                        (filetype-derive (first rtokens) (stat filename))
+                        (filetype-derive (first rtokens) (lstat filename))
                         (cdr rtokens)))
                 files))
               ;; Yes, so descend to next level.
               ((_ name children)
                `((directory ,name
                             ,(lp (cdr tokens) children)))))))))
-  (when (eqv? (stat:type (stat filename)) 'directory)
+  (when (eqv? (stat:type (lstat filename)) 'directory)
     (quit-with-error
      "You cannot currently add directories.  Instead you have to add each
 individual file in the directory you wish to add."))
@@ -137,7 +137,7 @@ OPERATION can be 'show or 'exec."
     "Prepend ENTRY to RESULT, or, if it is a directory, expand ENTRY to all
 filenames within it and then prepend it to result."
     (if (and (file-exists? entry)
-             (eqv? 'directory (stat:type (stat entry))))
+             (eqv? 'directory (stat:type (lstat entry))))
         (append (dir->filenames
                  (file-system-tree (string-trim-right entry #\/)))
                 result)
