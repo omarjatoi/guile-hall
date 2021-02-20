@@ -39,7 +39,7 @@
              (hall clean)
              (hall common)
              (hall build)
-             (hall guix)
+             (hall dist)
              (hall init)
              (hall scan)
              (ice-9 match)
@@ -96,23 +96,33 @@ Once you are happy with the result, pass the '--execute' flag to finally
 generate build-system files.")
       (wanted '((keywords execute))))
      (configuration
-      (name 'guix)
-      (description "Show a Guix file generated for your project.  The default
-guix file that will be generated is one that can be used in the project's
-repository, for use with Guix's 'environment' subcommand.  You can also
-generate a tarball or git repository based package which can be used with the
-'guix package' subcommand, by using the '--type' argument.
+      (name 'distribution-system)
+      (alias 'dist)
+      (description "Subcommand to Hall's support for different distribution
+system.  The default distribution system we encourage, and are coupled to, is
+Guix.  But more will be supported over time.
+
+The default guix file that will be generated is one that can be used in the
+project's repository, for use with Guix's 'environment' subcommand.  You can
+also generate a tarball or git repository based package which can be used with
+the 'guix package' subcommand, by using the '--type' argument.
 
 Once you are happy with the result, pass the '--execute' flag to generate the
 guix package file.  You will want to delete the old Guix file before this.")
-      (synopsis "Manage your project's Guix file.")
+      (synopsis "Manage your project's distribution files.")
       (wanted '((keywords execute)))
       (keywords
        (list
         (switch (name 'type) (default 'local)
                 (test symbol?) (handler string->symbol)
                 (synopsis "Guix recipe type to generate (defaults to local)")
-                (example "local|git|tarball")))))
+                (example "local|git|tarball"))))
+      (arguments
+       (list
+        (argument (name 'system) (default "guix")
+                  (test (λ (t) (member t '("guix"))))
+                  (synopsis "The system to use")
+                  (example "guix")))))
      (configuration
       (name 'initiate) (alias 'init)
       (synopsis "Create or migrate a new project.")
@@ -208,13 +218,16 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
       (("hall" "build-system")
        (make-build-infrastructure (read-spec) (find-project-root-directory)
                                   operation))
-      (("hall" "guix")
+      (("hall" "distribution-system")
        (let ((run (cute <> (read-spec) (find-project-root-directory)
                         operation)))
-         (match (option-ref options 'type)
-           ('local (run rewrite-guix-file))
-           ('git (run git-guix-recipe))
-           ('tarball (run tarball-guix-recipe)))))
+         (match (option-ref options '(system))
+           ;; Guix is default and only one supported for now
+           (_
+            (match (option-ref options 'type)
+              ('local (run rewrite-guix-file))
+              ('git (run git-guix-recipe))
+              ('tarball (run tarball-guix-recipe)))))))
       (("hall" "initiate")
        (let ((spec (values->specification (option-ref options '(name))
                                           (option-ref options 'prefix) "0.1"

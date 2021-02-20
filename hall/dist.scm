@@ -1,4 +1,4 @@
-;; hall/guix.scm --- guix implementation    -*- coding: utf-8 -*-
+;; hall/dist.scm --- dist implementation    -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 ;;
@@ -27,7 +27,7 @@
 ;;
 ;;; Code:
 
-(define-module (hall guix)
+(define-module (hall dist)
   #:use-module (hall common)
   #:use-module (hall spec)
   #:use-module (ice-9 match)
