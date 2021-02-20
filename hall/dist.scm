@@ -32,7 +32,10 @@
   #:use-module (hall spec)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
-  #:export (rewrite-guix-file git-guix-recipe tarball-guix-recipe))
+  #:export (rewrite-guix-file
+            git-guix-recipe tarball-guix-recipe
+
+            rewrite-brew-file))
 
 (define (rewrite-guix-file spec context operation)
   "Commandline tool for re-generating a project's local guix file.  SPEC is a
@@ -72,4 +75,19 @@ element the absolute filepath to the project base-directory.  OPERATION can be
     ((or 'show _)
      (format #t "Dryrun:~%")
      ((guix-file 'tarball) spec context 'show-contents "")
+     (format #t "Finished dryrun.~%"))))
+
+
+;;;;; Brew recipes
+
+(define (rewrite-brew-file spec context operation)
+  "Commandline tool for re-generating a project's Brew file.  SPEC is a hall
+specification file for the project in question.  CONTEXT is a list containing
+as its first and only element the absolute filepath to the project
+base-directory.  OPERATION can be 'show or 'exec."
+  (match operation
+    ('exec ((brew-file) spec context operation ""))
+    ((or 'show _)
+     (format #t "Dryrun:~%")
+     ((brew-file) spec context 'show-contents "")
      (format #t "Finished dryrun.~%"))))

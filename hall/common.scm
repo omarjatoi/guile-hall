@@ -31,6 +31,7 @@
   #:use-module (config licenses)
   #:use-module (hall spec)
   #:use-module (hall builders)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
@@ -47,7 +48,7 @@
             read-spec filetype-read category-traverser
             scm->files scm->specification
 
-            guix-file
+            guix-file brew-file
 
             base-autotools
             base-autotools-documentation base-autotools-infrastructure
@@ -1017,6 +1018,88 @@ guix.scm file."
                                                (gnu packages texinfo))
                                  lst))
                    (_ lst)))))))
+
+(define* (brew-file)
+  "Return a Brew file procedure with default contents for the project's
+guix.scm file."
+  (file
+   "brew" ruby-filetype
+   (lambda (spec)
+     (let ((name (string-downcase (specification-name spec))))
+       (format #t "
+class ~a < formula
+  desc ~s
+  homepage ~s
+  url <<<<<INSERT URL TO TARBALL HERE>>>>>
+  sha256 <<<<<INSERT SHA256 HERE>>>>>
+
+  bottle do
+    root_url ~s
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, catalina: <<<<<INSERT SHA256 HERE>>>>>
+  end
+
+  depends_on \"autoconf\" => :build
+  depends_on \"automake\" => :build
+  depends_on \"pkg-config\" => :build
+  depends_on \"texinfo\" => :build
+  depends_on \"guile\"
+  ~a
+
+  def install
+    ENV[\"GUILE_AUTO_COMPILE\"] = \"0\"
+
+    # We need this so we can find other modules.
+    ENV[\"GUILE_LOAD_PATH\"] = HOMEBREW_PREFIX/\"share/guile/site/3.0\"
+    ENV[\"GUILE_LOAD_COMPILED_PATH\"] = HOMEBREW_PREFIX/\"lib/guile/3.0/site-ccache\"
+    ENV[\"GUILE_SYSTEM_EXTENSIONS_PATH\"] = HOMEBREW_PREFIX/\"lib/guile/3.0/extensions\"
+
+    system \"autoreconf\", \"-vif\"
+    system \"./configure\", \"--prefix=#{prefix}\"
+    system \"make\", \"install\"
+  end
+
+  def caveats
+    <<~~EOS
+      Remember to add the following to your .bashrc or equivalent in order to use this module:
+        export GUILE_LOAD_PATH=\"#{HOMEBREW_PREFIX}/share/guile/site/3.0\"
+        export GUILE_LOAD_COMPILED_PATH=\"#{HOMEBREW_PREFIX}/lib/guile/3.0/site-ccache\"
+        export GUILE_SYSTEM_EXTENSIONS_PATH=\"#{HOMEBREW_PREFIX}/lib/guile/3.0/extensions\"
+    EOS
+  end
+
+  test do
+    ~a = testpath/~s
+    ~a.write <<~~EOS
+      (use-modules (~a))
+    EOS
+
+    ENV[\"GUILE_AUTO_COMPILE\"] = \"0\"
+    ENV[\"GUILE_LOAD_PATH\"] = HOMEBREW_PREFIX/\"share/guile/site/3.0\"
+    ENV[\"GUILE_LOAD_COMPILED_PATH\"] = HOMEBREW_PREFIX/\"lib/guile/3.0/site-ccache\"
+    ENV[\"GUILE_SYSTEM_EXTENSIONS_PATH\"] = HOMEBREW_PREFIX/\"lib/guile/3.0/extensions\"
+
+    system \"guile\", ~a
+  end
+end
+"
+               ;; intro
+               (string-join (string-split (full-project-name spec) #\-))
+               (specification-description spec)
+               (specification-home-page spec)
+               ;; bottle DSL
+               (string-append
+                "https://github.com/aconchillo/homebrew-guile/releases/download/"
+                (full-project-name spec) "-" (specification-version spec))
+               ;; dependencies generator
+               (string-join
+                (map (compose (cut string-append "depends_on \"" <> "\"")
+                              first)
+                     (cadr (specification-dependencies spec)))
+                "\n  ")
+               ;; Tests
+               name (string-append name ".scm") name name
+               (string-append name ".scm"))))))
 
 ;; A lookup table of files that have templatized contents.
 (define (templatize-files project-name)

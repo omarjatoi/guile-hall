@@ -120,9 +120,9 @@ guix package file.  You will want to delete the old Guix file before this.")
       (arguments
        (list
         (argument (name 'system) (default "guix")
-                  (test (λ (t) (member t '("guix"))))
+                  (test (λ (t) (member t '("guix" "brew"))))
                   (synopsis "The system to use")
-                  (example "guix")))))
+                  (example "guix|brew")))))
      (configuration
       (name 'initiate) (alias 'init)
       (synopsis "Create or migrate a new project.")
@@ -222,6 +222,8 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
        (let ((run (cute <> (read-spec) (find-project-root-directory)
                         operation)))
          (match (option-ref options '(system))
+           ("brew"
+            (run rewrite-brew-file))
            ;; Guix is default and only one supported for now
            (_
             (match (option-ref options 'type)
