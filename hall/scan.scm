@@ -93,8 +93,12 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
                 files))
               ;; Yes, so descend to next level.
               ((_ name children)
-               `((directory ,name
-                            ,(lp (cdr tokens) children)))))))))
+               (cons `(directory ,name
+                                 ,(lp (cdr tokens) children))
+                     (remove (match-lambda
+                               (('directory (? (cut string=? <> fn)) _) #t)
+                               (_ #f))
+                             files))))))))
   (when (eqv? (stat:type (lstat filename)) 'directory)
     (quit-with-error
      "You cannot currently add directories.  Instead you have to add each
@@ -107,12 +111,10 @@ individual file in the directory you wish to add."))
                  ('libraries set-files-libraries)))
          (xsr (record-accessor <files> section))
          (files (specification-files spec))
-         (new-spec (set-specification-files spec (setr (specification-files
-                                                        spec)
-                                                       (category-traverser
-                                                        (tweak (xsr
-                                                                files))
-                                                        "test")))))
+         (new-spec (set-specification-files
+                    spec
+                    (setr files (category-traverser (tweak (xsr files))
+                                                    "_")))))
     (match operation
       ('exec
        (with-output-to-file "hall.scm"
