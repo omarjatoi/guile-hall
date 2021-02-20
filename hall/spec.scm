@@ -65,7 +65,7 @@
             test-result-filetype scheme-filetype text-filetype info-filetype
             tex-filetype texi-filetype shell-filetype autoconf-filetype
             automake-filetype in-filetype m4-filetype c-filetype
-            compiled-scheme-filetype org-filetype xml-filetype))
+            compiled-scheme-filetype org-filetype xml-filetype ruby-filetype))
 
 ;;;; Spec Definition
 
@@ -193,6 +193,8 @@ language."
 
 (define scheme-filetype (filetype 'scheme-file "scm" 'scheme '()))
 
+(define ruby-filetype (filetype 'ruby-file "rb" 'ruby '()))
+
 (define text-filetype (filetype 'text-file #f 'text '()))
 
 (define info-filetype (filetype 'info-file "info" 'info '()))
@@ -276,7 +278,8 @@ https://gitlab.com/a-sassmannshausen/guile-hall/-/issues/.
          compiled-scheme-filetype org-filetype xml-filetype cache-filetype
          markdown-filetype configuration-filetype template-filetype
          csv-filetype json-filetype css-filetype html-filetype js-filetype
-         ts-filetype jpg-filetype png-filetype db-filetype ico-filetype)))
+         ts-filetype jpg-filetype png-filetype db-filetype ico-filetype
+         ruby-filetype)))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
   (or (find (compose (cut and=> <> pred) accessor) (filetypes-register))
