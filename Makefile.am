@@ -34,17 +34,19 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$<"
 
-SOURCES = hall/builders.scm \
-          hall/scan.scm \
-          hall/spec.scm \
-          hall/common.scm \
+SOURCES = hall/workarounds.scm \
+          hall/build.scm \
           hall/dist.scm \
+          hall/common.scm \
+          hall/scan.scm \
+          hall/builders.scm \
           hall/clean.scm \
           hall/init.scm \
-          hall/guix.scm \
-          hall/workarounds.scm
+          hall/spec.scm
 
-TESTS = tests/hall.scm
+TESTS = tests/common.scm \
+        tests/hall.scm \
+        tests/spec.scm
 
 TEST_EXTENSIONS = .scm
 SCM_LOG_DRIVER =                                \

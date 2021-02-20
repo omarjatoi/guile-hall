@@ -15,16 +15,20 @@
   (files (libraries
            ((directory
               "hall"
-              ((scheme-file "builders")
-               (scheme-file "scan")
-               (scheme-file "spec")
-               (scheme-file "common")
+              ((scheme-file "workarounds")
+               (scheme-file "build")
                (scheme-file "dist")
+               (scheme-file "common")
+               (scheme-file "scan")
+               (scheme-file "builders")
                (scheme-file "clean")
                (scheme-file "init")
-               (scheme-file "guix")
-               (scheme-file "workarounds")))))
-         (tests ((directory "tests" ((scheme-file "hall")))))
+               (scheme-file "spec")))))
+         (tests ((directory
+                   "tests"
+                   ((scheme-file "common")
+                    (scheme-file "hall")
+                    (scheme-file "spec")))))
          (programs
            ((directory "scripts" ((in-file "hall")))))
          (documentation
