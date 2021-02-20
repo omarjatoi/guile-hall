@@ -1,4 +1,4 @@
-;; hall/dist.scm --- dist implementation    -*- coding: utf-8 -*-
+;; hall/build.scm --- build implementation    -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 ;;
@@ -27,13 +27,13 @@
 ;;
 ;;; Code:
 
-(define-module (hall dist)
+(define-module (hall build)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (hall common)
-  #:export (make-dist-infrastructure))
+  #:export (make-build-infrastructure))
 
-(define (make-dist-infrastructure spec context operation)
+(define (make-build-infrastructure spec context operation)
   "Commandline tool for setting up the projects build system.  SPEC is a hall
 specification file for the project in question.  CONTEXT is a list containing
 as its first and only element the absolute filepath to the project

@@ -38,7 +38,7 @@
              (hall builders)
              (hall clean)
              (hall common)
-             (hall dist)
+             (hall build)
              (hall guix)
              (hall init)
              (hall scan)
@@ -87,8 +87,8 @@ cleaning process.")
          (synopsis "CSV list regexp patterns to indicate files to skip.")
          (example "scripts/foo,AUTHORS,^.*rgp$")))))
      (configuration
-      (name 'distribute) (alias 'dist)
-      (synopsis "Prepare your project for distribution.")
+      (name 'build-system) (alias 'build)
+      (synopsis "Prepare your project for a build system.")
       (description "Generate a report of which files will be generated to
 prepare the build-system for this project.
 
@@ -205,9 +205,9 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
       (("hall" "clean")
        (clean-project (read-spec) (find-project-root-directory)
                       (option-ref options 'skip) operation))
-      (("hall" "distribute")
-       (make-dist-infrastructure (read-spec) (find-project-root-directory)
-                                 operation))
+      (("hall" "build-system")
+       (make-build-infrastructure (read-spec) (find-project-root-directory)
+                                  operation))
       (("hall" "guix")
        (let ((run (cute <> (read-spec) (find-project-root-directory)
                         operation)))
