@@ -10,7 +10,62 @@ Copyright © 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 
 Please send Guile Hall bug reports to alex@pompo.co.
 
-* Changles in O.3.1 (since 0.3.0)
+* Changes in 0.4.0 (since 0.3.1)
+
+** WARNING: Changed Hall subcommand semantics
+
+   BREAKING UI CHANGE: Previously, the `dist` command generated files for the
+   gnu build system, and the `guix` command generated the file for use with
+   Guix.
+
+   We are now moving to supporting multiple build systems (e.g. the guix
+   `guile-build-system`). We may also want to support multiple ways of
+   distributing packages (not just Guix recipes). There is also a subtle
+   semantic error here: previously, the `dist` command generated files related
+   to build systems, not distribution.
+
+   From this version, we introduce a new sub-command called `build-system`,
+   which can be used for managing the build-system files (as done previously
+   by `dist`. The `dist` subcommand (`distribution-system`) is now used to
+   manage distribution related files (e.g. guix).
+
+   The functionality should be the same, it's just the command to be used that
+   is different.
+
+** Permissive missing filetype handling
+
+   I decided early on that Hall wants to /understand/ the files it
+   manages. This means the program needs to know filetypes. This is done in
+   the hall/spec.scm file, using the `filetype` procedure. I still believe
+   there are benefits to this approach, but the system is also mature enough
+   now for me to know that we don't need to handle every filetype in the
+   universe.
+
+   With this release Hall simply warns users if an unknown file type is used,
+   but it should just work with them.
+
+** We now use Guile to query build time environment variables
+
+   GNU build system magic is arcane and befuddling. Thanks for the hint, Nala!
+
+** Added unit tests
+
+   The project has sufficient maturity to warrant developing to unit tests
+   now.  And also, missing tests have fucked with my dev process one to many
+   times!
+
+** .dir-locals.el and .gitignore are no longer ignored by `scan`
+
+   These files are generally a part of the project and should be treated as
+   such.
+
+** Add `skip` functionality to the spec
+
+   You can now add a default set of files to be skipped by all commands
+   supporting `--skip` functionality in the spec itself. This should save you
+   some repetitive typing!
+
+* Changes in O.3.1 (since 0.3.0)
 
 ** Fix texinfo syntax so the manual appears in (Top)
 
