@@ -1,9 +1,9 @@
 (hall-description
   (name "hall")
   (prefix "guile")
-  (version "0.3.1")
+  (version "0.4.0")
   (author "Alex Sassmannshausen")
-  (copyright (2018 2020))
+  (copyright (2018 2020 2021))
   (synopsis "Guile project tooling")
   (description
     "Hall is a command-line application and a set of Guile libraries that allow you to quickly create and publish Guile projects.  It allows you to transparently support the GNU build system, manage a project hierarchy & provides tight coupling to Guix.")
