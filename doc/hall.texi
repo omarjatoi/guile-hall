@@ -337,7 +337,7 @@ Finally, at Hall's core lies the notion of a hall specification.  This
 specification is defined in the project's @file{hall.scm} file.  All
 commands do @emph{something} with that file: @command{initiate}
 generates it; @command{scan} updates it; @command{clean} reads it to
-tidy the project; @command{guix} and @command{distribute} read it to
+tidy the project; @command{dist} and @command{build} read it to
 generate additional files.
 
 You can edit the specification manually though I hope to expose
@@ -617,15 +617,17 @@ hall clean --skip="SKIP.me,cruft-folder,^hall.*$"
 @end deftypevr
 
 @c *********************************************************************
-@node Hall Guix
-@section Hall Guix
+@node Hall Distribution-System
+@section Hall Distribution-System
 @pindex Guix
+@pindex Distribution-System
+@pindex Dist
 
 Hall can generate Guix recipes.  These can be used for local
 development, for distribution with your code repository and for
 contributing your project to Guix itself.
 
-The @command{hall guix} command will print your project's Guix recipe
+The @command{hall dist} command will print your project's Guix recipe
 to standard out (normally your terminal).  The recipe it prints will
 be of type @emph{local}.  This means that the recipe points to a
 tarball of your project in the project's root directory.
@@ -642,18 +644,24 @@ remote tarball template.  This is again derived from your project's
 home page.
 
 @example
-hall guix --type=local|git|tarball
+hall dist --type=local|git|tarball
 @end example
 @end deftypevr
 
-@c *********************************************************************
-@node Hall Distribute
-@section Hall Distribute
-@pindex Dist
-@pindex Distribute
+In future, this subcommand will be used to manage configuration files
+for multiple distribution systems.
 
-Our final subcommand, the @command{distribute} command, auto-generates
+@c *********************************************************************
+@node Hall Build-System
+@section Hall Build-System
+@pindex Build
+@pindex Build-System
+
+Our final subcommand, the @command{build} command, auto-generates
 files that you will want to include before distributing your project.
+
+Currently this subcommand only supports the gnu build system, but work
+is underway to support the Guix based minimalist guile build system.
 
 There are several approaches you can take here:
 @enumerate
