@@ -11,7 +11,7 @@
     "https://gitlab.com/a-sassmannshausen/guile-hall")
   (license gpl3+)
   (dependencies
-    `(("guile-config" (config) ,guile-config)))
+    `(("guile-config" (config) ,guile-config-0.5)))
   (files (libraries
            ((directory
               "hall"
