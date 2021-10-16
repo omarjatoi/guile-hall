@@ -375,8 +375,7 @@ Please send ~a bug reports to INSERT EMAIL HERE.
   "Return the default autotools section."
   `(,(directory "build-aux"
                 `(,(file "test-driver" scheme-filetype
-                         "
-;;;; test-driver.scm - Guile test driver for Automake testsuite harness
+                         ";;;; test-driver.scm - Guile test driver for Automake testsuite harness
 
 (define script-version \"2019-01-15.13\") ;UTC
 
@@ -558,8 +557,7 @@ current output port is supposed to be redirected to a '.log' file.\"
     ,(configure-file)
     ,(makefile-file)
     ,(file "pre-inst-env" in-filetype
-           "
-#!/bin/sh
+           "#!/bin/sh
 
 abs_top_srcdir=\"`cd \"@abs_top_srcdir@\" > /dev/null; pwd`\"
 abs_top_builddir=\"`cd \"@abs_top_builddir@\" > /dev/null; pwd`\"
@@ -587,8 +585,7 @@ manual."
   (file name texi-filetype
         (lambda (spec)
           (display
-           (string-append "
-\\input texinfo
+           (string-append "\\input texinfo
 @c -*-texinfo-*-
 
 @c %**start of header
@@ -658,8 +655,7 @@ configure.ac file."
   (file "configure" autoconf-filetype
         (lambda (spec)
           (display
-           (string-append "
-dnl -*- Autoconf -*-
+           (string-append "dnl -*- Autoconf -*-
 
 AC_INIT(" (full-project-name spec) ", " (specification-version spec) ")
 AC_SUBST(HVERSION, \"\\\"" (specification-version spec) "\\\"\")
@@ -751,9 +747,7 @@ Makefile.am file."
    "Makefile" automake-filetype
    (lambda (spec)
      (display
-      (string-append "
-
-bin_SCRIPTS = " (string-join
+      (string-append "bin_SCRIPTS = " (string-join
                  (align
                   (map (lambda (file)
                          (or (and=> (string-match "\\.in$" file)
@@ -1026,8 +1020,7 @@ guix.scm file."
    "brew" ruby-filetype
    (lambda (spec)
      (let ((name (string-downcase (specification-name spec))))
-       (format #t "
-class ~a < formula
+       (format #t "class ~a < formula
   desc ~s
   homepage ~s
   url <<<<<INSERT URL TO TARBALL HERE>>>>>
