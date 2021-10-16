@@ -770,9 +770,9 @@ nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
-moddir=`$(GUILE) -c '(display (%site-dir))'`
-godir=`$(GUILE) -c '(display (%site-ccache-dir))'`
-ccachedir=`$(GUILE) -c '(display (%site-ccache-dir))'`
+moddir=$(prefix)/share/guile/site/$(GUILE_EFFECTIVE_VERSION)
+godir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
+ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
 nobase_go_DATA = $(GOBJECTS)
