@@ -187,8 +187,10 @@ first.")
          (example "tests/frobnigator.scm"))
         (argument
          (name 'section) (default #f)
-         (test (λ (t) (member t '(programs tests documentation infrastructure
-                                           libraries))))
+         (test (match-lambda
+                 ((or #f 'programs 'tests 'documentation 'infrastructure
+                      'libraries) #t)
+                 (_ #f)))
          (handler string->symbol)
          (synopsis "The section under which you want to add the file.")
          (example "programs|tests|documentation|infrastructure|libraries"))))
