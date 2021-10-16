@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 abs_top_srcdir="`cd "@abs_top_srcdir@" > /dev/null; pwd`"

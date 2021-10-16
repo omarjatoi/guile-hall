@@ -1,4 +1,3 @@
-
 dnl -*- Autoconf -*-
 
 AC_INIT(guile-hall, 0.4.0)

@@ -1,4 +1,3 @@
-
 ;;;; test-driver.scm - Guile test driver for Automake testsuite harness
 
 (define script-version "2019-01-15.13") ;UTC
