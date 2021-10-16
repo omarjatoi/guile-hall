@@ -141,8 +141,7 @@ generate the new project.")
       (wanted '((keywords execute)))
       (arguments
        (list
-        (argument (name 'name) (optional? #f)
-                  (test (negate string-null?))
+        (argument (name 'name) (test (negate string-null?))
                   (synopsis "Name for the project.")
                   (example "hello-world"))))
       (keywords
