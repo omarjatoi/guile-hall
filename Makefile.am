@@ -70,6 +70,7 @@ EXTRA_DIST += README.org \
               NEWS \
               AUTHORS \
               ChangeLog \
+              .gitlab-ci.yml \
               guix.scm \
               hall.scm \
               build-aux/test-driver.scm \

@@ -10,6 +10,10 @@ Copyright © 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 
 Please send Guile Hall bug reports to alex@pompo.co.
 
+* Changes in 0.4.1 (since 0.4.0)
+** Fix upgrade to guile-config 0.5
+** Revert Guile query during build time
+** Implement CI script
 * Changes in 0.4.0 (since 0.3.1)
 
 ** WARNING: Changed Hall subcommand semantics

@@ -1,7 +1,7 @@
 (hall-description
   (name "hall")
   (prefix "guile")
-  (version "0.4.0")
+  (version "0.4.1")
   (author "Alex Sassmannshausen")
   (copyright (2018 2020 2021))
   (synopsis "Guile project tooling")
@@ -12,6 +12,7 @@
   (license gpl3+)
   (dependencies
     `(("guile-config" (config) ,guile-config-0.5)))
+  (skip ())
   (files (libraries
            ((directory
               "hall"
@@ -41,4 +42,6 @@
             (text-file "ChangeLog")
             (directory "doc" ((texi-file "hall")))))
          (infrastructure
-           ((scheme-file "guix") (scheme-file "hall")))))
+           ((unknown-type ".gitlab-ci.yml")
+            (scheme-file "guix")
+            (scheme-file "hall")))))
