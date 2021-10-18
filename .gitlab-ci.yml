@@ -1,45 +1,72 @@
-# This file is a template, and might need editing before it works on your project.
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+variables:
+  CONFIG_URL: "https://gitlab.com/a-sassmannshausen/guile-config"
+  CONFIG_VERSION: "0.5.0"
+  LPATH: "$CI_PROJECT_DIR/share/guile/site"
+  CPATH: "$CI_PROJECT_DIR/lib/guile"
 
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
+default:
+  image: debian:stable
+  before_script:
+    - apt-get -y update
+    - apt-get install -y guile-3.0 guile-3.0-dev make-guile texinfo curl tree
+    - export GUILE_LOAD_PATH=${LPATH}/`guile -c "(display (effective-version))"`:${GUILE_LOAD_PATH}
+    - export GUILE_LOAD_COMPILED_PATH=${CPATH}/`guile -c "(display (effective-version))"`/site-ccache:${GUILE_LOAD_COMPILED_PATH}
+    - export PATH=${CI_PROJECT_DIR}/bin:${PATH}
+    - echo $GUILE_LOAD_PATH
+    - echo $GUILE_LOAD_COMPILED_PATH
+    - guile -c "(use-modules (config))" || echo "Not Loaded"
+    - tree $GUILE_LOAD_PATH
+    - tree $GUILE_LOAD_COMPILED_PATH
+    - env
 
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
-  - deploy
+
+deps:
+  stage: .pre
+  script:
+    - curl -O "$CONFIG_URL/-/archive/$CONFIG_VERSION/guile-config-$CONFIG_VERSION.tar.gz"
+    - tar xzf guile-config-$CONFIG_VERSION.tar.gz
+    - cd guile-config-$CONFIG_VERSION
+    - autoreconf -vif && ./configure --prefix=${CI_PROJECT_DIR} --exec-prefix=${CI_PROJECT_DIR} && make && make install && ls -l
+  cache:
+    paths:
+      - ./
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - echo "Compiling the code..."
-    - echo "Compile complete."
+    - autoreconf -vif && ./configure --prefix=${CI_PROJECT_DIR} --exec-prefix=${CI_PROJECT_DIR} && make
+  cache:
+    paths:
+      - ./
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   script:
-    - echo "Running unit tests... This will take about 60 seconds."
-    - sleep 60
-    - echo "Code coverage is 90%"
+    - echo "Running check."
+    - make check
+  cache:
+    paths:
+      - ./
 
-lint-test-job:   # This job also runs in the test stage.
+dist-test-job:   # This job also runs in the test stage.
   stage: test    # It can run at the same time as unit-test-job (in parallel).
   script:
-    - echo "Linting code... This will take about 10 seconds."
-    - sleep 10
-    - echo "No lint issues found."
+    - echo "Running distcheck"
+    - make distcheck
+  cache:
+    paths:
+      - ./
 
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
+app-test-job:
+  stage: test
   script:
-    - echo "Deploying application..."
-    - echo "Application successfully deployed."
+    - echo "Testing application..."
+    - make install
+    - hall --version && hall init htest -x && cd htest && hall scan -x && hall build -x
+  cache:
+    paths:
+      - ./
