@@ -44,6 +44,7 @@ SOURCES = hall/workarounds.scm \
 
 TESTS = tests/common.scm \
         tests/hall.scm \
+        tests/scan.scm \
         tests/spec.scm
 
 TEST_EXTENSIONS = .scm
