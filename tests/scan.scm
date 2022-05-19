@@ -70,6 +70,8 @@
   "foo"
   (shell "hall scan | awk '$0 !~ /[Dd]ryrun/' | sdiff - hall.scm")))
 
+(shell (string-append "rm -r " tmp))
+
 (test-end "e2e")
 
 (test-end "Scan")
