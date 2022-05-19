@@ -36,6 +36,8 @@
   #:use-module (srfi srfi-64)
   #:use-module (hall scan))
 
+(set! *random-state* (random-state-from-platform))
+
 (define-syntax directory-excursion
   (syntax-rules ()
     [(_ new-directory body body* ...)
