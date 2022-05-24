@@ -553,7 +553,7 @@ current output port is supposed to be redirected to a '.log' file.\"
         (close-port trs)
         (close-port out))))
     (exit 0)))
-")))
+" #t)))
     ,(configure-file)
     ,(makefile-file)
     ,(file "pre-inst-env" in-filetype
@@ -570,7 +570,7 @@ PATH=\"$abs_top_builddir/scripts:$PATH\"
 export PATH
 
 exec \"$@\"
-")))
+" #t)))
 
 (define (base-autotools)
   "Return the complete autotools section."
@@ -727,7 +727,7 @@ AC_SUBST([guilemoduledir])
 AC_SUBST([guileobjectdir])
 
 AC_OUTPUT
-")))))
+"))) #t))
 
 ;;;; Full on cargo cult!
 (define (makefile-file)
@@ -855,7 +855,7 @@ clean-go:
 CLEANFILES =					\\
   $(GOBJECTS)					\\
   $(TESTS:tests/%.scm=%.log)
-")))))
+"))) #t))
 
 (define-syntax timed-expression
   (lambda (x)
