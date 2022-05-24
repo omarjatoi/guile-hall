@@ -146,7 +146,7 @@ find out which."
 
 ;;;;; File Constructor
 
-(define (file name filetype contents)
+(define* (file name filetype contents #:optional transient)
   "Return a hall file procedure with the file name NAME.  FILETYPE is a
 filetype record and specifies metadata for the file.  CONTENTS can be a
 procedure of one argument (the project's specification) or a string.  In both
@@ -155,6 +155,21 @@ cases contents describe the contents of the file.
 A number of operations on hall file procedures are possible.  Consult the
 commentary above to find out what these are."
   (lambda (spec context operation indentation)
+    (define (mkfile fname)
+      (with-output-to-file fname
+        (lambda _
+          (cond ((and (string=? name "hall")
+                      (equal? filetype scheme-filetype))
+                 ;; Hall file needs special processing here:
+                 ;; its contents are derived from spec here
+                 (pretty-print (specification->scm spec)
+                               (current-output-port)))
+                ((string? contents)
+                 (display contents))
+                ((procedure? contents)
+                 (contents spec))
+                (else
+                 (pretty-print contents))))))
     (match operation
       ('write
        (register-notes (filetype-notes filetype))
@@ -165,26 +180,19 @@ commentary above to find out what these are."
                                     (filetype-extension filetype))))
          (match operation
            ('path fname)
-           ('exec
+           ((or 're-exec 'exec)
             (register-notes (filetype-notes filetype))
             (if (file-exists? fname)
-                (format #t "~aSkipping: ~a~%" indentation fname)
+                (if transient
+                    (match operation
+                      ('exec (format #t "~aSkipping: ~a~%" indentation fname))
+                      ('re-exec (format #t "~aRecreating: ~a~%" indentation fname)
+                                (delete-file fname)
+                                (mkfile fname)))
+                    (format #t "~aSkipping: ~a~%" indentation fname))
                 (begin
                   (format #t "~aMaking file: ~a~%" indentation fname)
-                  (with-output-to-file fname
-                    (lambda _
-                      (cond ((and (string=? name "hall")
-                                  (equal? filetype scheme-filetype))
-                             ;; Hall file needs special processing here:
-                             ;; its contents are derived from spec here
-                             (pretty-print (specification->scm spec)
-                                           (current-output-port)))
-                            ((string? contents)
-                             (display contents))
-                            ((procedure? contents)
-                             (contents spec))
-                            (else
-                             (pretty-print contents))))))))
+                  (mkfile fname))))
            ('raw fname)
            ('raw+contents `(,fname . ,contents))
            ('show-contents
@@ -197,7 +205,9 @@ commentary above to find out what these are."
            ((or 'show _)
             (register-notes (filetype-notes filetype))
             (if (file-exists? fname)
-                (format #t "~aSkipping: ~a~%" indentation fname)
+                (if transient
+                    (format #t "~aSkipping/Recreating: ~a~%" indentation fname)
+                    (format #t "~aSkipping: ~a~%" indentation fname))
                 (format #t "~aMaking file: ~a~%" indentation fname)))))))))
 
 ;;;;; Symlink Constructor
