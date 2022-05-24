@@ -65,7 +65,15 @@ of them to get more information.")
     (list
      (switch (name 'execute) (character #\x)
              (default #f) (test boolean?)
-             (synopsis "Carry out operations, instead of displaying them."))))
+             (synopsis "Carry out operations, instead of displaying them."))
+     (switch (name 'force)
+             (default #f) (test boolean?)
+             (synopsis "Re-generate transient files.")
+             (description "Delete and re-create transient files. The files
+considered transient depend on the sub-command that this switch is invoked on.
+As a guide, transient files are those normally fully managed by hall (e.g.
+guix.scm, configure.ac and makefile.am).  If you customise these, then this
+switch is not for you."))))
    (subcommands
     (list
      (configuration
@@ -94,7 +102,7 @@ prepare the build-system for this project.
 
 Once you are happy with the result, pass the '--execute' flag to finally
 generate build-system files.")
-      (wanted '((keywords execute))))
+      (wanted '((keywords execute force))))
      (configuration
       (name 'distribution-system)
       (alias 'dist)
@@ -218,7 +226,7 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                       (option-ref options 'skip) operation))
       (("hall" "build-system")
        (make-build-infrastructure (read-spec) (find-project-root-directory)
-                                  operation))
+                                  operation (option-ref options 'force)))
       (("hall" "distribution-system")
        (let ((run (cute <> (read-spec) (find-project-root-directory)
                         operation)))

@@ -33,14 +33,17 @@
   #:use-module (hall common)
   #:export (make-build-infrastructure))
 
-(define (make-build-infrastructure spec context operation)
+(define (make-build-infrastructure spec context operation force)
   "Commandline tool for setting up the projects build system.  SPEC is a hall
 specification file for the project in question.  CONTEXT is a list containing
 as its first and only element the absolute filepath to the project
 base-directory.  OPERATION can be 'show or 'exec."
   (when (eq? 'show operation)
     (format #t "Dryrun:~%"))
-  (for-each (lambda (file) (file spec context operation ""))
+  (for-each (lambda (file) (file spec context (if (and force (eqv? operation 'exec))
+                                             're-exec
+                                             operation)
+                            ""))
             (base-autotools))
   (when (eq? 'show operation)
     (format #t "Finished dryrun.~%")))
