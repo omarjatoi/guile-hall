@@ -37,19 +37,19 @@
 
             rewrite-brew-file))
 
-(define (rewrite-guix-file spec context operation)
+(define (rewrite-guix-file spec context operation force)
   "Commandline tool for re-generating a project's local guix file.  SPEC is a
 hall specification file for the project in question.  CONTEXT is a list
 containing as its first and only element the absolute filepath to the project
 base-directory.  OPERATION can be 'show or 'exec."
   (match operation
-    ('exec ((guix-file) spec context operation ""))
+    ('exec ((guix-file) spec context (if force 're-exec operation) ""))
     ((or 'show _)
      (format #t "Dryrun:~%")
      ((guix-file) spec context 'show-contents "")
      (format #t "Finished dryrun.~%"))))
 
-(define (git-guix-recipe spec context operation)
+(define (git-guix-recipe spec context operation force)
   "Commandline tool for generating a project's guix file, assuming that we use
 a git repository for building the project.  The emitted guix file should be
 ready for adding to the Guix project.  SPEC is a hall specification file for
@@ -63,7 +63,7 @@ element the absolute filepath to the project base-directory.  OPERATION can be
      ((guix-file 'git) spec context 'show-contents "")
      (format #t "Finished dryrun.~%"))))
 
-(define (tarball-guix-recipe spec context operation)
+(define (tarball-guix-recipe spec context operation force)
   "Commandline tool for generating a project's guix file, assuming that we use
 a tarball release for building the project.  The emitted guix file should be
 ready for adding to the Guix project.  SPEC is a hall specification file for
@@ -80,13 +80,13 @@ element the absolute filepath to the project base-directory.  OPERATION can be
 
 ;;;;; Brew recipes
 
-(define (rewrite-brew-file spec context operation)
+(define (rewrite-brew-file spec context operation force)
   "Commandline tool for re-generating a project's Brew file.  SPEC is a hall
 specification file for the project in question.  CONTEXT is a list containing
 as its first and only element the absolute filepath to the project
 base-directory.  OPERATION can be 'show or 'exec."
   (match operation
-    ('exec ((brew-file) spec context operation ""))
+    ('exec ((brew-file) spec context (if force 're-exec operation) ""))
     ((or 'show _)
      (format #t "Dryrun:~%")
      ((brew-file) spec context 'show-contents "")
