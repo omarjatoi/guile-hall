@@ -104,6 +104,13 @@ Once you are happy with the result, pass the '--execute' flag to finally
 generate build-system files, and the 'force' flag to re-generate hall managed
 build-system files (for the gnu build system, these are the test-driver, the
 pre-inst-env helper, configure.ac and Makefile.am).")
+      (wanted '((keywords execute force)))
+      (arguments
+       (list
+        (argument (name 'target)
+                  (test (lambda (n) (or (empty? n) (string? n))))
+                  (synopsis "make target to run against generated build files")
+                  (example "check|distcheck|dist")))))
      (configuration
       (name 'distribution-system)
       (alias 'dist)
@@ -228,7 +235,11 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                       (option-ref options 'skip) operation))
       (("hall" "build-system")
        (make-build-infrastructure (read-spec) (find-project-root-directory)
-                                  operation (option-ref options 'force)))
+                                  operation (option-ref options 'force))
+       (when (not (empty? (option-ref options '(target))))
+         (for-each (lambda (cmd) (system (string-append "guix shell -Df guix.scm -- " cmd)))
+                   (list "autoreconf -vif" "./configure"
+                         (string-append "make " (option-ref options '(target)))))))
       (("hall" "distribution-system")
        (let ((run (cute <> (read-spec) (find-project-root-directory)
                         operation (option-ref options 'force))))
