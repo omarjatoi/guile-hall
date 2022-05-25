@@ -78,7 +78,7 @@
       ("texinfo" ,texinfo)))
   (inputs `(("guile" ,guile-3.0)))
   (propagated-inputs
-    `(("guile-config" ,guile-config-0.5)))
+    `(("guile-config" ,guile-config)))
   (synopsis "Guile project tooling")
   (description
     "Hall is a command-line application and a set of Guile libraries that allow you to quickly create and publish Guile projects.  It allows you to transparently support the GNU build system, manage a project hierarchy & provides tight coupling to Guix.")

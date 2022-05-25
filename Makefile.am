@@ -42,9 +42,9 @@ SOURCES = hall/workarounds.scm \
           hall/init.scm \
           hall/spec.scm
 
-TESTS = tests/common.scm \
+TESTS = tests/scan.scm \
+        tests/common.scm \
         tests/hall.scm \
-        tests/scan.scm \
         tests/spec.scm
 
 TEST_EXTENSIONS = .scm
@@ -62,7 +62,6 @@ AM_SCM_LOG_FLAGS = --no-auto-compile -L "$(top_srcdir)"
 AM_TESTS_ENVIRONMENT = abs_top_srcdir="$(abs_top_srcdir)"
 
 info_TEXINFOS = doc/hall.texi
-dvi: # Don't build dvi docs
 
 EXTRA_DIST += README.org \
               README \

@@ -3,7 +3,7 @@ dnl -*- Autoconf -*-
 AC_INIT(guile-hall, 0.4.1)
 AC_SUBST(HVERSION, "\"0.4.1\"")
 AC_SUBST(AUTHOR, "\"Alex Sassmannshausen\"")
-AC_SUBST(COPYRIGHT, "'(2018 2020 2021)")
+AC_SUBST(COPYRIGHT, "'(2018 2020 2021 2022)")
 AC_SUBST(LICENSE, gpl3+)
 AC_CONFIG_SRCDIR(hall.scm)
 AC_CONFIG_AUX_DIR([build-aux])
