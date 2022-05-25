@@ -226,7 +226,8 @@ first.")
   "Entry point for the commandline application.  ARGS should be a normal
 command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
   (let* ((options (getopt-config-auto args %configuration))
-         (operation (if (option-ref options 'execute) 'exec 'show)))
+         (operation (if (option-ref options 'execute) 'exec 'show))
+         (force (option-ref options 'force)))
     (match (full-command options)
       (("hall")
        (emit-help options))
@@ -235,14 +236,14 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                       (option-ref options 'skip) operation))
       (("hall" "build-system")
        (make-build-infrastructure (read-spec) (find-project-root-directory)
-                                  operation (option-ref options 'force))
+                                  operation force)
        (when (not (empty? (option-ref options '(target))))
          (for-each (lambda (cmd) (system (string-append "guix shell -Df guix.scm -- " cmd)))
-                   (list "autoreconf -vif" "./configure"
+                   (list (if force "autoreconf -vif" "autoreconf -i") "./configure"
                          (string-append "make " (option-ref options '(target)))))))
       (("hall" "distribution-system")
        (let ((run (cute <> (read-spec) (find-project-root-directory)
-                        operation (option-ref options 'force))))
+                        operation force)))
          (match (option-ref options '(system))
            ("brew"
             (run rewrite-brew-file))
