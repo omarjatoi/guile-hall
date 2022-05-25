@@ -124,8 +124,8 @@ also generate a tarball or git repository based package which can be used with
 the 'guix package' subcommand, by using the '--type' argument.
 
 Once you are happy with the result, pass the '--execute' flag to generate the
-guix package file.  You can pass the additional '--force' flag to replace any
-existing guix package files.")
+guix package file.  You can pass the '--force' switch to regenerate the
+distribution file.")
       (synopsis "Manage your project's distribution files.")
       (wanted '((keywords execute force)))
       (keywords
