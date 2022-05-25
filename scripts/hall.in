@@ -101,9 +101,10 @@ cleaning process.")
 prepare the build-system for this project.
 
 Once you are happy with the result, pass the '--execute' flag to finally
-generate build-system files, and the 'force' flag to re-generate hall managed
-build-system files (for the gnu build system, these are the test-driver, the
-pre-inst-env helper, configure.ac and Makefile.am).")
+generate build-system files, and the '--force' switch to re-generate hall
+managed build-system files (for the gnu build system, these are the test-driver,
+the pre-inst-env helper, configure.ac and Makefile.am).  In addition, '--force'
+will also trigger the full regeneration of autotools supplied files.")
       (wanted '((keywords execute force)))
       (arguments
        (list
