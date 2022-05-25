@@ -828,7 +828,6 @@ info_TEXINFOS = " (string-join
                                    (specification-files spec)))))
                     16)
                    " \\\n") "
-dvi: # Don't build dvi docs
 
 EXTRA_DIST += " (string-join
                  (align
@@ -847,6 +846,8 @@ EXTRA_DIST += " (string-join
               $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
+
+AM_DISTCHECK_DVI_TARGET = info # Disable DVI as part of distcheck
 
 clean-go:
 	-$(RM) $(GOBJECTS)
