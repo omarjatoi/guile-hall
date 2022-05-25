@@ -3,7 +3,7 @@
   (prefix "guile")
   (version "0.4.1")
   (author "Alex Sassmannshausen")
-  (copyright (2018 2020 2021))
+  (copyright (2018 2020 2021 2022))
   (synopsis "Guile project tooling")
   (description
     "Hall is a command-line application and a set of Guile libraries that allow you to quickly create and publish Guile projects.  It allows you to transparently support the GNU build system, manage a project hierarchy & provides tight coupling to Guix.")
@@ -11,7 +11,7 @@
     "https://gitlab.com/a-sassmannshausen/guile-hall")
   (license gpl3+)
   (dependencies
-    `(("guile-config" (config) ,guile-config-0.5)))
+    `(("guile-config" (config) ,guile-config)))
   (skip ())
   (files (libraries
            ((directory
@@ -27,7 +27,8 @@
                (scheme-file "spec")))))
          (tests ((directory
                    "tests"
-                   ((scheme-file "common")
+                   ((scheme-file "scan")
+                    (scheme-file "common")
                     (scheme-file "hall")
                     (scheme-file "spec")))))
          (programs
