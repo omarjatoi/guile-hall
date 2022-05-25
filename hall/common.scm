@@ -1011,7 +1011,7 @@ guix.scm file."
                                                (gnu packages pkg-config)
                                                (gnu packages texinfo))
                                  lst))
-                   (_ lst)))))))
+                   (_ lst))))) #t))
 
 (define* (brew-file)
   "Return a Brew file procedure with default contents for the project's
@@ -1092,7 +1092,7 @@ end
                 "\n  ")
                ;; Tests
                name (string-append name ".scm") name name
-               (string-append name ".scm"))))))
+               (string-append name ".scm")))) #t))
 
 ;; A lookup table of files that have templatized contents.
 (define (templatize-files project-name)
