@@ -940,9 +940,9 @@ TYPE 'local, 'git or 'tarball."
      (source
       ,(match type
          ('local
-          (string-append "./" (full-project-name spec) "-"
-                         (specification-version spec)
-                         ".tar.gz"))
+          `(local-file ,(string-append "./" (full-project-name spec) "-"
+                                       (specification-version spec)
+                                       ".tar.gz")))
          ('git
           `(origin
              (method git-fetch)
@@ -1004,6 +1004,7 @@ guix.scm file."
                    ('local (cons '(use-modules (guix packages)
                                                ((guix licenses) #:prefix license:)
                                                (guix download)
+                                               (guix gexp)
                                                (guix build-system gnu)
                                                (gnu packages)
                                                (gnu packages autotools)
