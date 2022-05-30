@@ -126,7 +126,7 @@ find out which."
          (match operation
            ('path fname)
            ;; exec is for generating files & folders
-           ('exec
+           ((or 'exec 're-exec)
             (if (file-exists? fname)
                 (format #t "~aSkipping: ~a~%" indentation fname)
                 (begin
