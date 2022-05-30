@@ -42,7 +42,8 @@ SOURCES = hall/workarounds.scm \
           hall/init.scm \
           hall/spec.scm
 
-TESTS = tests/scan.scm \
+TESTS = tests/build.scm \
+        tests/scan.scm \
         tests/common.scm \
         tests/hall.scm \
         tests/spec.scm

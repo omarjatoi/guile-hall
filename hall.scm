@@ -27,7 +27,8 @@
                (scheme-file "spec")))))
          (tests ((directory
                    "tests"
-                   ((scheme-file "scan")
+                   ((scheme-file "build")
+                    (scheme-file "scan")
                     (scheme-file "common")
                     (scheme-file "hall")
                     (scheme-file "spec")))))
