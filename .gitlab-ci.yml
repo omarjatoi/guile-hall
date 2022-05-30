@@ -1,6 +1,6 @@
 variables:
   CONFIG_URL: "https://gitlab.com/a-sassmannshausen/guile-config"
-  CONFIG_VERSION: "0.5.0"
+  CONFIG_VERSION: "0.5.1"
   LPATH: "$CI_PROJECT_DIR/share/guile/site"
   CPATH: "$CI_PROJECT_DIR/lib/guile"
 
@@ -31,6 +31,9 @@ deps:
     - cd guile-config-$CONFIG_VERSION
     - autoreconf -vif && ./configure --prefix=${CI_PROJECT_DIR} --exec-prefix=${CI_PROJECT_DIR} && make && make install && ls -l
   cache:
+    key:
+      files:
+        - hall.scm
     paths:
       - ./
 
@@ -40,6 +43,9 @@ build-job:       # This job runs in the build stage, which runs first.
     - echo "Compiling the code..."
     - autoreconf -vif && ./configure --prefix=${CI_PROJECT_DIR} --exec-prefix=${CI_PROJECT_DIR} && make
   cache:
+    key:
+      files:
+        - hall.scm
     paths:
       - ./
 
@@ -49,6 +55,9 @@ unit-test-job:   # This job runs in the test stage.
     - echo "Running check."
     - make check
   cache:
+    key:
+      files:
+        - hall.scm
     paths:
       - ./
 
@@ -58,6 +67,9 @@ dist-test-job:   # This job also runs in the test stage.
     - echo "Running distcheck"
     - make distcheck
   cache:
+    key:
+      files:
+        - hall.scm
     paths:
       - ./
 
@@ -68,5 +80,8 @@ app-test-job:
     - make install
     - hall --version && hall init htest -x && cd htest && hall scan -x && hall build -x
   cache:
+    key:
+      files:
+        - hall.scm
     paths:
       - ./
