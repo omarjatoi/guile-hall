@@ -108,8 +108,8 @@ will also trigger the full regeneration of autotools supplied files.")
       (wanted '((keywords execute force)))
       (arguments
        (list
-        (argument (name 'target)
-                  (test (lambda (n) (or (empty? n) (string? n))))
+        (argument (name 'target) (default "")
+                  (test string?)
                   (synopsis "make target to run against generated build files")
                   (example "check|distcheck|dist")))))
      (configuration
@@ -238,7 +238,7 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
       (("hall" "build-system")
        (make-build-infrastructure (read-spec) (find-project-root-directory)
                                   operation force)
-       (when (not (empty? (option-ref options '(target))))
+       (when (not (string-null? (option-ref options '(target))))
          (for-each (lambda (cmd) (system (string-append "guix shell -Df guix.scm -- " cmd)))
                    (list (if force "autoreconf -vif" "autoreconf -i") "./configure"
                          (string-append "make " (option-ref options '(target)))))))
