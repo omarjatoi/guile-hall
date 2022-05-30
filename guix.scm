@@ -2,6 +2,7 @@
   (guix packages)
   ((guix licenses) #:prefix license:)
   (guix download)
+  (guix gexp)
   (guix build-system gnu)
   (gnu packages)
   (gnu packages autotools)
@@ -13,7 +14,7 @@
 (package
   (name "guile-hall")
   (version "0.4.1")
-  (source "./guile-hall-0.4.1.tar.gz")
+  (source (local-file "./guile-hall-0.4.1.tar.gz"))
   (build-system gnu-build-system)
   (arguments
     `(#:modules
