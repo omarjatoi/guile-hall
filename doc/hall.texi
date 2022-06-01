@@ -666,8 +666,9 @@ for multiple distribution systems.
 @pindex Build
 @pindex Build-System
 
-Our final subcommand, the @command{build} command, auto-generates
-files that you will want to include before distributing your project.
+Our final subcommand, the @command{build} command, is concerned with
+automating the management of your project's build and installation
+procedures.
 
 Currently this subcommand only supports the gnu build system, but work
 is underway to support the Guix based minimalist guile build system.
@@ -675,37 +676,43 @@ is underway to support the Guix based minimalist guile build system.
 There are several approaches you can take here:
 @enumerate
 @item
-Minimalist --- make Hall a dependency of your project so that you only
-need to have the bare minimum number of files in your project.  When
-you roll a new release tarball, you can run the following command
-sequence:
+Minimalist --- declare Hall as a dependency of your project in your
+@file{hall.scm} file so that anyone downloading your repository can
+easily build your project, ideally using @command{guix}, without you
+having to pollute your project with random build infrastructure files.
+
+Any contributor who downloads your repository, and who uses guix can
+then simply generate a full release tarball by running:
 
 @example
-# install dependencies for distribution
-guix environment -l guix
-# generate build infrastructure
-hall dist -x
-# build tarball
-autoreconf -vif && ./configure && make distcheck
+# install dependencies of your project (including hall)
+guix shell -Df guix.scm
+# generate your project's build infrastructure, run all tests and
+# build your tarball
+hall build -xf distcheck
 @end example
 
-This approach is particularly suited if you have a tarball release
-model.
+Your users, too, will thank you: they get the full convenience and
+power of installing tarballs using the GNU build system.
+
 @item
-Compromise --- Run @command{hall dist} and commit the resulting files
-to your repository.  You can periodically repeat this process if your
-build infrastructure needs to be updated (e.g. you added new library
-files to your project).
+Compromise --- Run @command{hall build -x} and commit the resulting
+build files to your repository. You can periodically repeat this
+process if your build infrastructure needs to be updated (e.g. you
+added new library files to your project), by running @command{hall
+build -xf}.
 
 When it's time to build a release tarball you only have to run
-@command{autoreconf -vif && ./configure && make distcheck}.
+@command{hall build distcheck} or @command{hall build -xf distcheck}
+if you also want to regenerate your build files.
 
-Anyone else can install your library from your repository by doing:
+Alternatively, anyone else can install your library from your
+repository by doing:
 @example
-# install dependencies for distribution
+# install dependencies for distribution (mostly autotools)
 guix environment -l guix
 # build tarball
-autoreconf -vif && ./configure && make distcheck
+hall build distcheck
 @end example
 
 This approach is suited to git release based approaches.
@@ -724,6 +731,15 @@ Under the GNU build system, the transient files are
 @example
 hall build -xf
 @end example
+@end deftypevr
+
+As illustrated above, you can run common make targets straight from
+the build subcommand:
+
+@deftypevr Argument string target
+The make target to run. We support @code{check}, @code{dist} and
+@code{distcheck}. Note that this functionality requires that you have
+@command{guix} installed.
 @end deftypevr
 
 @c *********************************************************************
