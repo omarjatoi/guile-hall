@@ -648,6 +648,15 @@ hall dist --type=local|git|tarball
 @end example
 @end deftypevr
 
+@deftypevr Switch boolean --force
+Using this flag causes hall to delete your existing @file{guix.scm}
+file and to then regenerate it.
+
+@example
+hall dist -xf
+@end example
+@end deftypevr
+
 In future, this subcommand will be used to manage configuration files
 for multiple distribution systems.
 
@@ -701,6 +710,21 @@ autoreconf -vif && ./configure && make distcheck
 
 This approach is suited to git release based approaches.
 @end enumerate
+
+In any case, the subcommand supports the @option{force} switch:
+
+@deftypevr Switch boolean --force
+Using this flag causes hall to delete your existing @emph{transient}
+build system files, and to then re-generate them.
+
+Under the GNU build system, the transient files are
+@file{configure.ac}, @file{test-driver.scm}, @file{configure.ac},
+@file{Makefile.am} and @file{pre-inst-env.in}.
+
+@example
+hall build -xf
+@end example
+@end deftypevr
 
 @c *********************************************************************
 @node The Hall Specification
