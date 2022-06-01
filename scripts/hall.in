@@ -40,6 +40,7 @@
              (hall common)
              (hall build)
              (hall dist)
+             (hall friends)
              (hall init)
              (hall scan)
              (ice-9 match)
@@ -239,7 +240,7 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
        (make-build-infrastructure (read-spec) (find-project-root-directory)
                                   operation force)
        (when (not (string-null? (option-ref options '(target))))
-         (for-each (lambda (cmd) (system (string-append "guix shell -Df guix.scm -- " cmd)))
+         (for-each (lambda (cmd) (guix (string-append "shell -Df guix.scm -- " cmd)))
                    (list (if force "autoreconf -vif" "autoreconf -i") "./configure"
                          (string-append "make " (option-ref options '(target)))))))
       (("hall" "distribution-system")
