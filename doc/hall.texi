@@ -40,7 +40,7 @@ Edition @value{EDITION} @*
 @contents
 
 @c *********************************************************************
-@node Top
+@node Top, Introduction, (dir), (dir)
 @top Guile Hall
 
 This document describes Guile Hall version @value{VERSION}.
@@ -59,10 +59,11 @@ This document describes Guile Hall version @value{VERSION}.
 * A Script File::               Hall's script file
 
 * General Index::               Concepts, functions, variables - Oh My!
+* Troubleshooting::             Corner Cases and Other Advice
 @end menu
 
 @c *********************************************************************
-@node Introduction
+@node Introduction, Installation, Top, Top
 @chapter Introduction
 
 @flushright
@@ -120,7 +121,7 @@ when first learning about Hall.  It is intended for advanced use!
 
 
 @c *********************************************************************
-@node Installation
+@node Installation, Quickstart, Introduction, Top
 @chapter Installation
 
 @flushright
@@ -233,7 +234,7 @@ echo export PATH=/usr/local/bin/:$PATH >>~/.bashrc
 @end example
 
 @c *********************************************************************
-@node Quickstart
+@node Quickstart, The Subcommands, Installation, Top
 @chapter Quickstart
 @cindex New Projects
 @cindex Converting Projects
@@ -308,8 +309,12 @@ guix environment -l guix.scm
 make dist
 @end example
 
+@emph{Note:} If this creates an empty tarball, we likely have a @env{UID}
+bigger than GNU tar (@pxref{Top, , GNU tar, tar}) can currently
+handle. There is a workaround for this, @xref{Troubleshooting, hall}.
+
 @c *********************************************************************
-@node The Subcommands
+@node The Subcommands, The Hall Specification, Quickstart, Top
 @chapter The Subcommands
 
 Hall is sub-divided into different subcommands designed to achieve
@@ -346,7 +351,7 @@ the files section in particular, should normally only be changed
 through the @command{scan} command.
 
 @c *********************************************************************
-@node Hall Initiate
+@node Hall Initiate, Hall Scan, The Subcommands, The Subcommands
 @section Hall Initiate
 @pindex Init
 @pindex Initiate
@@ -462,7 +467,7 @@ would like Hall to regenerate them for you.
 @end deftypevr
 
 @c *********************************************************************
-@node Hall Initiate Refresh
+@node Hall Initiate Refresh,  , Hall Initiate, Hall Initiate
 @subsection Hall Initiate Refresh
 @pindex Refresh
 
@@ -477,7 +482,7 @@ Nonetheless, this command is convenient for when you didn't have
 access to the internet at the time you originally created the project.
 
 @c *********************************************************************
-@node Hall Scan
+@node Hall Scan, Hall Clean, Hall Initiate, The Subcommands
 @section Hall Scan
 @pindex Scan
 @cindex Types of Files
@@ -582,7 +587,7 @@ hall scan tests/frobnigator.scm tests
 @end example
 
 @c *********************************************************************
-@node Hall Clean
+@node Hall Clean, Hall Distribution-System, Hall Scan, The Subcommands
 @section Hall Clean
 @pindex Clean
 
@@ -617,7 +622,7 @@ hall clean --skip="SKIP.me,cruft-folder,^hall.*$"
 @end deftypevr
 
 @c *********************************************************************
-@node Hall Distribution-System
+@node Hall Distribution-System, Hall Build-System, Hall Clean, The Subcommands
 @section Hall Distribution-System
 @pindex Guix
 @pindex Distribution-System
@@ -661,7 +666,7 @@ In future, this subcommand will be used to manage configuration files
 for multiple distribution systems.
 
 @c *********************************************************************
-@node Hall Build-System
+@node Hall Build-System,  , Hall Distribution-System, The Subcommands
 @section Hall Build-System
 @pindex Build
 @pindex Build-System
@@ -743,7 +748,7 @@ The make target to run. We support @code{check}, @code{dist} and
 @end deftypevr
 
 @c *********************************************************************
-@node The Hall Specification
+@node The Hall Specification, Contributing, The Subcommands, Top
 @chapter The Hall Specification
 
 I like to think the Hall specification is relatively easy on the eye,
@@ -982,7 +987,7 @@ subcommand.
 @end table
 
 @c *********************************************************************
-@node Contributing
+@node Contributing, Acknowledgments, The Hall Specification, Top
 @chapter Contributing
 
 Guile Hall is an open project and I actively invite contribution.  Get
@@ -994,14 +999,14 @@ Please see the HACKING file that comes with the Guile Hall source code
 for practical details about contributions.
 
 @c *********************************************************************
-@node Acknowledgments
+@node Acknowledgments, A Hall Spec File, Contributing, Top
 @chapter Acknowledgments
 
 Guile Hall is intended as a gift to the Guile & Guix communities,
 without whom I would never have learned to program.
 
 @c *********************************************************************
-@node A Hall Spec File
+@node A Hall Spec File, A Script File, Acknowledgments, Top
 @appendix A Hall Spec File
 
 As an example of a healthy looking hall specification file, please see
@@ -1012,7 +1017,7 @@ below for Hall's own current @file{hall.scm} file.
 @end lisp
 
 @c *********************************************************************
-@node A Script File
+@node A Script File, General Index, A Hall Spec File, Top
 @appendix A Script File
 
 Hall's specification file should be the single place where you need to
@@ -1034,13 +1039,165 @@ Let me know if this is not good enough for you!
 @end lisp
 
 @c *********************************************************************
-@node General Index
+@node General Index,  Troubleshooting, A Script File, Top
 @unnumbered General Index
 @syncodeindex tp fn
 @syncodeindex vr fn
 @syncodeindex cp fn
 @syncodeindex pg fn
 @printindex fn
+
+@c *********************************************************************
+@node Troubleshooting, , General Index, Top
+@appendix Troubleshooting make dist
+If we are working on a system with very high user-ids, GNU tar is
+currently unable to use that uid when making a tarball.
+
+We can work around this by updating the @command{make dist} command to no
+longer include the @option{-o} option in @var{AM_TAR}. We'll do this by
+including our own version of the @file{tar.m4} file in the project-local
+directory @file{m4/}.
+
+One way to patch this file is included below, in case it is useful. It
+@emph{should} be identical to Your system-defined @file{tar.m4}, just
+with @code{chof} replaced with @code{chf}. Once this file is placed
+inside of @file{m4/}, rerun @command{autoreconf -fiv} and then
+@command{make dist} should work as expected.
+
+@example
+# Check how to create a tarball.                            -*- Autoconf -*-
+
+# Copyright (C) 2004-2020 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# _AM_PROG_TAR(FORMAT)
+# --------------------
+# Check how to create a tarball in format FORMAT.
+# FORMAT should be one of 'v7', 'ustar', or 'pax'.
+#
+# Substitute a variable $(am__tar) that is a command
+# writing to stdout a FORMAT-tarball containing the directory
+# $tardir.
+#     tardir=directory && $(am__tar) > result.tar
+#
+# Substitute a variable $(am__untar) that extract such
+# a tarball read from stdin.
+#     $(am__untar) < result.tar
+#
+AC_DEFUN([_AM_PROG_TAR],
+[# Always define AMTAR for backward compatibility.  Yes, it's still used
+# in the wild :-(  We should find a proper way to deprecate it ...
+AC_SUBST([AMTAR], ['$$@{TAR-tar@}'])
+
+# We'll loop over all known methods to create a tar archive until one works.
+_am_tools='gnutar m4_if([$1], [ustar], [plaintar]) pax cpio none'
+
+m4_if([$1], [v7],
+  [am__tar='$$@{TAR-tar@} chf - "$$tardir"' am__untar='$$@{TAR-tar@} xf -'],
+
+  [m4_case([$1],
+    [ustar],
+     [# The POSIX 1988 'ustar' format is defined with fixed-size fields.
+      # There is notably a 21 bits limit for the UID and the GID.  In fact,
+      # the 'pax' utility can hang on bigger UID/GID (see automake bug#8343
+      # and bug#13588).
+      am_max_uid=2097151 # 2^21 - 1
+      am_max_gid=$am_max_uid
+      # The $UID and $GID variables are not portable, so we need to resort
+      # to the POSIX-mandated id(1) utility.  Errors in the 'id' calls
+      # below are definitely unexpected, so allow the users to see them
+      # (that is, avoid stderr redirection).
+      am_uid=`id -u || echo unknown`
+      am_gid=`id -g || echo unknown`
+      AC_MSG_CHECKING([whether UID '$am_uid' is supported by ustar format])
+      if test $am_uid -le $am_max_uid; then
+         AC_MSG_RESULT([yes])
+      else
+         AC_MSG_RESULT([no])
+         _am_tools=none
+      fi
+      AC_MSG_CHECKING([whether GID '$am_gid' is supported by ustar format])
+      if test $am_gid -le $am_max_gid; then
+         AC_MSG_RESULT([yes])
+      else
+        AC_MSG_RESULT([no])
+        _am_tools=none
+      fi],
+
+  [pax],
+    [],
+
+  [m4_fatal([Unknown tar format])])
+
+  AC_MSG_CHECKING([how to create a $1 tar archive])
+
+  # Go ahead even if we have the value already cached.  We do so because we
+  # need to set the values for the 'am__tar' and 'am__untar' variables.
+  _am_tools=$@{am_cv_prog_tar_$1-$_am_tools@}
+
+  for _am_tool in $_am_tools; do
+    case $_am_tool in
+    gnutar)
+      for _am_tar in tar gnutar gtar; do
+        AM_RUN_LOG([$_am_tar --version]) && break
+      done
+      am__tar="$_am_tar --format=m4_if([$1], [pax], [posix], [$1]) -chf - "'"$$tardir"'
+      am__tar_="$_am_tar --format=m4_if([$1], [pax], [posix], [$1]) -chf - "'"$tardir"'
+      am__untar="$_am_tar -xf -"
+      ;;
+    plaintar)
+      # Must skip GNU tar: if it does not support --format= it doesn't create
+      # ustar tarball either.
+      (tar --version) >/dev/null 2>&1 && continue
+      am__tar='tar chf - "$$tardir"'
+      am__tar_='tar chf - "$tardir"'
+      am__untar='tar xf -'
+      ;;
+    pax)
+      am__tar='pax -L -x $1 -w "$$tardir"'
+      am__tar_='pax -L -x $1 -w "$tardir"'
+      am__untar='pax -r'
+      ;;
+    cpio)
+      am__tar='find "$$tardir" -print | cpio -o -H $1 -L'
+      am__tar_='find "$tardir" -print | cpio -o -H $1 -L'
+      am__untar='cpio -i -H $1 -d'
+      ;;
+    none)
+      am__tar=false
+      am__tar_=false
+      am__untar=false
+      ;;
+    esac
+
+    # If the value was cached, stop now.  We just wanted to have am__tar
+    # and am__untar set.
+    test -n "$@{am_cv_prog_tar_$1@}" && break
+
+    # tar/untar a dummy directory, and stop if the command works.
+    rm -rf conftest.dir
+    mkdir conftest.dir
+    echo GrepMe > conftest.dir/file
+    AM_RUN_LOG([tardir=conftest.dir && eval $am__tar_ >conftest.tar])
+    rm -rf conftest.dir
+    if test -s conftest.tar; then
+      AM_RUN_LOG([$am__untar <conftest.tar])
+      AM_RUN_LOG([cat conftest.dir/file])
+      grep GrepMe conftest.dir/file >/dev/null 2>&1 && break
+    fi
+  done
+  rm -rf conftest.dir
+
+  AC_CACHE_VAL([am_cv_prog_tar_$1], [am_cv_prog_tar_$1=$_am_tool])
+  AC_MSG_RESULT([$am_cv_prog_tar_$1])])
+
+AC_SUBST([am__Tar])
+AC_SUBST([am__untar])
+]) # _AM_PROG_TAR
+@end example
 
 @bye
 
