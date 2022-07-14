@@ -3,6 +3,7 @@
   (prefix "guile")
   (version "0.4.1")
   (author "Alex Sassmannshausen")
+  (email "alex@komputilo.eu")
   (copyright (2018 2020 2021 2022))
   (synopsis "Guile project tooling")
   (description
