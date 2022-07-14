@@ -61,14 +61,14 @@
   (apply format (current-error-port) (string-append msg "~%") args)
   (exit 1))
 
-(define (values->specification nam prefi versio autho copyrigh synopsi
+(define (values->specification nam prefi versio autho emai copyrigh synopsi
                                descriptio home-pag licens dependencie ski
                                lib-files tst-files prog-files doc-files
                                infra-files)
   "Return a hall specification of a project with the arguments.  The arguments
 are checked against basic validations before a specification is returned."
   (specification
-   (name nam) (prefix prefi) (version versio) (author autho)
+   (name nam) (prefix prefi) (version versio) (author autho) (email emai)
    (copyright copyrigh) (synopsis synopsi) (description descriptio)
    (home-page home-pag) (license-prs licens) (dependencies dependencie)
    (skip ski)
@@ -349,28 +349,30 @@ tmp
 #+TITLE: ~a NEWS – history of user-visible changes
 #+STARTUP: content hidestars
 
-Copyright © ~a ~a <INSERT EMAIL HERE>
+Copyright © ~a ~a <~a>
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright
   notice and this notice are preserved.
 
-Please send ~a bug reports to INSERT EMAIL HERE.
+Please send ~a bug reports to ~a.
 
 * Publication at ~a~%"
                      (friendly-project-name spec)
                      (specification-copyright spec)
                      (specification-author spec)
+                     (specification-email spec)
                      (friendly-project-name spec)
+                     (specification-email spec)
                      (specification-version spec))))
     ,(file "AUTHORS" text-filetype
            (lambda (spec)
              (format #t
                      "Contributers to ~a ~a:
 
-    ~a <INSERT EMAIL HERE>~%"
+    ~a <~a>~%"
                      (friendly-project-name spec) (specification-version spec)
-                     (specification-author spec))))
+                     (specification-author spec) (specification-email spec))))
     ,(file "ChangeLog" text-filetype
            (lambda (spec)
              (format #t
@@ -1154,6 +1156,12 @@ all default files that contain non-empty contents."
        "PROJECT-AUTHOR should be a string."
        project-author)))
 
+(define (email project-email)
+  (or (and (string? project-email) project-email)
+      (quit-with-error
+       "PROJECT-EMAIL should be a string."
+       project-email)))
+
 (define (synopsis project-synopsis)
   (or (and (string? project-synopsis) project-synopsis)
       (quit-with-error
@@ -1272,7 +1280,7 @@ SCM."
     (('hall-description . scm)
      (apply specification
             (append (map (cute href scm <>)
-                         '(name prefix version author copyright synopsis
+                         '(name prefix version author email copyright synopsis
                                 description home-page license dependencies skip))
                     (list (scm->files (href scm 'files) (href scm 'name))))))
     (_

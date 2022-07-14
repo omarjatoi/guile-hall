@@ -40,6 +40,7 @@
             specification-synopsis specification-description
             specification-home-page specification-license
             specification-dependencies specification-skip specification-files
+            specification-email
             set-specification-files
 
             <files>
@@ -82,13 +83,14 @@
 
 ;; A container for the fundamental specification used by Hall.
 (define-immutable-record-type <specification>
-  (specification name prefix version author copyright synopsis description
+  (specification name prefix version author email copyright synopsis description
                  home-page license dependencies skip files)
   specification?
   (name specification-name)
   (prefix specification-prefix)
   (version specification-version)
   (author specification-author)
+  (email specification-email)
   (copyright specification-copyright)
   (synopsis specification-synopsis)
   (description specification-description)
@@ -115,6 +117,7 @@ hall specification SPEC."
     (prefix ,(specification-prefix spec))
     (version ,(specification-version spec))
     (author ,(specification-author spec))
+    (email ,(specification-email spec))
     (copyright ,(specification-copyright spec))
     (synopsis ,(specification-synopsis spec))
     (description ,(specification-description spec))

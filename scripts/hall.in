@@ -170,6 +170,9 @@ generate the new project.")
         (setting (name 'author) (default "")
                  (synopsis "Author of the project.")
                  (example "\"Alyssa P. Hacker\""))
+        (setting (name 'email) (default "")
+                 (synopsis "Email of the author.")
+                 (example "\"alyssa@example.org\""))
         (setting (name 'prefix) (default "")
                  (synopsis "Prefix of the project.")
                  (example "guile"))
@@ -259,6 +262,7 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
        (let ((spec (values->specification (option-ref options '(name))
                                           (option-ref options 'prefix) "0.1"
                                           (option-ref options 'author)
+                                          (option-ref options 'email)
                                           `(,(date-year (current-date)))
                                           "" ""
                                           (option-ref options 'website)
