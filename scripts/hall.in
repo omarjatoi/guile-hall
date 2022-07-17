@@ -204,7 +204,8 @@ first.")
        (list
         (argument
          (name 'filename) (default #f)
-         (test (match-lambda ((or #f (? file-exists?)) #t) (_ #f)))
+         (handler expand-filename)
+         (test (match-lambda ((or #f (? part-of-project?)) #t) (_ #f)))
          (synopsis "Add a single file to your hall.scm file.")
          (example "tests/frobnigator.scm"))
         (argument
@@ -223,8 +224,24 @@ first.")
          (test (match-lambda (((? string?) ...) #t) (_ #f)))
          (handler (cut string-split <> #\,))
          (synopsis "CSV list regexp patterns to indicate files to skip.")
-         (example "scripts/foo,AUTHORS,^.*rgp$")))))))
-   (directory (in-home "."))
+         (example "scripts/foo,AUTHORS,^.*rgp$"))
+        (setting
+         (name 'template) (default #f)
+         (test (match-lambda ((? string?) #t) (#f #t)))
+         (synopsis "The name of the reuse template to use, if desired.")
+         (example "hall")))))
+     (configuration
+      (name 'publish) (alias 'pub)
+      (synopsis "Publish your project using your build / distribution systems.")
+      (description "Use your chosen build and distribution systems to publish
+your project. If you use guix as your distribution system then you can use this
+command to comprehensively test your project automatic publication workflow, as
+well as to generate and submit a guix recipe to the guix project. If you use the
+GNU build system this subcommand also allows you to generate your release
+tarball, to tag your repository with a new version tag and to upload your
+tarball using ssh.")
+      (wanted '((keywords execute))))))
+   (directory (in-home ".hall/"))
    (parser simple-sexp-parser)))
 
 (define* (main #:optional (args (command-line)))
@@ -280,7 +297,10 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                                   (option-ref options 'skip) operation))
          ((or (#f . _) (_ . #f)) (emit-help options))
          ((fn . sc) (add-to-project (read-spec) (find-project-root-directory)
-                                    fn sc operation)))))
+                                    fn sc (option-ref options 'template)
+                                    operation))))
+      (("hall" "publish")
+       (publish-project (read-spec) operation)))
     (emit-notes)))
 
 ;;; Local Variables:
