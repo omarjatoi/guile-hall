@@ -28,15 +28,20 @@
 ;;; Code:
 
 (define-module (hall scan)
+  #:use-module (config helpers)
   #:use-module (hall builders)
   #:use-module (hall common)
+  #:use-module (hall friends)
   #:use-module (hall spec)
   #:use-module (ice-9 ftw)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
+  #:use-module (ice-9 regex)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:export (scan-project
+            expand-filename
+            part-of-project?
             add-to-project))
 
 (define (dir->filenames directory-name)
@@ -57,7 +62,7 @@
                               (dir->filenames child)))
                        children))))))
 
-(define (add-to-project spec context filename section operation)
+(define (add-to-project spec context filename section template operation)
   "Commandline tool for adding a single file within the project to the
 hall.scm file.  SPEC is a hall specification file for the project in question.
 CONTEXT is a list containing as its first and only element the absolute
@@ -99,32 +104,92 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
                                (('directory (? (cut string=? <> fn)) _) #t)
                                (_ #f))
                              files))))))))
-  (when (eqv? (stat:type (lstat filename)) 'directory)
+
+  (let ((f (filename->project-file filename)))
+    (create-file-maybe f template operation spec)
+    (let* ((setr (match section
+                   ('documentation set-files-documentation)
+                   ('programs set-files-programs)
+                   ('tests set-files-tests)
+                   ('infrastructure set-files-infrastructure)
+                   ('libraries set-files-libraries)))
+           (xsr (record-accessor <files> section))
+           (files (specification-files spec))
+           (new-spec (set-specification-files
+                      spec
+                      (setr files (category-traverser (tweak (xsr files) f)
+                                                      "_")))))
+      (match operation
+        ('exec
+         (with-output-to-file "hall.scm"
+           (lambda _
+             (pretty-print (specification->scm new-spec)
+                           (current-output-port)))))
+        ((or 'show _)
+         (format #t "Dryrun:~%")
+         (pretty-print (specification->scm new-spec) (current-output-port))
+         (format #t "Finished dryrun.~%"))))))
+
+(define (expand-filename filename)
+  ;; canonicalize-path??
+  (string-join
+   (filter (negate string-null?)
+           (string-split
+            ;; Expand our filename
+            (if (absolute-file-name? filename)
+                filename
+                (string-append (getcwd) file-name-separator-string
+                               filename))
+            (first (string->list file-name-separator-string))))
+   file-name-separator-string 'prefix))
+
+(define (filename->project-file filename)
+  (match (string-match (string-append "^" (find-project-root-directory*)
+                                      "/(.+)")
+                       filename)
+    (#f (throw 'scan "FILENAME is not part of project." filename))
+    ((? regexp-match? r) (match:substring r 1))))
+
+(define (part-of-project? filename)
+  (regexp-match? (string-match (string-append "^" (find-project-root-directory*)
+                                              ".+")
+                    filename)))
+
+(define (create-file-maybe filename template operation spec)
+  (when (and (file-exists? filename)
+             (eqv? (stat:type (lstat filename)) 'directory))
     (quit-with-error
      "You cannot currently add directories.  Instead you have to add each
 individual file in the directory you wish to add."))
-  (let* ((setr (match section
-                 ('documentation set-files-documentation)
-                 ('programs set-files-programs)
-                 ('tests set-files-tests)
-                 ('infrastructure set-files-infrastructure)
-                 ('libraries set-files-libraries)))
-         (xsr (record-accessor <files> section))
-         (files (specification-files spec))
-         (new-spec (set-specification-files
-                    spec
-                    (setr files (category-traverser (tweak (xsr files))
-                                                    "_")))))
-    (match operation
-      ('exec
-       (with-output-to-file "hall.scm"
-         (lambda _
-           (pretty-print (specification->scm new-spec)
-                         (current-output-port)))))
-      ((or 'show _)
-       (format #t "Dryrun:~%")
-       (pretty-print (specification->scm new-spec) (current-output-port))
-       (format #t "Finished dryrun.~%")))))
+  (when (and (not (file-exists? filename)) (eqv? operation 'exec))
+    (mkdir-p (dirname filename))
+    (let ((p (open-file filename "a"))
+          (f (basename filename ".scm")))
+      (if (string=? f (basename filename))
+          (format p "Hello, world~%") ; Not a scheme file
+          (pretty-print
+           `(define-module
+              ,(map string->symbol
+                    (append
+                     (string-split (dirname filename)
+                                   (first (string->list
+                                           file-name-separator-string)))
+                     `(,f))))
+           p))
+      (newline p)
+      (close-port p)
+      (reuse "addheader --copyright"
+             (format #f "\"~a <~a>\"" (specification-author spec)
+                     (specification-email spec))
+             (match (assv-ref license-map (specification-license spec))
+               (#f
+                (quit-with-error
+                 "Your project is missing a license that we know."))
+               (l (format #f "--license ~a" l)))
+             (match template
+               (#f "")
+               (t (format #f "--template ~a" t)))
+             filename))))
 
 ;; We traverse each file category.  For each directory we encounter, we scan
 ;; and add all files, making best guesses according to extensions.
