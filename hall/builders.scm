@@ -41,7 +41,7 @@
 
             context->fname full-project-name friendly-project-name
 
-            filetype-write filetype-derive
+            filetype-write filetype-derive filetype-derive*
 
             emit-notes %global-notes))
 
@@ -252,10 +252,8 @@ commentary above to find out what these are."
 NAME, in LANGUAGE and with EXTENSION."
   `(,(filetype-type filetype) ,name))
 
-(define (filetype-derive name stat)
-  "Return an SXML representation of the file with filename NAME, by analysing
-its extension."
-  (if (eqv? (stat:type stat) 'symlink)
+(define (filetype-derive* name type)
+  (if (and type (eqv? type 'symlink))
       `(symlink ,name ,(readlink name))
       (match (string-match "^(.+)\\.(.*)$" name)
         (#f `(text-file ,name))
@@ -263,3 +261,8 @@ its extension."
                                  filetype-extension)
              ((? unknown-filetype? ft) (list (filetype-type ft) name))
              (ft (list (filetype-type ft) (match:substring m 1))))))))
+
+(define (filetype-derive name stat)
+  "Return an SXML representation of the file with filename NAME, by analysing
+its extension."
+  (filetype-derive* name (stat:type stat)))

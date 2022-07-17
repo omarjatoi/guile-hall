@@ -64,15 +64,15 @@ CONTEXT is a list containing as its first and only element the absolute
 filepath to the project base-directory.  FILENAME is the file to be added.
 SECTION is the spec file section to add it to.  OPERATION can be 'show or
 'exec."
-  (define (tweak files)
-    (let lp ((tokens (filter (negate string-null?)
-                             (string-split filename #\/)))
+  (define (tweak files filename)
+    (let lp ((tokens (string-split filename #\/))
              (files (map (cut <> spec context 'write "") files)))
       (let* ((fn (first tokens)))
         (if (= (length tokens) 1)
             ;; We're at the correct depth.  Check if filename already exists
             ;; at this depth.
-            (let ((target (filetype-derive fn (lstat filename))))
+            (let ((target (filetype-derive* fn (and (file-exists? filename)
+                                                    (lstat filename)))))
               (if (find (λ (f) (equal? f target)) files)
                   files
                   (cons target files)))
@@ -88,7 +88,7 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
                 (let ((rtokens (reverse tokens)))
                   (fold (λ (next result)
                           `(directory ,next (,result)))
-                        (filetype-derive (first rtokens) (lstat filename))
+                        (filetype-derive* (first rtokens) 'file)
                         (cdr rtokens)))
                 files))
               ;; Yes, so descend to next level.
