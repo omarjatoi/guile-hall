@@ -17,7 +17,8 @@
   (files (libraries
            ((directory
               "hall"
-              ((scheme-file "friends")
+              ((scheme-file "publish")
+               (scheme-file "friends")
                (scheme-file "workarounds")
                (scheme-file "build")
                (scheme-file "dist")
