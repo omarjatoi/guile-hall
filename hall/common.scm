@@ -43,7 +43,8 @@
   #:export (values->specification
             instantiate
 
-            blacklisted? project-root-directory? find-project-root-directory
+            blacklisted? project-root-directory?
+            find-project-root-directory find-project-root-directory*
 
             read-spec filetype-read category-traverser
             scm->files scm->specification
@@ -109,23 +110,30 @@ filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
              #f)
            (const #t)))))
 
-(define (find-project-root-directory)
-  "Find and return the project root directory path of the current project, and
-set the working directory to it, or throw an error."
-  (let ((start (getcwd)))
-    (let lp ((cwd (getcwd)))
-      (cond ((project-root-directory?) `(,cwd))
-            ((string=? cwd "/")
-             (quit-with-error
-              "We were unable to locate your hall.scm file.  We started our
+(define (find-project-root-directory*)
+    "Return the current project's root as a string.
+
+Find and return the project root directory path of the current project, as
+a string, and set the working directory to it, or throw an error."
+    (let ((start (getcwd)))
+      (let lp ((cwd (getcwd)))
+        (cond ((project-root-directory?) cwd)
+              ((string=? cwd "/")
+               (quit-with-error
+                "We were unable to locate your hall.scm file.  We started our
 search at ~a.
 
 Are you sure this is a hall project?
 
 Perhaps you want to create a new hall project using `hall init'?" start))
-            (else
-             (chdir "..")
-             (lp (getcwd)))))))
+              (else
+               (chdir "..")
+               (lp (getcwd)))))))
+
+(define (find-project-root-directory)
+  "Find and return the project root directory path of the current project, and
+set the working directory to it, or throw an error."
+  `(,(find-project-root-directory*)))
 
 (define (read-spec)
   "Set the working directory to the current project's root directory & parse
