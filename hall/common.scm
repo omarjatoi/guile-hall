@@ -1276,9 +1276,15 @@ SCM."
   (match scm
     ((or ('hall-description . scm) scm)
      (apply specification
-            (append (map (cute href scm <>)
-                         '(name prefix version author email copyright synopsis
-                                description home-page license dependencies skip))
+            (append (map (match-lambda
+                           ((label proc)
+                            (proc (href scm label))))
+                         `((name ,name) (prefix ,prefix) (version ,version)
+                           (author ,author) (email ,email)
+                           (copyright ,copyright) (synopsis ,synopsis)
+                           (description ,description) (home-page ,home-page)
+                           (license ,license-prs) (dependencies ,dependencies)
+                           (skip ,skip)))
                     (list (or files (scm->files (href scm 'files)
                                                 (href scm 'name)))))))
     (_
