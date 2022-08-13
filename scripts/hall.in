@@ -276,15 +276,21 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
               ('git (run git-guix-recipe))
               ('tarball (run tarball-guix-recipe)))))))
       (("hall" "initiate")
-       (let ((spec (values->specification (option-ref options '(name))
-                                          (option-ref options 'prefix) "0.1"
-                                          (option-ref options 'author)
-                                          (option-ref options 'email)
-                                          `(,(date-year (current-date)))
-                                          "" ""
-                                          (option-ref options 'website)
-                                          (option-ref options 'license)
-                                          '`() '() '() '() '() '() '())))
+       (let* ((name (option-ref options '(name)))
+              (spec (scm->specification
+                     (map (match-lambda
+                            ((label '= thing)
+                             `(,label ,thing))
+                            ((label opt)
+                             `(,label ,(option-ref options opt)))
+                            (label
+                             `(,label ,(option-ref options label))))
+                          `((name = ,name) prefix author (version = "0.1") email
+                            (copyright = (,(date-year (current-date))))
+                            (synopsis = "") (description = "")
+                            (home-page website) license (dependencies = `())
+                            (skip = ())))
+                     (default-files name))))
          (cond ((option-ref options 'convert)
                 (create-project-here spec '() operation))
                (else (create-project spec '() operation)))))

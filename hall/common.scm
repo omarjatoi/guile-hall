@@ -40,7 +40,7 @@
   #:use-module (web client)
   #:use-module (web response)
   #:use-module (web http)
-  #:export (values->specification
+  #:export (default-files
             instantiate
 
             blacklisted? project-root-directory?
@@ -62,23 +62,12 @@
   (apply format (current-error-port) (string-append msg "~%") args)
   (exit 1))
 
-(define (values->specification nam prefi versio autho emai copyrigh synopsi
-                               descriptio home-pag licens dependencie ski
-                               lib-files tst-files prog-files doc-files
-                               infra-files)
-  "Return a hall specification of a project with the arguments.  The arguments
-are checked against basic validations before a specification is returned."
-  (specification
-   (name nam) (prefix prefi) (version versio) (author autho) (email emai)
-   (copyright copyrigh) (synopsis synopsi) (description descriptio)
-   (home-page home-pag) (license-prs licens) (dependencies dependencie)
-   (skip ski)
-   (all-files
-    (files (append lib-files (base-libraries nam))
-           (append tst-files (base-tests))
-           (append prog-files (base-programs))
-           (append doc-files (base-documentation nam))
-           (append infra-files (base-infrastructure))))))
+(define (default-files project-name)
+  (files (base-libraries project-name)
+         (base-tests)
+         (base-programs)
+         (base-documentation project-name)
+         (base-infrastructure)))
 
 (define (instantiate spec context operation)
   "Carry out the operation OPERATION, a symbol that should be 'show or 'exec,
@@ -1281,16 +1270,17 @@ of the files ALL-FILES under PROJECT-NAME."
                        (cute href all-files <>))
               '(libraries tests programs documentation infrastructure))))
 
-(define (scm->specification scm)
+(define* (scm->specification scm #:optional files)
   "Return a hall specification of the SXML representation of that specification
 SCM."
   (match scm
-    (('hall-description . scm)
+    ((or ('hall-description . scm) scm)
      (apply specification
             (append (map (cute href scm <>)
                          '(name prefix version author email copyright synopsis
                                 description home-page license dependencies skip))
-                    (list (scm->files (href scm 'files) (href scm 'name))))))
+                    (list (or files (scm->files (href scm 'files)
+                                                (href scm 'name)))))))
     (_
      (quit-with-error
       "It looks like your hall file has been corrupted.  You may have to
