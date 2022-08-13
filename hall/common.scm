@@ -1177,12 +1177,12 @@ all default files that contain non-empty contents."
        "PROJECT-HOME-PAGE should be a string."
        project-home-page)))
 
-;; FIXME: LICENSE should be a license object
 (define (license-prs project-license)
-  (or (and (symbol? project-license) project-license)
-      (quit-with-error
-       "PROJECT-LICENSE should be a symbol."
-       project-license)))
+  (or (and (symbol? project-license)
+           (module-ref (resolve-interface '(config licenses)) project-license)
+           project-license)
+      (quit-with-error "PROJECT-LICENSE should be a known license."
+                       project-license)))
 
 (define (copyright project-copyrights)
   (match project-copyrights
