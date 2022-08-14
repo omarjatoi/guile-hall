@@ -106,7 +106,7 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
                              files))))))))
 
   (let ((f (filename->project-file filename)))
-    (create-file-maybe f template operation spec)
+    (create-file-maybe f section template operation spec)
     (let* ((setr (match section
                    ('documentation set-files-documentation)
                    ('programs set-files-programs)
@@ -155,7 +155,7 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
                                               ".+")
                     filename)))
 
-(define (create-file-maybe filename template operation spec)
+(define (create-file-maybe filename section template operation spec)
   (when (and (file-exists? filename)
              (eqv? (stat:type (lstat filename)) 'directory))
     (quit-with-error
@@ -163,10 +163,13 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
 individual file in the directory you wish to add."))
   (when (and (not (file-exists? filename)) (eqv? operation 'exec))
     (mkdir-p (dirname filename))
-    (let ((p (open-file filename "a"))
-          (f (basename filename ".scm")))
-      (if (string=? f (basename filename))
-          (format p "Hello, world~%") ; Not a scheme file
+    (let* ((p (open-file filename "a"))
+           (fq (basename filename))
+           (fx (basename filename ".scm"))
+           (scheme-file? (or (not (string=? fx fq))
+                             (and (eqv? section 'programs)
+                                  (string-match "^[^.]+$" fq)))))
+      (if scheme-file?
           (pretty-print
            `(define-module
               ,(map string->symbol
@@ -174,8 +177,9 @@ individual file in the directory you wish to add."))
                      (string-split (dirname filename)
                                    (first (string->list
                                            file-name-separator-string)))
-                     `(,f))))
-           p))
+                     `(,fx))))
+           p)
+          (format p "Hello, world~%"))
       (newline p)
       (close-port p)
       (reuse "addheader --copyright"
@@ -186,6 +190,7 @@ individual file in the directory you wish to add."))
                 (quit-with-error
                  "Your project is missing a license that we know."))
                (l (format #f "--license ~a" l)))
+             (if scheme-file? "--style lisp" "--skip-unrecognised")
              (match template
                (#f "")
                (t (format #f "--template ~a" t)))
