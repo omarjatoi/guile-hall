@@ -1214,6 +1214,20 @@ all default files that contain non-empty contents."
         "PROJECT-SKIP should be a list of strings."
         project-skip))))
 
+(define (features-prs project-features)
+  (match project-features
+    ;; FIXME: 2022-08-13: As above, but for implementing feature support.
+    (#f (features #f #f #f))
+    ((((? symbol?) (? boolean?)) ...)
+     (apply features (map (lambda (label)
+                            (cut href project-features <>))
+                          '(guix native-language-support licensing))))
+    (_ (quit-with-error
+        (format #f
+                "~a should be ~a, got ~s instead."
+                "PROJECT-FEATURES" "a list of format '((feature #t|#f) ...)"
+                project-features)))))
+
 (define (all-files files) files)
 
 ;;;; Utilities
@@ -1285,7 +1299,7 @@ SCM."
                            (copyright ,copyright) (synopsis ,synopsis)
                            (description ,description) (home-page ,home-page)
                            (license ,license-prs) (dependencies ,dependencies)
-                           (skip ,skip)))
+                           (features ,features-prs) (skip ,skip)))
                     (list (or files (scm->files (href scm 'files)
                                                 (href scm 'name)))))))
     (_

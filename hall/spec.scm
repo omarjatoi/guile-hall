@@ -40,8 +40,12 @@
             specification-synopsis specification-description
             specification-home-page specification-license
             specification-dependencies specification-skip specification-files
-            specification-email
+            specification-email specification-features
             set-specification-files
+
+            <features>
+            features features?
+            features-guix features-licensing features-nls
 
             <files>
             files files?
@@ -81,10 +85,23 @@
   (documentation files-documentation set-files-documentation)
   (infrastructure files-infrastructure set-files-infrastructure))
 
+(define-immutable-record-type <features>
+  (features guix native-language-support licensing)
+  features?
+  (guix features-guix set-features-guix)
+  (native-language-support features-nls set-features-nls)
+  (licensing features-licensing set-features-licensing))
+
 ;; A container for the fundamental specification used by Hall.
+;; If the spec changes, so should the parsers and writers. The parsers are
+;; defined in /hall/common.scm.
+;; At least you will need to change;
+;; - `specification->metadata'
+;; - `scm->specification'
+;; - `href'
 (define-immutable-record-type <specification>
   (specification name prefix version author email copyright synopsis description
-                 home-page license dependencies skip files)
+                 home-page license dependencies features skip files)
   specification?
   (name specification-name)
   (prefix specification-prefix)
@@ -98,6 +115,7 @@
   (license specification-license)
   (dependencies specification-dependencies)
   (skip specification-skip)
+  (features specification-features)
   (files specification-files set-specification-files))
 
 ;; Reduce the noise!
@@ -109,6 +127,12 @@
            (specification-author spec))))
 
 ;;;; Specification->metadata
+
+(define (features->scm features)
+ (map (match-lambda
+        ((label proc) `(,label ,(proc features))))
+      `((guix ,features-guix) (native-language-support ,features-nls)
+        (licensing ,features-licensing))))
 
 (define (specification->metadata spec)
   "Return an SXML style association list containing all the metadata of the
@@ -124,7 +148,8 @@ hall specification SPEC."
     (home-page ,(specification-home-page spec))
     (license ,(specification-license spec))
     (dependencies ,(specification-dependencies spec))
-    (skip ,(specification-skip spec))))
+    (skip ,(specification-skip spec))
+    (features ,(features->scm (specification-features spec)))))
 
 (define (specification->files spec)
   "Return an SXML style association list containing the files section of the
