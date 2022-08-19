@@ -14,10 +14,15 @@
   (dependencies
     `(("guile-config" (config) ,guile-config)))
   (skip ())
+  (features
+    ((guix #f)
+     (native-language-support #f)
+     (licensing #f)))
   (files (libraries
            ((directory
               "hall"
-              ((scheme-file "publish")
+              ((scheme-file "config")
+               (scheme-file "publish")
                (scheme-file "friends")
                (scheme-file "workarounds")
                (scheme-file "build")
