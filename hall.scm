@@ -15,9 +15,9 @@
     `(("guile-config" (config) ,guile-config)))
   (skip ())
   (features
-    ((guix #f)
+    ((guix #t)
      (native-language-support #f)
-     (licensing #f)))
+     (licensing #t)))
   (files (libraries
            ((directory
               "hall"
