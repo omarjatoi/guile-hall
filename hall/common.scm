@@ -1219,8 +1219,7 @@ all default files that contain non-empty contents."
     ;; FIXME: 2022-08-13: As above, but for implementing feature support.
     (#f (features #f #f #f))
     ((((? symbol?) (? boolean?)) ...)
-     (apply features (map (lambda (label)
-                            (cut href project-features <>))
+     (apply features (map (cut href project-features <>)
                           '(guix native-language-support licensing))))
     (_ (quit-with-error
         (format #f
