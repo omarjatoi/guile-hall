@@ -241,6 +241,10 @@ language."
 
 (define m4-filetype (filetype 'm4-file "m4" 'm4 '()))
 
+(define po-filetype (filetype 'po-file "po" 'po '()))
+
+(define pot-filetype (filetype 'pot-file "pot" 'po '()))
+
 (define c-filetype (filetype 'c-file "c" 'c
                              '("
 Your project includes C files. Unfortunately Hall does not yet support
@@ -307,7 +311,7 @@ https://gitlab.com/a-sassmannshausen/guile-hall/-/issues/.
          markdown-filetype configuration-filetype template-filetype
          csv-filetype json-filetype css-filetype html-filetype js-filetype
          ts-filetype jpg-filetype png-filetype db-filetype ico-filetype
-         ruby-filetype)))
+         ruby-filetype po-filetype pot-filetype)))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
   (or (find (compose (cut and=> <> pred) accessor) (filetypes-register))
