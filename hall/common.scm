@@ -1206,10 +1206,13 @@ all default files that contain non-empty contents."
 
 (define (skip project-skip)
   (match project-skip
+    ;; FIXME: 2020-05-25: Added temporary allowance for optional skip.
+    ;; This is to help migration of specs from 0.4 and earlier to 0.5.
+    (#f '())
     (((? string) ...) project-skip)
-    (quit-with-error
-     "PROJECT-SKIP should be a list of strings."
-     project-skip)))
+    (_ (quit-with-error
+        "PROJECT-SKIP should be a list of strings."
+        project-skip))))
 
 (define (all-files files) files)
 
@@ -1236,12 +1239,7 @@ SCM."
   (match (assoc-ref scm key)
     ((value) value)
     ((values ...) values)
-    (#f
-     (match key
-       ;; FIXME: 2020-05-25: Added temporary allowance for optional skip.
-       ;; This is to help migration of specs from 0.4 and earlier to 0.5.
-       ('skip '())
-       (throw 'hall-scm->specification "Missing expected hall key:" key)))))
+    (#f #f)))
 
 (define (category-traverser files project-name)
   "Return a list of hall style directory or file procedures from the SXML
