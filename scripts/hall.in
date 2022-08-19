@@ -44,6 +44,7 @@
              (hall friends)
              (hall init)
              (hall scan)
+             (hall spec)
              (ice-9 match)
              (srfi srfi-19)
              (srfi srfi-26))
@@ -279,44 +280,52 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
               (feat (specification-features spec)))
          (parameterize ((guix-feature? (features-guix feat))
                         (nls-feature? (features-nls feat))
-                        (licensing-feature? (features-licensing))))
-         (match cmd
-           (("hall" "clean")
-            (clean-project (read-spec) (find-project-root-directory)
-                           (option-ref options 'skip) operation))
-           (("hall" "build-system")
-            (make-build-infrastructure (read-spec) (find-project-root-directory)
-                                       operation force)
-            (when (not (string-null? (option-ref options '(target))))
-              (for-each (lambda (cmd) (guix (string-append "shell -Df guix.scm -- " cmd)))
-                        (list (if force "autoreconf -vif" "autoreconf -i") "./configure"
-                              (string-append "make " (option-ref options '(target)))))))
-           (("hall" "distribution-system")
-            (let ((run (cute <> (read-spec) (find-project-root-directory)
-                             operation force)))
-              (match (option-ref options '(system))
-                ("brew"
-                 (run rewrite-brew-file))
-                ;; Guix is default and only one supported for now
-                (_
-                 (match (option-ref options 'type)
-                   ('local (run rewrite-guix-file))
-                   ('git (run git-guix-recipe))
-                   ('tarball (run tarball-guix-recipe)))))))
+                        (licensing-feature? (features-licensing feat)))
+           (match cmd
+             (("hall" "clean")
+              (clean-project (read-spec) (find-project-root-directory)
+                             (option-ref options 'skip) operation))
+             (("hall" "build-system")
+              (make-build-infrastructure (read-spec) (find-project-root-directory)
+                                         operation force)
+              (when (not (string-null? (option-ref options '(target))))
+                (if (guix-feature?)
+                    (for-each (lambda (cmd)
+                                (guix (string-append "shell -Df guix.scm -- "
+                                                     cmd)))
+                              (list (if force "autoreconf -vif" "autoreconf -i")
+                                    "./configure"
+                                    (format #f "make ~a" (option-ref options
+                                                                     '(target)))))
+                    (quit-with-error
+                     "Make targets are only supported when GUIX-FEATURE is \
+switched on in your hall file."))))
+             (("hall" "distribution-system")
+              (let ((run (cute <> (read-spec) (find-project-root-directory)
+                               operation force)))
+                (match (option-ref options '(system))
+                  ("brew"
+                   (run rewrite-brew-file))
+                  ;; Guix is default and only one supported for now
+                  (_
+                   (match (option-ref options 'type)
+                     ('local (run rewrite-guix-file))
+                     ('git (run git-guix-recipe))
+                     ('tarball (run tarball-guix-recipe)))))))
 
-           (("hall" "initiate" "refresh")
-            (recreate-project-here (read-spec) '() operation))
-           (("hall" "scan")
-            (match (cons (option-ref options '(filename))
-                         (option-ref options '(section)))
-              ((#f . #f) (scan-project (read-spec) (find-project-root-directory)
-                                       (option-ref options 'skip) operation))
-              ((or (#f . _) (_ . #f)) (emit-help options))
-              ((fn . sc) (add-to-project (read-spec) (find-project-root-directory)
-                                         fn sc (option-ref options 'template)
-                                         operation))))
-           (("hall" "publish")
-            (publish-project (read-spec) operation))))))
+             (("hall" "initiate" "refresh")
+              (recreate-project-here (read-spec) '() operation))
+             (("hall" "scan")
+              (match (cons (option-ref options '(filename))
+                           (option-ref options '(section)))
+                ((#f . #f) (scan-project (read-spec) (find-project-root-directory)
+                                         (option-ref options 'skip) operation))
+                ((or (#f . _) (_ . #f)) (emit-help options))
+                ((fn . sc) (add-to-project (read-spec) (find-project-root-directory)
+                                           fn sc (option-ref options 'template)
+                                           operation))))
+             (("hall" "publish")
+              (publish-project (read-spec) operation)))))))
     (emit-notes)))
 
 ;;; Local Variables:

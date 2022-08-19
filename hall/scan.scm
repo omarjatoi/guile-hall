@@ -31,6 +31,7 @@
   #:use-module (config helpers)
   #:use-module (hall builders)
   #:use-module (hall common)
+  #:use-module (hall config)
   #:use-module (hall friends)
   #:use-module (hall spec)
   #:use-module (ice-9 ftw)
@@ -182,19 +183,20 @@ individual file in the directory you wish to add."))
           (format p "Hello, world~%"))
       (newline p)
       (close-port p)
-      (reuse "addheader --copyright"
-             (format #f "\"~a <~a>\"" (specification-author spec)
-                     (specification-email spec))
-             (match (assv-ref license-map (specification-license spec))
-               (#f
-                (quit-with-error
-                 "Your project is missing a license that we know."))
-               (l (format #f "--license ~a" l)))
-             (if scheme-file? "--style lisp" "--skip-unrecognised")
-             (match template
-               (#f "")
-               (t (format #f "--template ~a" t)))
-             filename))))
+      (when (licensing-feature?)
+        (reuse "addheader --copyright"
+               (format #f "\"~a <~a>\"" (specification-author spec)
+                       (specification-email spec))
+               (match (assv-ref license-map (specification-license spec))
+                 (#f
+                  (quit-with-error
+                   "Your project is missing a license that we know."))
+                 (l (format #f "--license ~a" l)))
+               (if scheme-file? "--style lisp" "--skip-unrecognised")
+               (match template
+                 (#f "")
+                 (t (format #f "--template ~a" t)))
+               filename)))))
 
 ;; We traverse each file category.  For each directory we encounter, we scan
 ;; and add all files, making best guesses according to extensions.
