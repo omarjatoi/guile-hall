@@ -1192,17 +1192,17 @@ all default files that contain non-empty contents."
         project-copyrights))))
 
 (define (dependencies project-dependencies)
-  (or (match project-dependencies
-        (('quasiquote dependencies)
-         (let lp ((rst dependencies))
-           (match rst
-             (() project-dependencies)
-             ((or (((? string?) ('unquote (? symbol?))) . rest)
-                  (((? string?) ((? symbol?)) ('unquote (? symbol?))) . rest))
-              (lp rest))))))
-      (quit-with-error
-       "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
-       project-dependencies)))
+  (match project-dependencies
+    (('quasiquote dependencies)
+     (let lp ((rst dependencies))
+       (match rst
+         (() project-dependencies)
+         ((or (((? string?) ('unquote (? symbol?))) . rest)
+              (((? string?) ((? symbol?)) ('unquote (? symbol?))) . rest))
+          (lp rest)))))
+    (_ (quit-with-error
+        "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
+        project-dependencies))))
 
 (define (skip project-skip)
   (match project-skip
