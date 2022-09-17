@@ -29,6 +29,7 @@
 
 (define-module (hall common)
   #:use-module (config licenses)
+  #:use-module (hall config)
   #:use-module (hall spec)
   #:use-module (hall builders)
   #:use-module (ice-9 format)
@@ -379,9 +380,10 @@ Please send ~a bug reports to ~a.
 
 (define (base-autotools-infrastructure)
   "Return the default autotools section."
-  `(,(directory "build-aux"
-                `(,(file "test-driver" scheme-filetype
-                         ";;;; test-driver.scm - Guile test driver for Automake testsuite harness
+  (filter identity
+          `(,(directory "build-aux"
+                        `(,(file "test-driver" scheme-filetype
+                                 ";;;; test-driver.scm - Guile test driver for Automake testsuite harness
 
 (define script-version \"2019-01-15.13\") ;UTC
 
@@ -560,10 +562,12 @@ current output port is supposed to be redirected to a '.log' file.\"
         (close-port out))))
     (exit 0)))
 " #t)))
-    ,(configure-file)
-    ,(makefile-file)
-    ,(file "pre-inst-env" in-filetype
-           "#!/bin/sh
+            ,(configure-file)
+            ,(and (nls-feature?) (makevars-file))
+            ,(and (nls-feature?) (potfiles))
+            ,(makefile-file)
+            ,(file "pre-inst-env" in-filetype
+                   "#!/bin/sh
 
 abs_top_srcdir=\"`cd \"@abs_top_srcdir@\" > /dev/null; pwd`\"
 abs_top_builddir=\"`cd \"@abs_top_builddir@\" > /dev/null; pwd`\"
@@ -576,7 +580,7 @@ PATH=\"$abs_top_builddir/scripts:$PATH\"
 export PATH
 
 exec \"$@\"
-" #t)))
+" #t))))
 
 (define (base-autotools)
   "Return the complete autotools section."
@@ -655,6 +659,41 @@ This documentation is a stub.
 @bye
 ")))))
 
+(define (potfiles)
+  (file "po/POTFILES" in-filetype
+        (lambda (spec)
+
+          (format #t "# List of source files which contain translatable strings.
+~a
+" (string-join
+   (flatten (map (cut <> spec '(".") 'raw "")
+                 (files-libraries (specification-files spec)))) "\n")))
+        #t))
+
+(define (makevars-file)
+  (file "po/Makevars" text-filetype
+        (lambda (spec)
+          (format #t "DOMAIN = ~a
+subdir = po
+top_builddir = ..
+XGETTEXT_OPTIONS =				\\
+  --from-code=UTF-8				\\
+  --keyword=G_ --keyword=N_:1,2			\\
+  --keyword=n_
+COPYRIGHT_HOLDER = ~a
+PACKAGE_GNU = no
+MSGID_BUGS_ADDRESS = ~a
+EXTRA_LOCALE_CATEGORIES =
+USE_MSGCTXT = no
+MSGMERGE_OPTIONS = --previous
+MSGINIT_OPTIONS =
+PO_DEPENDS_ON_POT = yes
+DIST_DEPENDS_ON_UPDATE_PO = yes
+"
+                  (full-project-name spec) (specification-author spec)
+                  (specification-email spec)))
+        #t))
+
 (define (configure-file)
   "Return a hall file procedure with default contents for the project's
 configure.ac file."
@@ -682,7 +721,15 @@ AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([1.12 gnu silent-rules subdir-objects \
  color-tests parallel-tests -Woverride -Wno-portability])
 AM_SILENT_RULES([yes])
+"
+                           (if (nls-feature?)
+                               "AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.21])
+AC_CONFIG_FILES([po/POTFILES])
+AC_CONFIG_FILES([po/Makefile.in])"
+                               "")
 
+                           "
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 "
@@ -852,7 +899,9 @@ EXTRA_DIST += " (string-join
               $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
-
+"
+                 (if (nls-feature?) "SUBDIRS = po" "")
+"
 AM_DISTCHECK_DVI_TARGET = info # Disable DVI as part of distcheck
 
 clean-go:
@@ -941,58 +990,57 @@ installed in a profile."
   "Return a guix package description of the hall project specification SPEC, of
 TYPE 'local, 'git or 'tarball."
   `(package
-     (name ,(full-project-name spec))
-     (version ,(specification-version spec))
-     (source
-      ,(match type
-         ('local
-          `(local-file ,(string-append "./" (full-project-name spec) "-"
-                                       (specification-version spec)
-                                       ".tar.gz")))
-         ('git
-          `(origin
-             (method git-fetch)
-             (uri (git-reference
-                   (url ,(specification-home-page spec))
-                   (commit "*insert git-commit-reference here*")))
-             (file-name ,(string-append
-                          (full-project-name spec) "-"
-                          (specification-version spec)
-                          "-checkout"))
-             (sha256
-              (base32 "*insert hash here*"))))
-         ('tarball
-          `(origin
-             (method url-fetch)
-             (uri ,(string-append (specification-home-page spec)
-                                  "/insert/path/to/tarball/here"))
-             (sha256
-              (base32 "*insert hash here*"))))))
-     (build-system gnu-build-system)
-     (arguments
-      ,(guix-wrap-binaries spec))
-     (native-inputs
-      (list autoconf
-            automake
-            pkg-config
-            texinfo))
-     (inputs (list guile-3.0))
-     (propagated-inputs
-      ;; This arcane contraption generates a valid input list.
-      (list ,@(map (lambda (n)
-                     (match n
-                       ;; Old-style Guix input declaration
-                       ((_ ('unquote pkg) . _) pkg)
-                       ;; Augmented Hall input declaration
-                       ((_ (? list?) ('unquote pkg) . _) pkg)
-                       ;; Modern Guix input declaration
-                       ((pkg . _) pkg)))
-                   ;; first element is quasiquote
-                   (second (specification-dependencies spec)))))
-     (synopsis ,(specification-synopsis spec))
-     (description ,(specification-description spec))
-     (home-page ,(specification-home-page spec))
-     (license ,(symbol-append 'license: (specification-license spec)))))
+    (name ,(full-project-name spec))
+    (version ,(specification-version spec))
+    (source
+     ,(match type
+        ('local
+         `(local-file ,(string-append "./" (full-project-name spec) "-"
+                                      (specification-version spec)
+                                      ".tar.gz")))
+        ('git
+         `(origin
+           (method git-fetch)
+           (uri (git-reference
+                 (url ,(specification-home-page spec))
+                 (commit "*insert git-commit-reference here*")))
+           (file-name ,(string-append
+                        (full-project-name spec) "-"
+                        (specification-version spec)
+                        "-checkout"))
+           (sha256
+            (base32 "*insert hash here*"))))
+        ('tarball
+         `(origin
+           (method url-fetch)
+           (uri ,(string-append (specification-home-page spec)
+                                "/insert/path/to/tarball/here"))
+           (sha256
+            (base32 "*insert hash here*"))))))
+    (build-system gnu-build-system)
+    (arguments
+     ,(guix-wrap-binaries spec))
+    (native-inputs
+     ,(if (features-nls (specification-features spec))
+          `(list autoconf automake gettext pkg-config texinfo)
+          `(list autoconf automake pkg-config texinfo)))
+    (inputs (list guile-3.0))
+    (propagated-inputs
+     ;; This arcane contraption generates a valid input list.
+     (list ,@(map (lambda (n)
+                    (match n
+                      ;; Old-style Guix input declaration
+                      ((_ ('unquote pkg) . _) pkg)
+                      ;; Augmented Hall input declaration
+                      ((_ (? list?) ('unquote pkg) . _) pkg)
+                      ;; Modern Guix input declaration
+                      ((pkg . _) pkg)))
+                  ;; first element is quasiquote
+                  (second (specification-dependencies spec)))))
+    (synopsis ,(specification-synopsis spec))
+    (description ,(specification-description spec))
+    (home-page ,(specification-home-page spec))
+    (license ,(symbol-append 'license: (specification-license spec)))))
 
 (define* (guix-file #:optional (type 'local))
   "Return a hall file procedure with default contents for the project's
@@ -1008,18 +1056,25 @@ guix.scm file."
                                           (full-project-name spec))
                                         ,(guix-package spec type)))))))
                  (match type
-                   ('local (cons '(use-modules (guix packages)
-                                               ((guix licenses) #:prefix license:)
-                                               (guix download)
-                                               (guix gexp)
-                                               (guix build-system gnu)
-                                               (gnu packages)
-                                               (gnu packages autotools)
-                                               (gnu packages guile)
-                                               (gnu packages guile-xyz)
-                                               (gnu packages pkg-config)
-                                               (gnu packages texinfo))
-                                 lst))
+                   ('local
+                    (cons
+                     (cons
+                      'use-modules
+                      (filter identity `((guix packages)
+                                         ((guix licenses) #:prefix license:)
+                                         (guix download)
+                                         (guix gexp)
+                                         (guix build-system gnu)
+                                         (gnu packages)
+                                         (gnu packages autotools)
+                                         ,(and (features-nls
+                                                (specification-features spec))
+                                               '(gnu packages gettext))
+                                         (gnu packages guile)
+                                         (gnu packages guile-xyz)
+                                         (gnu packages pkg-config)
+                                         (gnu packages texinfo))))
+                     lst))
                    (_ lst))))) #t))
 
 (define* (brew-file)

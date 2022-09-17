@@ -38,6 +38,7 @@
   #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-26)
   #:export (guix
+            gettextize
             reuse license-map))
 
 ;;;; Guix
@@ -51,6 +52,15 @@
             "Maintain your Native Language Support system, if enabled")))
     (lambda (key message code . rest)
       (match code
+        (1
+         (quit-with-error "Automake failed.
+This likely means your build infrastructure is hosed. The best thing to do is
+likely to re-generate it using
+
+  $ hall build -xf
+
+WARNING: this will delete any changes you have made to the build system
+yourself!"))
         (2
          (quit-with-error "Guix was unable to run your make target.
 
@@ -61,6 +71,21 @@ contains an error.  If it's the latter you can have hall re-generate it using
 
 WARNING: this will delete any changes you have made to the build system
 yourself!"))))))
+
+(define (gettextize args)
+  (catch 'friends
+    (lambda _
+      (run "gettextize --force" args "Gettextize"
+           (list
+            "Prepare your project for Native Language Support using GNU Gettext"
+            "Keep your program up to date with gettext and translations")))
+    (lambda (key message code . rest)
+      (match code
+        (1
+         (quit-with-error "Gettextize exited with an error.
+
+You are likely missing some parts of the autotools build infrastructure. Please
+make sure you have automake installed."))))))
 
 ;;;; Reuse
 

@@ -293,10 +293,16 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                     (for-each (lambda (cmd)
                                 (guix (string-append "shell -Df guix.scm -- "
                                                      cmd)))
-                              (list (if force "autoreconf -vif" "autoreconf -i")
-                                    "./configure"
-                                    (format #f "make ~a" (option-ref options
-                                                                     '(target)))))
+                              (filter identity
+                                      (list
+                                       (and force (nls-feature?)
+                                            "echo PLEASE PRESS ENTER, FOR ARCANE NLS REASONS.")
+                                       (and force (nls-feature?)
+                                            "gettextize --force >/dev/null")
+                                       (if force "autoreconf -vif" "autoreconf -i")
+                                       "./configure"
+                                       (format #f "make ~a" (option-ref options
+                                                                        '(target))))))
                     (quit-with-error
                      "Make targets are only supported when GUIX-FEATURE is \
 switched on in your hall file."))))
