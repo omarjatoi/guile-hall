@@ -966,22 +966,23 @@ TYPE 'local, 'git or 'tarball."
      (arguments
       ,(guix-wrap-binaries spec))
      (native-inputs
-      `(("autoconf" ,autoconf)
-        ("automake" ,automake)
-        ("pkg-config" ,pkg-config)
-        ("texinfo" ,texinfo)))
-     (inputs `(("guile" ,guile-3.0)))
+      (list autoconf
+            automake
+            pkg-config
+            texinfo))
+     (inputs (list guile-3.0))
      (propagated-inputs
-      ;; This arcane contraption generates a valid input assoc.
-      ,(cons 'quasiquote
-             (list (map (lambda (n)
-                          (match n
-                            ;; Standard Guix input declaration
-                            ((_ ('unquote _) . _) n)
-                            ;; Augmented Hall input declaration
-                            ((label (? list?) . rest) `(,label . ,rest))))
-                        ;; first element is quasiquote
-                        (second (specification-dependencies spec))))))
+      ;; This arcane contraption generates a valid input list.
+      (list ,@(map (lambda (n)
+                     (match n
+                       ;; Old-style Guix input declaration
+                       ((_ ('unquote pkg) . _) pkg)
+                       ;; Augmented Hall input declaration
+                       ((_ (? list?) ('unquote pkg) . _) pkg)
+                       ;; Modern Guix input declaration
+                       ((pkg . _) pkg)))
+                   ;; first element is quasiquote
+                   (second (specification-dependencies spec)))))
      (synopsis ,(specification-synopsis spec))
      (description ,(specification-description spec))
      (home-page ,(specification-home-page spec))
@@ -998,7 +999,7 @@ guix.scm file."
                                   ('local (guix-package spec type))
                                   (_ `(define-public
                                         ,(string->symbol
-                                          (full-project-name spec)) 
+                                          (full-project-name spec))
                                         ,(guix-package spec type)))))))
                  (match type
                    ('local (cons '(use-modules (guix packages)
