@@ -174,7 +174,7 @@ texinfo
 @item
 guile-config
 @end itemize
-@item 
+@item
 Clone the Guile Hall repository
 @item
 Run @code{autoreconf -vif && ./configure && make check && sudo make install}
@@ -285,19 +285,19 @@ hall clean
 
 @example
 # Get ready to test commandline or distribute:
-hall dist -x # create the build infrastructure
+hall build -x # create the build infrastructure
 
 # Oops, we made a mistake
 hall clean -x # undo previous step
 
 # Let's re-generate the guix file.
-rm guix.scm && hall guix -x # re-generate guix file
+rm guix.scm && hall dist -x # re-generate guix file
 
 # Now let's create the build infrastructure
-hall dist -x # recreate build infrastructure
+hall build -x # recreate build infrastructure
 
 # Let's build it!
-guix environment -l guix.scm
+guix shell -Df guix.scm
 autoreconf -vif && ./configure && make && exit
 
 # Let's run it!
@@ -305,7 +305,7 @@ autoreconf -vif && ./configure && make && exit
 ./pre-inst-env scripts/$script # Or run our scripts
 
 # We're ready for a tarball
-guix environment -l guix.scm
+guix shell -Df guix.scm
 make dist
 @end example
 
@@ -715,7 +715,7 @@ Alternatively, anyone else can install your library from your
 repository by doing:
 @example
 # install dependencies for distribution (mostly autotools)
-guix environment -l guix
+guix shell -Df guix
 # build tarball
 hall build distcheck
 @end example
@@ -825,7 +825,7 @@ propagated variables.  Feel free to use either!
 
 @item @code{author}
 @tindex author
-The name of the project author.  
+The name of the project author.
 
 At present, author is treated as a single string.  In future we aim to
 support multiple authors more elegantly by accepting a list of

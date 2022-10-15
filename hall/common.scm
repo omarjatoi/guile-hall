@@ -174,13 +174,13 @@ By far the easiest way to hack on ~a is to develop using Guix:
 #+BEGIN_SRC bash
   # Obtain the source code
   cd /path/to/source-code
-  guix environment -l guix.scm
+  guix shell -Df guix.scm
   # In the new shell, run:
-  hall dist --execute && autoreconf -vif && ./configure && make check
+  hall build --execute && autoreconf -vif && ./configure && make check
 #+END_SRC
 
 You can now hack this project's files to your heart's content, whilst
-testing them from your `guix environment' shell.
+testing them from your `guix shell' shell.
 
 To try out any scripts in the project you can now use
 
@@ -208,7 +208,7 @@ dependencies manually:
 Once those dependencies are installed you can run:
 
 #+BEGIN_SRC bash
-  hall dist -x && autoreconf -vif && ./configure && make check
+  hall build -x && autoreconf -vif && ./configure && make check
 #+END_SRC
 "
                      (specification-name spec) (specification-name spec)
