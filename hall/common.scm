@@ -179,6 +179,13 @@ By far the easiest way to hack on ~a is to develop using Guix:
   hall build --execute && autoreconf -vif && ./configure && make check
 #+END_SRC
 
+You may also want to set your directory as an authorized directory for
+`guix shell' so it works without arguments. To do that, simply run
+
+#+BEGIN_SRC bash
+  echo $(pwd) >> $HOME/.config/guix/shell-authorized-directories
+#+END_SRC
+
 You can now hack this project's files to your heart's content, whilst
 testing them from your `guix shell' shell.
 
