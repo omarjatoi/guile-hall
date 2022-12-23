@@ -192,6 +192,56 @@ with docstrings.
   served me while developing Hall.  In the presence of as of yet
   rudimentary documentation, you may find these notes enlightening.
 
+** On Gettext, NLS and i18n / l10n support
+
+Implementation of the above will work along the following lines:
+- Project initiation allows enabling NLS through GNU Gettext via a setting. In
+  this way, a user can specify their preference once and for all for all their
+  projects.
+- [X] If Gettext is not enabled at initiation then it can be enabled at a later
+      stage through the hall file.
+- Once it is enabled, the following steps need to be taken:
+  1. Run Gettextize
+  2. Insert AM_GNU_GETTEXT([external])
+  3. Write po/Makevars file
+  4. Complete potfiles.in with scheme files to be scanned (all of them?)
+  5. Run aclocal -I
+  6. Run autoconf
+  7. Make sure config.guess and config.sub exist in build-aux
+  8. Define `G_` and `N_`, %gettext-textdomain in config module
+     #+BEGIN_SRC scheme
+(define %gettext-domain
+  ;; Text domain for strings used in the tools.
+  "PROJECT_NAME")
+
+(define (install-locale)
+  "Install the current locale settings."
+  (catch 'system-error
+    (lambda _
+      (setlocale LC_ALL ""))
+    (lambda args
+      ;; We're now running in the "C" locale.  Try to install a UTF-8 locale
+      ;; instead.  This one is guaranteed to be available in 'guix' from 'guix
+      ;; pull'.
+      (false-if-exception (setlocale LC_ALL "en_US.utf8")))
+    (textdomain %gettext-domain )))
+
+(define G_ (cut gettext <> %gettext-domain))
+(define N_ (cut ngettext <> <> <> %gettext-domain))
+
+     #+END_SRC
+  9. Activate bindtextdomain if we have a script entry point
+     #+BEGIN_SRC scheme
+(bindtextdomain "PROJECT_NAME" "@localedir@")
+     #+END_SRC
+- Ensure user knows that `build -xf` is the way to update gettext version
+- Ensure user knows that if the user manipulates autotools files themselves then
+  they need to re-implement those changes manually
+- Ensure user knows that using the build command only regenerates the pot file
+  when that is deleted by the user
+- Ensure the user knows what the pot file does.
+- Explain how the user gets hold of translations / syncs them
+
 ** Next Steps
 
    - [X] Need following sections under files:
