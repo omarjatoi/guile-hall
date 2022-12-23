@@ -988,13 +988,20 @@ installed in a profile."
 
 (define (guix-package spec type)
   "Return a guix package description of the hall project specification SPEC, of
-TYPE 'local, 'git or 'tarball."
+TYPE 'local, 'local-tarball', 'git or 'tarball."
   `(package
     (name ,(full-project-name spec))
     (version ,(specification-version spec))
     (source
      ,(match type
         ('local
+         `(local-file (dirname (current-filename))
+           #:recursive? #t #:select?
+           (λ (file stat)
+             (not (any (lambda (my-string)
+              (string-contains file my-string))
+                       (list ".git" ".dir-locals.el" "guix.scm"))))))
+        ('local-tarball
          `(local-file ,(string-append "./" (full-project-name spec) "-"
                                       (specification-version spec)
                                       ".tar.gz")))
@@ -1073,7 +1080,8 @@ guix.scm file."
                                          (gnu packages guile)
                                          (gnu packages guile-xyz)
                                          (gnu packages pkg-config)
-                                         (gnu packages texinfo))))
+                                         (gnu packages texinfo)
+                                         (srfi srfi-1))))
                      lst))
                    (_ lst))))) #t))
 

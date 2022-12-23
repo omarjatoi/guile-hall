@@ -137,7 +137,7 @@ distribution file.")
         (switch (name 'type) (default 'local)
                 (test symbol?) (handler string->symbol)
                 (synopsis "Guix recipe type to generate (defaults to local)")
-                (example "local|git|tarball"))))
+                (example "local|git|tarball|local-tarball"))))
       (arguments
        (list
         (argument (name 'system) (default "guix")
