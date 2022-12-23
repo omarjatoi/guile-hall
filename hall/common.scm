@@ -174,13 +174,20 @@ By far the easiest way to hack on ~a is to develop using Guix:
 #+BEGIN_SRC bash
   # Obtain the source code
   cd /path/to/source-code
-  guix environment -l guix.scm
+  guix shell -Df guix.scm
   # In the new shell, run:
-  hall dist --execute && autoreconf -vif && ./configure && make check
+  hall build --execute && autoreconf -vif && ./configure && make check
+#+END_SRC
+
+You may also want to set your directory as an authorized directory for
+`guix shell' so it works without arguments. To do that, simply run
+
+#+BEGIN_SRC bash
+  echo $(pwd) >> $HOME/.config/guix/shell-authorized-directories
 #+END_SRC
 
 You can now hack this project's files to your heart's content, whilst
-testing them from your `guix environment' shell.
+testing them from your `guix shell' shell.
 
 To try out any scripts in the project you can now use
 
@@ -208,7 +215,7 @@ dependencies manually:
 Once those dependencies are installed you can run:
 
 #+BEGIN_SRC bash
-  hall dist -x && autoreconf -vif && ./configure && make check
+  hall build -x && autoreconf -vif && ./configure && make check
 #+END_SRC
 "
                      (specification-name spec) (specification-name spec)
@@ -966,22 +973,23 @@ TYPE 'local, 'git or 'tarball."
      (arguments
       ,(guix-wrap-binaries spec))
      (native-inputs
-      `(("autoconf" ,autoconf)
-        ("automake" ,automake)
-        ("pkg-config" ,pkg-config)
-        ("texinfo" ,texinfo)))
-     (inputs `(("guile" ,guile-3.0)))
+      (list autoconf
+            automake
+            pkg-config
+            texinfo))
+     (inputs (list guile-3.0))
      (propagated-inputs
-      ;; This arcane contraption generates a valid input assoc.
-      ,(cons 'quasiquote
-             (list (map (lambda (n)
-                          (match n
-                            ;; Standard Guix input declaration
-                            ((_ ('unquote _) . _) n)
-                            ;; Augmented Hall input declaration
-                            ((label (? list?) . rest) `(,label . ,rest))))
-                        ;; first element is quasiquote
-                        (second (specification-dependencies spec))))))
+      ;; This arcane contraption generates a valid input list.
+      (list ,@(map (lambda (n)
+                     (match n
+                       ;; Old-style Guix input declaration
+                       ((_ ('unquote pkg) . _) pkg)
+                       ;; Augmented Hall input declaration
+                       ((_ (? list?) ('unquote pkg) . _) pkg)
+                       ;; Modern Guix input declaration
+                       ((pkg . _) pkg)))
+                   ;; first element is quasiquote
+                   (second (specification-dependencies spec)))))
      (synopsis ,(specification-synopsis spec))
      (description ,(specification-description spec))
      (home-page ,(specification-home-page spec))
@@ -998,7 +1006,7 @@ guix.scm file."
                                   ('local (guix-package spec type))
                                   (_ `(define-public
                                         ,(string->symbol
-                                          (full-project-name spec)) 
+                                          (full-project-name spec))
                                         ,(guix-package spec type)))))))
                  (match type
                    ('local (cons '(use-modules (guix packages)
