@@ -32,7 +32,9 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o "$@" "$<"
 
-SOURCES = hall/friends.scm \
+SOURCES = hall/config.scm \
+          hall/publish.scm \
+          hall/friends.scm \
           hall/workarounds.scm \
           hall/build.scm \
           hall/dist.scm \

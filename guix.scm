@@ -9,12 +9,22 @@
   (gnu packages guile)
   (gnu packages guile-xyz)
   (gnu packages pkg-config)
-  (gnu packages texinfo))
+  (gnu packages texinfo)
+  (srfi srfi-1))
 
 (package
   (name "guile-hall")
   (version "0.4.1")
-  (source (local-file "./guile-hall-0.4.1.tar.gz"))
+  (source
+    (local-file
+      (dirname (current-filename))
+      #:recursive?
+      #t
+      #:select?
+      (λ (file stat)
+         (not (any (lambda (my-string)
+                     (string-contains file my-string))
+                   (list ".git" ".dir-locals.el" "guix.scm"))))))
   (build-system gnu-build-system)
   (arguments
     `(#:modules
@@ -73,13 +83,9 @@
                         ,''("hall"))
                       #t))))))))
   (native-inputs
-    `(("autoconf" ,autoconf)
-      ("automake" ,automake)
-      ("pkg-config" ,pkg-config)
-      ("texinfo" ,texinfo)))
-  (inputs `(("guile" ,guile-3.0)))
-  (propagated-inputs
-    `(("guile-config" ,guile-config)))
+    (list autoconf automake pkg-config texinfo))
+  (inputs (list guile-3.0))
+  (propagated-inputs (list guile-config))
   (synopsis "Guile project tooling")
   (description
     "Hall is a command-line application and a set of Guile libraries that allow you to quickly create and publish Guile projects.  It allows you to transparently support the GNU build system, manage a project hierarchy & provides tight coupling to Guix.")
