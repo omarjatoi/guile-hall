@@ -640,16 +640,18 @@ tarball of your project in the project's root directory.
 You can use the @option{--type} switch to change this behaviour:
 
 @deftypevr Switch string --type
-Either @emph{local}, @emph{git} or @emph{tarball}.  The only
-difference between the three is the @code{source} section of the Guix
-recipe: in the first case it points to a local tarball; in the second
-it points to a template git repository derived from the home page set
-in your @file{hall.scm} spec file.  In the third case it points to a
-remote tarball template.  This is again derived from your project's
-home page.
+Either @emph{local}, @emph{git}, @emph{tarball} or
+@emph{local-tarball}. The only difference between the three is the
+@code{source} section of the Guix recipe: in the first case, the
+default, it points to a local folder; in the second it points to a
+template git repository derived from the home page set in your
+@file{hall.scm} spec file. In the third case it points to a remote
+tarball template. This is again derived from your project's home page.
+In the last case it points to a local tarball, probably in your
+project's directory.
 
 @example
-hall dist --type=local|git|tarball
+hall dist --type=local|git|tarball|local-tarball
 @end example
 @end deftypevr
 
