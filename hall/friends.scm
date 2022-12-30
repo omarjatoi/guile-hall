@@ -29,6 +29,7 @@
 
 (define-module (hall friends)
   #:use-module (hall common)
+  #:use-module (hall config)
   #:use-module (ice-9 match)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 rdelim)
@@ -39,6 +40,7 @@
   #:use-module (srfi srfi-26)
   #:export (guix
             gettextize
+            autoreconf
             reuse license-map))
 
 ;;;; Guix
@@ -71,6 +73,20 @@ contains an error.  If it's the latter you can have hall re-generate it using
 
 WARNING: this will delete any changes you have made to the build system
 yourself!"))))))
+
+(define (autoreconf args)
+  (catch 'friends
+    (λ _
+      (run "autoreconf" args "Autoreconf"
+           (list
+            "Automatically generate GNU build system files.")))
+    (lambda (key message code . rest)
+      (match code
+        (1
+         (quit-with-error "Autoreconf exited with an error.
+
+You are likely missing some parts of the autotools build infrastructure. Please
+make sure you have automake installed."))))))
 
 (define (gettextize args)
   (catch 'friends
@@ -111,16 +127,20 @@ please report it to us."))))))
 ;;;; General
 
 (define (run cmd args name features)
-  (match (status:exit-val (system (string-join `(,cmd ,args) " ")))
-    (127
-     (format #t "It seems ~a is not installed.
+  (let ((full-cmd (string-join `(,cmd ,args) " ")))
+    (if (or (string=? cmd "guix")
+            (not (guix-feature?)))
+        (match (status:exit-val (system full-cmd))
+          (127
+           (format #t "It seems ~a is not installed.
 ~a is an optional component of Hall, so you don't have to install it, but it
 provides the following additional features:
 ~a~%" name name (string-join (map (cut string-append "- " <>) features) "\n"))
-     (exit 1))
-    (0 #t)
-    (n (throw 'friends (format #f "~a returned an error code: ~a. Aborting.~%"
-                               name n) n))))
+           (exit 1))
+          (0 #t)
+          (n (throw 'friends (format #f "~a returned an error code: ~a. Aborting.~%"
+                                     name n) n)))
+        (guix (format #f "shell -Df guix.scm -- ~a" full-cmd)))))
 
 (define license-map
   '((agpl1 . AGPL-1.0-only)
