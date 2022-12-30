@@ -563,8 +563,10 @@ current output port is supposed to be redirected to a '.log' file.\"
     (exit 0)))
 " #t)))
             ,(configure-file)
-            ,(and (nls-feature?) (makevars-file))
-            ,(and (nls-feature?) (potfiles))
+            ,(and (nls-feature?)
+                  (directory "po"
+                             `(,(makevars-file)
+                               ,(potfiles))))
             ,(makefile-file)
             ,(file "pre-inst-env" in-filetype
                    "#!/bin/sh
@@ -660,18 +662,18 @@ This documentation is a stub.
 ")))))
 
 (define (potfiles)
-  (file "po/POTFILES" in-filetype
+  (file "POTFILES" in-filetype
         (lambda (spec)
 
           (format #t "# List of source files which contain translatable strings.
 ~a
 " (string-join
-   (flatten (map (cut <> spec '(".") 'raw "")
+   (flatten (map (cut <> spec '() 'raw "")
                  (files-libraries (specification-files spec)))) "\n")))
         #t))
 
 (define (makevars-file)
-  (file "po/Makevars" text-filetype
+  (file "Makevars" text-filetype
         (lambda (spec)
           (format #t "DOMAIN = ~a
 subdir = po
@@ -725,8 +727,7 @@ AM_SILENT_RULES([yes])
                            (if (nls-feature?)
                                "AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.21])
-AC_CONFIG_FILES([po/POTFILES])
-AC_CONFIG_FILES([po/Makefile.in])"
+"
                                "")
 
                            "
@@ -1029,7 +1030,7 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
      ,(guix-wrap-binaries spec))
     (native-inputs
      ,(if (features-nls (specification-features spec))
-          `(list autoconf automake gettext pkg-config texinfo)
+          `(list autoconf automake gnu-gettext pkg-config texinfo)
           `(list autoconf automake pkg-config texinfo)))
     (inputs (list guile-3.0))
     (propagated-inputs
