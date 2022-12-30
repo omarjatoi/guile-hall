@@ -288,25 +288,28 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
              (("hall" "build-system")
               (make-build-infrastructure (read-spec) (find-project-root-directory)
                                          operation force)
-              (when (not (string-null? (option-ref options '(target))))
-                (if (guix-feature?)
-                    (for-each (lambda (cmd)
-                                (guix (string-append "shell -Df guix.scm -- "
-                                                     cmd)))
-                              (filter identity
-                                      `(,@(if (and force (nls-feature?))
-                                              '("rm -rf po/Makefile*"
-                                                "echo PLEASE PRESS ENTER, FOR ARCANE NLS REASONS."
-                                                ;; (gettextize ">/dev/null")
-                                                "gettextize --force >/dev/null")
-                                              '())
-                                        ,(if force "autoreconf -vif" "autoreconf -i")
-                                        "./configure"
-                                        ,(format #f "make ~a" (option-ref options
-                                                                          '(target))))))
-                    (quit-with-error
-                     "Make targets are only supported when GUIX-FEATURE is \
-switched on in your hall file."))))
+              (cond ((and force (eqv? operation 'exec) (nls-feature?))
+                     (system "rm -rf po/Makefile*")
+                     (format #t "PLEASE PRESS ENTER, FOR ARCANE NLS REASONS.~%")
+                     (gettextize ">/dev/null")
+                     (autoreconf "-vif"))
+                    ((and force (eqv? operation 'exec))
+                     (autoreconf "-vif"))
+                    ((eqv? operation 'exec)
+                     (autoreconf "-i")))
+              (match (option-ref options '(target))
+                ("" #f)
+                (target
+                 (if (guix-feature?)
+                     (for-each (lambda (cmd)
+                                 (guix (format #f "shell -Df guix.scm -- ~a"
+                                               cmd)))
+                               (list
+                                "./configure"
+                                (format #f "make ~a" target)))
+                       (quit-with-error
+                        "Make targets are only supported when GUIX-FEATURE is \
+switched on in your hall file.")))))
              (("hall" "distribution-system")
               (let ((run (cute <> (read-spec) (find-project-root-directory)
                                operation force)))
