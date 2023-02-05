@@ -37,9 +37,13 @@ with docstrings.
 
 * What's in the box?
 
-  This section details some basic usage examples of Hall.  If you are
-  interested in reading a full tutorial, [[https://write.as/jeko/hall-a-project-manager-for-the-guile-programming-language][check out Jérémy Korwin-Zmijowski
-  post]]!
+  This section details some basic usage examples of Hall. Please see the manual
+  for the most up to date and exhaustive documentation.
+
+  If, instead, you are looking for a fuller, hands-on tutorial, please see,
+  [[https://write.as/jeko/hall-a-project-manager-for-the-guile-programming-language][check out Jérémy Korwin-Zmijowski post]]. Please note that some significant
+  changes, specifically to the guix, build and dist commands, have occurred
+  since this tutorial was written.
 
 ** Creating a New Project
 
@@ -76,7 +80,7 @@ with docstrings.
 
    #+BEGIN_SRC bash
      # Get ready to test commandline or distribute:
-     hall dist -x # create the build infrastructure
+     hall build -x # create the build infrastructure
 
      # Oops, we made a mistake
      #
@@ -92,10 +96,10 @@ with docstrings.
      hall clean -x # undo previous step
 
      # Let's re-generate the guix file.
-     rm guix.scm && hall guix -x # re-generate guix file
+     hall dist -xf # re-generate guix file
 
      # Now let's create the build infrastructure
-     hall dist -x # recreate build infrastructure
+     hall build -x # recreate build infrastructure
 
      # Let's build it!
      guix environment -l guix.scm
