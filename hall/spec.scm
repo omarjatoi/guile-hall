@@ -70,7 +70,8 @@
             test-result-filetype scheme-filetype text-filetype info-filetype
             tex-filetype texi-filetype shell-filetype autoconf-filetype
             automake-filetype in-filetype m4-filetype c-filetype
-            compiled-scheme-filetype org-filetype xml-filetype ruby-filetype))
+            compiled-scheme-filetype org-filetype xml-filetype ruby-filetype
+            jinja2-filetype))
 
 ;;;; Spec Definition
 
@@ -282,6 +283,8 @@ to tweak your configure.ac and automake.am files yourself.
 
 (define jpg-filetype (filetype 'jpg-file "jpg" 'binary '()))
 
+(define jinja2-filetype (filetype 'jinja2-file "jinja2" 'jinja2 '()))
+
 (define png-filetype (filetype 'png-file "png" 'binary '()))
 
 (define db-filetype (filetype 'database-file "db" 'binary '()))
@@ -311,7 +314,7 @@ https://gitlab.com/a-sassmannshausen/guile-hall/-/issues/.
          markdown-filetype configuration-filetype template-filetype
          csv-filetype json-filetype css-filetype html-filetype js-filetype
          ts-filetype jpg-filetype png-filetype db-filetype ico-filetype
-         ruby-filetype po-filetype pot-filetype)))
+         ruby-filetype po-filetype pot-filetype jinja2-filetype)))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
   (or (find (compose (cut and=> <> pred) accessor) (filetypes-register))

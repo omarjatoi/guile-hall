@@ -52,6 +52,8 @@
 
             guix-file brew-file
 
+            hall-template-file
+
             base-autotools
             base-autotools-documentation base-autotools-infrastructure
 
@@ -1166,6 +1168,52 @@ end
                ;; Tests
                name (string-append name ".scm") name name
                (string-append name ".scm")))) #t))
+
+(define (hall-template-file)
+  "Return the hall template file procedure."
+  (file
+   "hall.commented" jinja2-filetype
+   (λ (spec)
+     (let ((name (full-project-name spec)))
+       (format #t
+               ";;                                                       -*- coding: utf-8 -*-
+;;
+{% for copyright_line in copyright_lines %}
+;; {{ copyright_line }}
+{% endfor %}
+{% if copyright_lines and spdx_expressions %}
+;;
+{% endif %}
+{% for expression in spdx_expressions %}
+;; SPDX-License-Identifier: {{ expression }}
+{% endfor %}
+{% if \"GPL-3.0-or-later\" in spdx_expressions %}
+;;
+;; This file is part of ~a.
+;;
+;; ~a is free software; you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free
+;; Software Foundation; either version 3 of the License, or (at your option)
+;; any later version.
+;;
+;; ~a is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+;; more details.
+;;
+;; You should have received a copy of the GNU General Public License along
+;; with ~a; if not, contact:
+;;
+;; Free Software Foundation           Voice:  +1-617-542-5942
+;; 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
+;; Boston, MA  02111-1307,  USA       gnu@gnu.org
+{% endif %}
+
+;;; Commentary:
+;;
+;;; Code:
+
+" name name name name)))))
 
 ;; A lookup table of files that have templatized contents.
 (define (templatize-files project-name)

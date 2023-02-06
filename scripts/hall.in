@@ -202,6 +202,32 @@ Once you are happy with the result, pass the '--execute' flag to actually
 generate the new hall.scm file.  You will want to delete the old hall.scm file
 first.")
       (wanted '((keywords execute)))
+      (keywords
+       (list
+        (switch
+         (name 'skip) (default '())
+         (test (match-lambda (((? string?) ...) #t) (_ #f)))
+         (handler (cut string-split <> #\,))
+         (synopsis "CSV list regexp patterns to indicate files to skip.")
+         (example "scripts/foo,AUTHORS,^.*rgp$")))))
+     (configuration
+      (name 'add)
+      (synopsis "Add files or directories to your project.")
+      (description "Add files or directories to your Hall file. Create them
+first if they don't exist yet, from an appropriate template if
+available. Specifically, if you have the reuse feature enabled, include the
+appropriate licensing and copyright headers and insert boilerplate licensing
+text if desired. By default this uses a template located at
+/.reuse/templates/hall.commented.jinja.")
+      (wanted '((keywords execute)))
+      (keywords
+       (list
+        (setting
+         (name 'template) (default "hall.commented.jinja")
+         (handler (match-lambda ("" #f) (n n)))
+         (test (match-lambda ((? string?) #t) (#f #t)))
+         (synopsis "The name of the reuse template to use, if desired.")
+         (example "\"\"|hall.commented.jinja2"))))
       (arguments
        (list
         (argument
@@ -211,28 +237,14 @@ first.")
          (synopsis "Add a single file to your hall.scm file.")
          (example "tests/frobnigator.scm"))
         (argument
-         (name 'section) (default #f)
+         (name 'section) (default 'libraries)
          (test (match-lambda
-                 ((or #f 'programs 'tests 'documentation 'infrastructure
+                 ((or 'programs 'tests 'documentation 'infrastructure
                       'libraries) #t)
                  (_ #f)))
          (handler string->symbol)
-         (synopsis "The section under which you want to add the file.")
-         (example "programs|tests|documentation|infrastructure|libraries"))))
-      (keywords
-       (list
-        (switch
-         (name 'skip) (default '())
-         (test (match-lambda (((? string?) ...) #t) (_ #f)))
-         (handler (cut string-split <> #\,))
-         (synopsis "CSV list regexp patterns to indicate files to skip.")
-         (example "scripts/foo,AUTHORS,^.*rgp$"))
-        (setting
-         (name 'template) (default #f)
-         (handler (match-lambda ("" #f) (n n)))
-         (test (match-lambda ((? string?) #t) (#f #t)))
-         (synopsis "The name of the reuse template to use, if desired.")
-         (example "hall")))))
+         (synopsis "The section (default: libraries) to add the file to.")
+         (example "programs|tests|documentation|infrastructure|libraries")))))
      (configuration
       (name 'publish) (alias 'pub)
       (synopsis "Publish your project using your build / distribution systems.")
@@ -326,10 +338,11 @@ switched on in your hall file.")))))
              (("hall" "initiate" "refresh")
               (recreate-project-here (read-spec) '() operation))
              (("hall" "scan")
+              (scan-project (read-spec) (find-project-root-directory)
+                            (option-ref options 'skip) operation))
+             (("hall" "add")
               (match (cons (option-ref options '(filename))
                            (option-ref options '(section)))
-                ((#f . #f) (scan-project (read-spec) (find-project-root-directory)
-                                         (option-ref options 'skip) operation))
                 ((or (#f . _) (_ . #f)) (emit-help options))
                 ((fn . sc) (add-to-project (read-spec) (find-project-root-directory)
                                            fn sc (option-ref options 'template)

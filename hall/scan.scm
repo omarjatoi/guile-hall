@@ -184,6 +184,10 @@ individual file in the directory you wish to add."))
       (newline p)
       (close-port p)
       (when (licensing-feature?)
+        ((directory ".reuse"
+                    `(,(directory "templates"
+                                  `(,(hall-template-file)))))
+         spec '() 'exec "")
         (reuse "addheader --copyright"
                (format #f "\"~a <~a>\"" (specification-author spec)
                        (specification-email spec))
