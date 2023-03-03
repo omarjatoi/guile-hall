@@ -9,13 +9,13 @@ By far the easiest way to hack on hall is to develop using Guix:
 #+BEGIN_SRC bash
   # Obtain the source code
   cd /path/to/source-code
-  guix environment -l guix.scm
+  guix shell -l guix.scm
   # In the new shell, run:
   autoreconf -vif && ./configure && make check
 #+END_SRC
 
 You can now hack this project's files to your heart's content, whilst
-testing them from your `guix environment' shell.
+testing them from your `guix shell' shell.
 
 To try out any scripts in the project you can now use
 

@@ -102,7 +102,7 @@ with docstrings.
      hall build -x # recreate build infrastructure
 
      # Let's build it!
-     guix environment -l guix.scm
+     guix shell -l guix.scm
      autoreconf -vif && ./configure && make && exit
 
      # Let's run it!
@@ -110,7 +110,7 @@ with docstrings.
      ./pre-inst-env scripts/${script} # Or run our scripts
 
      # We're ready for a tarball
-     guix environment -l guix.scm
+     guix shell -l guix.scm
      make dist
    #+END_SRC
 
