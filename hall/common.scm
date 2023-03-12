@@ -757,6 +757,11 @@ if test \"x$GUILD\" = \"x\"; then
    AC_MSG_ERROR(['guild' binary not found; please check your guile-2.x installation.])
 fi
 
+if test \"$cross_compiling\" != no; then
+   GUILE_TARGET=\"--target=$host_alias\"
+   AC_SUBST([GUILE_TARGET])
+fi
+
 dnl Hall auto-generated guile-module dependencies
 "
                            (string-join
@@ -845,7 +850,7 @@ EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 SUFFIXES = .scm .go
 .scm.go:
-	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_WARNINGS) -o \"$@\" \"$<\"
+	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_TARGET) $(GUILE_WARNINGS) -o \"$@\" \"$<\"
 
 SOURCES = " (string-join
              (align
