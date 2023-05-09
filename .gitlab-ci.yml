@@ -8,7 +8,7 @@ default:
   image: debian:stable
   before_script:
     - apt-get -y update
-    - apt-get install -y guile-3.0 guile-3.0-dev make-guile texinfo curl tree autoconf automake gettext pkgconf
+    - apt-get install -y guile-3.0 guile-3.0-dev make-guile texinfo curl tree autoconf automake gettext pkgconf autopoint
     - export GUILE_LOAD_PATH=${LPATH}/`guile -c "(display (effective-version))"`:${GUILE_LOAD_PATH}
     - export GUILE_LOAD_COMPILED_PATH=${CPATH}/`guile -c "(display (effective-version))"`/site-ccache:${GUILE_LOAD_COMPILED_PATH}
     - export PATH=${CI_PROJECT_DIR}/bin:${PATH}
