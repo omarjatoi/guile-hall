@@ -78,7 +78,12 @@ app-test-job:
   script:
     - echo "Testing application..."
     - make install
-    - hall --version && hall init htest -x && cd htest && hall scan -x && hall build -x
+    - cd /tmp &&
+      hall --version &&
+      hall init htest -x &&
+      cd htest &&
+      hall scan -x &&
+      hall build -x
   cache:
     key:
       files:
