@@ -7,6 +7,10 @@ do_subst = $(SED)					\
   -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\
   -e 's,[@]localedir[@],$(localedir),g'
 
+hall/hconfig.scm: hall/hconfig.scm Makefile
+	$(AM_V_GEN)$(do_subst) < "$(srcdir)/$@" > "$@-t"
+	$(AM_V_at)mv -f "$@-t" "$@"
+
 nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
@@ -32,7 +36,8 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_TARGET) $(GUILE_WARNINGS) -o "$@" "$<"
 
-SOURCES = hall/config.scm \
+SOURCES = hall/hconfig.scm \
+          hall/config.scm \
           hall/publish.scm \
           hall/friends.scm \
           hall/workarounds.scm \
@@ -81,7 +86,7 @@ EXTRA_DIST += README.org \
               $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
-
+SUBDIRS = po
 AM_DISTCHECK_DVI_TARGET = info # Disable DVI as part of distcheck
 
 clean-go:

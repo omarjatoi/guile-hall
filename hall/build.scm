@@ -30,7 +30,9 @@
 (define-module (hall build)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
+  #:use-module (hall builders)
   #:use-module (hall common)
+  #:use-module (hall spec)
   #:export (make-build-infrastructure))
 
 (define (make-build-infrastructure spec context operation force)
@@ -44,6 +46,8 @@ base-directory.  OPERATION can be 'show or 'exec."
                                              're-exec
                                              operation)
                             ""))
-            (base-autotools))
+            (cons* (directory (specification-name spec) `(,(hconfig-file)))
+                   (guix-file)
+                   (base-autotools)))
   (when (eq? 'show operation)
     (format #t "Finished dryrun.~%")))

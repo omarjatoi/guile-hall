@@ -41,29 +41,27 @@
   #:use-module (web client)
   #:use-module (web response)
   #:use-module (web http)
+  #:re-export (project-root-directory?
+               find-project-root-directory find-project-root-directory*
+               expand-filename part-of-project?
+               quit-with-error
+               G_ N_)
   #:export (default-files
             instantiate
 
-            blacklisted? project-root-directory?
-            find-project-root-directory find-project-root-directory*
+            blacklisted?
 
             read-spec filetype-read category-traverser
             scm->files scm->specification
 
-            guix-file brew-file
+            guix-file brew-file hconfig-file
 
             hall-template-file
 
             base-autotools
             base-autotools-documentation base-autotools-infrastructure
 
-            flatten merge-skip
-
-            quit-with-error))
-
-(define (quit-with-error msg . args)
-  (apply format (current-error-port) (string-append msg "~%") args)
-  (exit 1))
+            flatten merge-skip))
 
 (define (default-files project-name)
   (files (base-libraries project-name)
@@ -82,11 +80,6 @@ the folder location CONTEXT."
                         (list files-libraries files-tests files-programs
                               files-documentation files-infrastructure)))))
 
-(define (project-root-directory?)
-  "Return #t if we believe to be in a project root directory, a directory
-containing a hall.scm file."
-  (file-exists? "hall.scm"))
-
 (define* (blacklisted? path project-root skip #:optional conservative?)
   "Return #t if the absolute filepath PATH, located in the project at absolute
 filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
@@ -102,31 +95,6 @@ filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
              #f)
            (const #t)))))
 
-(define (find-project-root-directory*)
-    "Return the current project's root as a string.
-
-Find and return the project root directory path of the current project, as
-a string, and set the working directory to it, or throw an error."
-    (let ((start (getcwd)))
-      (let lp ((cwd (getcwd)))
-        (cond ((project-root-directory?) cwd)
-              ((string=? cwd "/")
-               (quit-with-error
-                "We were unable to locate your hall.scm file.  We started our
-search at ~a.
-
-Are you sure this is a hall project?
-
-Perhaps you want to create a new hall project using `hall init'?" start))
-              (else
-               (chdir "..")
-               (lp (getcwd)))))))
-
-(define (find-project-root-directory)
-  "Find and return the project root directory path of the current project, and
-set the working directory to it, or throw an error."
-  `(,(find-project-root-directory*)))
-
 (define (read-spec)
   "Set the working directory to the current project's root directory & parse
 the project's hall.scm file."
@@ -140,7 +108,7 @@ the project's hall.scm file."
 (define (base-libraries name)
   "Return the default libraries section."
   `(,(file name scheme-filetype "")
-    ,(directory name '())))
+    ,(directory name `(,(hconfig-file)))))
 
 (define (base-tests)
   "Return the default tests section."
@@ -827,6 +795,10 @@ do_subst = $(SED)					\\
   -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\\
   -e 's,[@]localedir[@],$(localedir),g'
 
+" (specification-name spec) "/hconfig.scm: " (specification-name spec) "/hconfig.scm Makefile
+	$(AM_V_GEN)$(do_subst) < \"$(srcdir)/$@\" > \"$@-t\"
+	$(AM_V_at)mv -f \"$@-t\" \"$@\"
+
 nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
@@ -1056,6 +1028,47 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
     (description ,(specification-description spec))
     (home-page ,(specification-home-page spec))
     (license ,(symbol-append 'license: (specification-license spec)))))
+
+(define (hconfig-file)
+  "Return a hall file procedure describing a file containing the hconfig
+settings derived from the hall spec passed to it."
+  (file
+   "hconfig" scheme-filetype
+   (λ (spec)
+     (for-each (λ (n) (pretty-print n) (newline))
+               `((define-module
+                   (,(string->symbol (specification-name spec)) hconfig)
+                   #:use-module (srfi srfi-26)
+                   #:export (%version
+                             %author
+                             %license
+                             %copyright
+                             %gettext-domain
+                             G_ N_
+                             init-nls
+                             init-locale))
+                 (define %version ,(specification-version spec))
+                 (define %author ,(specification-author spec))
+                 (define %license ,(list 'quote (specification-license spec)))
+                 (define %copyright ,(list 'quote (specification-copyright spec)))
+                 ,@(if (nls-feature?)
+                       `((define %gettext-domain ,(full-project-name spec))
+                         (define G_ (cut gettext <> %gettext-domain))
+                         (define N_ (cut ngettext <> <> <> %gettext-domain))
+                         (define (init-nls)
+                           "Bind this project's textdomain."
+                           (bindtextdomain %gettext-domain "@localedir@"))
+                         (define (init-locale)
+                           "Install the current locale settings."
+                           (catch 'system-error
+                             (lambda _
+                               (setlocale LC_ALL ""))
+                             (lambda args
+                               (false-if-exception (setlocale LC_ALL "en_US.utf8"))))
+                           (init-nls)
+                           (textdomain %gettext-domain)))
+                       `()))))
+   #t))
 
 (define* (guix-file #:optional (type 'local))
   "Return a hall file procedure with default contents for the project's

@@ -41,8 +41,6 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:export (scan-project
-            expand-filename
-            part-of-project?
             add-to-project))
 
 (define (dir->filenames directory-name)
@@ -131,30 +129,12 @@ SECTION is the spec file section to add it to.  OPERATION can be 'show or
          (pretty-print (specification->scm new-spec) (current-output-port))
          (format #t "Finished dryrun.~%"))))))
 
-(define (expand-filename filename)
-  ;; canonicalize-path??
-  (string-join
-   (filter (negate string-null?)
-           (string-split
-            ;; Expand our filename
-            (if (absolute-file-name? filename)
-                filename
-                (string-append (getcwd) file-name-separator-string
-                               filename))
-            (first (string->list file-name-separator-string))))
-   file-name-separator-string 'prefix))
-
 (define (filename->project-file filename)
   (match (string-match (string-append "^" (find-project-root-directory*)
                                       "/(.+)")
                        filename)
     (#f (throw 'scan "FILENAME is not part of project." filename))
     ((? regexp-match? r) (match:substring r 1))))
-
-(define (part-of-project? filename)
-  (regexp-match? (string-match (string-append "^" (find-project-root-directory*)
-                                              ".+")
-                    filename)))
 
 (define (create-file-maybe filename section template operation spec)
   (when (and (file-exists? filename)

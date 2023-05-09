@@ -6,6 +6,7 @@
   (guix build-system gnu)
   (gnu packages)
   (gnu packages autotools)
+  (gnu packages gettext)
   (gnu packages guile)
   (gnu packages guile-xyz)
   (gnu packages pkg-config)
@@ -83,7 +84,11 @@
                         ,''("hall"))
                       #t))))))))
   (native-inputs
-    (list autoconf automake pkg-config texinfo))
+    (list autoconf
+          automake
+          gnu-gettext
+          pkg-config
+          texinfo))
   (inputs (list guile-3.0))
   (propagated-inputs (list guile-config))
   (synopsis "Guile project tooling")

@@ -16,12 +16,13 @@
   (skip ())
   (features
     ((guix #t)
-     (native-language-support #f)
+     (native-language-support #t)
      (licensing #t)))
   (files (libraries
            ((directory
               "hall"
-              ((scheme-file "config")
+              ((scheme-file "hconfig")
+               (scheme-file "config")
                (scheme-file "publish")
                (scheme-file "friends")
                (scheme-file "workarounds")

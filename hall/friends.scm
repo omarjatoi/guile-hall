@@ -56,8 +56,12 @@
       (match code
         (1
          (quit-with-error "Automake failed.
-This likely means your build infrastructure is hosed. The best thing to do is
-likely to re-generate it using
+
+If you have just enabled NLS, you may need to run `hall dist -xf` to re-generate
+your guix recipe.
+
+Otherwise this likely means your build infrastructure is hosed. The best thing
+to do is probably to re-generate it using
 
   $ hall build -xf
 
@@ -77,16 +81,21 @@ yourself!"))))))
 (define (autoreconf args)
   (catch 'friends
     (λ _
-      (run "autoreconf" args "Autoreconf"
+      (run "autoreconf" args "Autoconf"
            (list
             "Automatically generate GNU build system files.")))
     (lambda (key message code . rest)
       (match code
         (1
-         (quit-with-error "Autoreconf exited with an error.
+         (quit-with-error "Autoconf exited with an error.
 
 You are likely missing some parts of the autotools build infrastructure. Please
-make sure you have automake installed."))))))
+make sure you have automake installed."))
+        (2
+         (quit-with-error "Autoconf exited with an error.
+
+You are likely missing aclocal. This can usually be found in the automake
+package."))))))
 
 (define (gettextize args)
   (catch 'friends

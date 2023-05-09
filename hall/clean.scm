@@ -46,7 +46,7 @@ as its first and only element the absolute filepath to the project
 base-directory.  SKIP is a list of relative (to the project root directory)
 filepaths to be ignored by clean-project.  OPERATION can be 'show or 'exec."
   (when (eq? 'show operation)
-    (format #t "Dryrun:~%"))
+    (format #t (G_ "Dryrun:~%")))
   (receive (delete others)
       (partition (match-lambda (('delete . rest) #t) (_ #f))
                  (project-walk (specification->files-tree spec)

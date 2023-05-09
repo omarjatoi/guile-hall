@@ -77,5 +77,7 @@ OPERATION can be 'show or 'exec."
   (when (eq? operation 'exec)
     (for-each (lambda (n)
                 (false-if-exception (delete-file n)))
-              '("COPYING" "HACKING")))
+              `("COPYING" "HACKING"
+                ,(string-join `(,(specification-name spec) "hconfig.scm")
+                              file-name-separator-string))))
   (create-project-here spec context operation))
