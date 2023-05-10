@@ -70,7 +70,7 @@
   "foo"
   (shell "hall build -xf")))
 
-(shell (string-append "rm -r " tmp))
+(shell (string-append "rm -rf " tmp))
 
 (test-end "e2e")
 
