@@ -52,7 +52,7 @@
   (and (not (hash-ref %global-notes notes))
        (hash-set! %global-notes notes 1)))
 
-(define* (emit-notes #:optional (port (current-output-port)))
+(define* (emit-notes #:optional (port (current-error-port)))
   (hash-remove! %global-notes '())
   (hash-for-each (λ (k _)
                    (for-each (compose (cut format port "~a~%" <>)

@@ -68,7 +68,7 @@
  (shell "hall init -p '' foo -x")
  (directory-excursion
   "foo"
-  (shell "hall scan | awk '$0 !~ /[Dd]ryrun/' | sdiff - hall.scm")))
+  (shell "hall scan 2>/dev/null | awk '$0 !~ /[Dd]ryrun/' | sdiff - hall.scm")))
 
 (shell (string-append "rm -rf " tmp))
 
