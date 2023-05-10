@@ -796,8 +796,10 @@ do_subst = $(SED)					\\
   -e 's,[@]localedir[@],$(localedir),g'
 
 " (specification-name spec) "/hconfig.scm: " (specification-name spec) "/hconfig.scm Makefile
-	$(AM_V_GEN)$(do_subst) < \"$(srcdir)/$@\" > \"$@-t\"
-	$(AM_V_at)mv -f \"$@-t\" \"$@\"
+	$(AM_V_at)rm -f $@ $@-t
+	$(AM_V_at)$(MKDIR_P) \"$(@D)\"
+	$(AM_V_GEN)$(do_subst) < \"$(srcdir)/$@.hall\" > \"$@-t\"
+	$(AM_V_at) mv -f \"$@-t\" \"$@\"
 
 nodist_noinst_SCRIPTS = pre-inst-env
 
@@ -818,7 +820,7 @@ nobase_go_DATA = $(GOBJECTS)
 guile_install_go_files = install-nobase_goDATA
 $(guile_install_go_files): install-nobase_modDATA
 
-EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
+EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES) " (specification-name spec) "/hconfig.scm.hall
 GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 SUFFIXES = .scm .go
 .scm.go:
@@ -889,6 +891,7 @@ clean-go:
 .PHONY: clean-go
 
 CLEANFILES =					\\
+  " (specification-name spec) "/hconfig.scm.hall    \\
   $(GOBJECTS)					\\
   $(TESTS:tests/%.scm=%.log)
 "))) #t))
@@ -1033,7 +1036,7 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
   "Return a hall file procedure describing a file containing the hconfig
 settings derived from the hall spec passed to it."
   (file
-   "hconfig" scheme-filetype
+   "hconfig.scm.hall" unknown-filetype
    (λ (spec)
      (for-each (λ (n) (pretty-print n) (newline))
                `((define-module

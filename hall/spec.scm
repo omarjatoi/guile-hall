@@ -71,7 +71,7 @@
             tex-filetype texi-filetype shell-filetype autoconf-filetype
             automake-filetype in-filetype m4-filetype c-filetype
             compiled-scheme-filetype org-filetype xml-filetype ruby-filetype
-            jinja2-filetype))
+            jinja2-filetype unknown-filetype))
 
 ;;;; Spec Definition
 
