@@ -8,8 +8,10 @@ do_subst = $(SED)					\
   -e 's,[@]localedir[@],$(localedir),g'
 
 hall/hconfig.scm: hall/hconfig.scm Makefile
-	$(AM_V_GEN)$(do_subst) < "$(srcdir)/$@" > "$@-t"
-	$(AM_V_at)mv -f "$@-t" "$@"
+	$(AM_V_at)rm -f $@ $@-t
+	$(AM_V_at)$(MKDIR_P) "$(@D)"
+	$(AM_V_GEN)$(do_subst) < "$(srcdir)/$@.hall" > "$@-t"
+	$(AM_V_at) mv -f "$@-t" "$@"
 
 nodist_noinst_SCRIPTS = pre-inst-env
 
@@ -30,7 +32,7 @@ nobase_go_DATA = $(GOBJECTS)
 guile_install_go_files = install-nobase_goDATA
 $(guile_install_go_files): install-nobase_modDATA
 
-EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
+EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES) hall/hconfig.scm.hall
 GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 SUFFIXES = .scm .go
 .scm.go:
@@ -94,5 +96,6 @@ clean-go:
 .PHONY: clean-go
 
 CLEANFILES =					\
+  hall/hconfig.scm    \
   $(GOBJECTS)					\
   $(TESTS:tests/%.scm=%.log)
