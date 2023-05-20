@@ -634,12 +634,15 @@ This documentation is a stub.
 (define (potfiles)
   (file "POTFILES" in-filetype
         (lambda (spec)
-
           (format #t "# List of source files which contain translatable strings.
 ~a
 " (string-join
-   (flatten (map (cut <> spec '() 'raw "")
-                 (files-libraries (specification-files spec)))) "\n")))
+   (filter (λ (filename)                ; Remove special hconfig.scm filename
+             (and (not (string-match "^.+/hconfig.scm$" filename))
+                  filename))
+           (flatten
+            (map (cut <> spec '() 'raw "") ; Return filename relative to project
+                 (files-libraries (specification-files spec))))) "\n")))
         #t))
 
 (define (makevars-file)
