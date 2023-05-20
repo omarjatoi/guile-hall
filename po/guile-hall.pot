@@ -1,0 +1,42 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Alex Sassmannshausen
+# This file is distributed under the same license as the guile-hall package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: guile-hall 0.4.1\n"
+"Report-Msgid-Bugs-To: alex@komputilo.eu\n"
+"POT-Creation-Date: 2023-05-20 11:28+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hall/config.scm:118
+msgid ""
+"Hall is a command-line application and a set of Guile libraries\n"
+"that allow you to quickly create and publish Guile projects.  It allows you "
+"to\n"
+"transparently support the GNU build system, manage a project hierarchy &\n"
+"provides tight coupling to Guix."
+msgstr ""
+
+#: hall/config.scm:122
+msgid ""
+"Use the subcommands to manage your project, or pass the\n"
+"'--help' flag to any of them to get more information."
+msgstr ""
+
+#: hall/config.scm:141
+msgid "Clean your project."
+msgstr ""
+
+#: hall/clean.scm:49
+#, scheme-format
+msgid "Dryrun:~%"
+msgstr ""
