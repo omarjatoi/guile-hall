@@ -829,12 +829,17 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_TARGET) $(GUILE_WARNINGS) -o \"$@\" \"$<\"
 
-SOURCES = " (string-join
-             (align
-              (flatten (map (cute <> spec '() 'raw "")
-                            (files-libraries (specification-files spec))))
-              10)
-             " \\\n") "
+SOURCES = "
+ (string-join
+  (align
+   (filter (λ (filename)                ; Remove special hconfig.scm filename
+             (and (not (string-match "^.+/hconfig.scm$" filename))
+                  filename))
+           (flatten
+            (map (cut <> spec '() 'raw "") ; Return filename relative to project
+                 (files-libraries (specification-files spec)))))
+   10)
+  " \\\n") "
 
 TESTS = " (string-join
            (align
