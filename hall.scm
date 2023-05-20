@@ -21,7 +21,8 @@
   (files (libraries
            ((directory
               "hall"
-              ((scheme-file "hconfig")
+              ((hall-file "hconfig.scm")
+               (scheme-file "hconfig")
                (scheme-file "config")
                (scheme-file "publish")
                (scheme-file "friends")
