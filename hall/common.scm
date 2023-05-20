@@ -899,7 +899,6 @@ clean-go:
 .PHONY: clean-go
 
 CLEANFILES =					\\
-  " (specification-name spec) "/hconfig.scm.hall    \\
   $(GOBJECTS)					\\
   $(TESTS:tests/%.scm=%.log)
 "))) #t))
