@@ -1,0 +1,13 @@
+# List of source files which contain translatable strings.
+hall/config.scm
+hall/publish.scm
+hall/friends.scm
+hall/workarounds.scm
+hall/build.scm
+hall/dist.scm
+hall/common.scm
+hall/scan.scm
+hall/builders.scm
+hall/clean.scm
+hall/init.scm
+hall/spec.scm

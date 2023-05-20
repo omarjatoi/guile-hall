@@ -1,0 +1,16 @@
+DOMAIN = guile-hall
+subdir = po
+top_builddir = ..
+XGETTEXT_OPTIONS =				\
+  --from-code=UTF-8				\
+  --keyword=G_ --keyword=N_:1,2			\
+  --keyword=n_
+COPYRIGHT_HOLDER = Alex Sassmannshausen
+PACKAGE_GNU = no
+MSGID_BUGS_ADDRESS = alex@komputilo.eu
+EXTRA_LOCALE_CATEGORIES =
+USE_MSGCTXT = no
+MSGMERGE_OPTIONS = --previous
+MSGINIT_OPTIONS =
+PO_DEPENDS_ON_POT = yes
+DIST_DEPENDS_ON_UPDATE_PO = yes
