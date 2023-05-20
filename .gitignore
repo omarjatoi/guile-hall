@@ -64,3 +64,5 @@ tmp
 /.version
 /doc/stamp-[0-9]
 /scripts/hall
+/po/POTFILES
+/po/stamp-po
