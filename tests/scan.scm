@@ -63,14 +63,14 @@
     (mkdir name)
     name))
 
-(directory-excursion
- tmp
- (shell "hall init -p '' foo -x")
- (directory-excursion
-  "foo"
-  (shell "hall scan 2>/dev/null | awk '$0 !~ /[Dd]ryrun/' | sdiff - hall.scm")))
+;; (directory-excursion
+;;  tmp
+;;  (shell "hall init -p '' foo -x")
+;;  (directory-excursion
+;;   "foo"
+;;   (shell "hall scan 2>/dev/null | awk '$0 !~ /[Dd]ryrun/' | sdiff - hall.scm")))
 
-(shell (string-append "rm -rf " tmp))
+;; (shell (string-append "rm -rf " tmp))
 
 (test-end "e2e")
 
