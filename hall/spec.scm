@@ -71,7 +71,7 @@
             tex-filetype texi-filetype shell-filetype autoconf-filetype
             automake-filetype in-filetype m4-filetype c-filetype
             compiled-scheme-filetype org-filetype xml-filetype ruby-filetype
-            jinja2-filetype unknown-filetype))
+            jinja2-filetype hall-filetype unknown-filetype))
 
 ;;;; Spec Definition
 
@@ -291,6 +291,8 @@ to tweak your configure.ac and automake.am files yourself.
 
 (define ico-filetype (filetype 'icon-file "ico" 'binary '()))
 
+(define hall-filetype (filetype 'hall-file "hall" 'scheme '()))
+
 (define unknown-filetype (filetype 'unknown-type #f 'unknown
 '("
 Your project includes files of type unknown to Hall. This should be fine, but
@@ -314,7 +316,7 @@ https://gitlab.com/a-sassmannshausen/guile-hall/-/issues/.
          markdown-filetype configuration-filetype template-filetype
          csv-filetype json-filetype css-filetype html-filetype js-filetype
          ts-filetype jpg-filetype png-filetype db-filetype ico-filetype
-         ruby-filetype po-filetype pot-filetype jinja2-filetype)))
+         ruby-filetype po-filetype pot-filetype jinja2-filetype hall-filetype)))
 
 (define* (filetype-find pred #:optional (accessor filetype-type))
   (or (find (compose (cut and=> <> pred) accessor) (filetypes-register))
