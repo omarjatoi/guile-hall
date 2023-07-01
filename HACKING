@@ -52,3 +52,26 @@ Once those dependencies are installed you can run:
 #+BEGIN_SRC bash
   autoreconf -vif && ./configure && make check
 #+END_SRC
+
+* Running Comprehensive Tests locally
+
+** Configuring Guile Hall from a Source Checkout
+
+#+BEGIN_SRC shell
+guix shell -Df guix.scm -- bash -c 'autoreconf -vif && ./configure'
+#+END_SRC
+
+** Running the Test Suit from a Source Checkout (after configure)
+
+#+BEGIN_SRC shell
+guix shell -Df guix.scm -- make check
+#+END_SRC
+
+** Running an Isolated Distribution Test
+
+#+begin_src shell
+guix shell --container --pure -Df guix.scm git -- bash -c '\
+  cd /tmp && git clone ~/src/guile-hall && cd guile-hall \
+     && autoreconf -vif && ./configure && make distcheck \
+'
+#+end_src
