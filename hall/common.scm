@@ -1043,7 +1043,7 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
   "Return a hall file procedure describing a file containing the hconfig
 settings derived from the hall spec passed to it."
   (file
-   "hconfig.scm.hall" unknown-filetype
+   "hconfig.scm.hall" hall-filetype
    (λ (spec)
      (for-each (λ (n) (pretty-print n) (newline))
                `((define-module
