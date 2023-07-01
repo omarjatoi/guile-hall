@@ -14,8 +14,6 @@ default:
     - export PATH=${CI_PROJECT_DIR}/bin:${PATH}
     - echo $GUILE_LOAD_PATH
     - echo $GUILE_LOAD_COMPILED_PATH
-    - tree $GUILE_LOAD_PATH
-    - tree $GUILE_LOAD_COMPILED_PATH
     - env
 
 stages:          # List of stages for jobs, and their order of execution
@@ -29,6 +27,8 @@ deps:
     - tar xzf guile-config-$CONFIG_VERSION.tar.gz
     - cd guile-config-$CONFIG_VERSION
     - autoreconf -vif && ./configure --prefix=${CI_PROJECT_DIR} --exec-prefix=${CI_PROJECT_DIR} && make && make install && ls -l
+    - tree $GUILE_LOAD_PATH
+    - tree $GUILE_LOAD_COMPILED_PATH
     - guile -c "(use-modules (config))" || echo "Not Loaded"
   cache:
     key:
