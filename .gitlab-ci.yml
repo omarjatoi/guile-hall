@@ -14,7 +14,6 @@ default:
     - export PATH=${CI_PROJECT_DIR}/bin:${PATH}
     - echo $GUILE_LOAD_PATH
     - echo $GUILE_LOAD_COMPILED_PATH
-    - guile -c "(use-modules (config))" || echo "Not Loaded"
     - tree $GUILE_LOAD_PATH
     - tree $GUILE_LOAD_COMPILED_PATH
     - env
@@ -30,6 +29,7 @@ deps:
     - tar xzf guile-config-$CONFIG_VERSION.tar.gz
     - cd guile-config-$CONFIG_VERSION
     - autoreconf -vif && ./configure --prefix=${CI_PROJECT_DIR} --exec-prefix=${CI_PROJECT_DIR} && make && make install && ls -l
+    - guile -c "(use-modules (config))" || echo "Not Loaded"
   cache:
     key:
       files:
@@ -40,6 +40,7 @@ deps:
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
+    - guile -c "(use-modules (config))" || echo "Not Loaded"
     - echo "Compiling the code..."
     - autoreconf -vif && ./configure --prefix=${CI_PROJECT_DIR} --exec-prefix=${CI_PROJECT_DIR} && make
   cache:
@@ -52,6 +53,7 @@ build-job:       # This job runs in the build stage, which runs first.
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   script:
+    - guile -c "(use-modules (config))" || echo "Not Loaded"
     - echo "Running check."
     - make check
   cache:
@@ -64,6 +66,7 @@ unit-test-job:   # This job runs in the test stage.
 dist-test-job:   # This job also runs in the test stage.
   stage: test    # It can run at the same time as unit-test-job (in parallel).
   script:
+    - guile -c "(use-modules (config))" || echo "Not Loaded"
     - echo "Running distcheck"
     - make distcheck
   cache:
@@ -76,6 +79,7 @@ dist-test-job:   # This job also runs in the test stage.
 app-test-job:
   stage: test
   script:
+    - guile -c "(use-modules (config))" || echo "Not Loaded"
     - echo "Testing application..."
     - make install
     - cd /tmp &&
