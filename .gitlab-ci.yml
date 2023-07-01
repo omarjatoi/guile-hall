@@ -16,9 +16,9 @@ default:
     - echo $GUILE_LOAD_PATH
     - echo $GUILE_LOAD_COMPILED_PATH
     - IFS=':' read -r -a glparray <<< $GUILE_LOAD_PATH
-    - for i in ${glparray}; do tree ${i}; done
+    - for i in ${glparray}; do mkdir -p ${i}; tree ${i}; done
     - IFS=':' read -r -a glcparray <<< $GUILE_LOAD_COMPILED_PATH
-    - for i in ${glcparray}; do tree ${i}; done
+    - for i in ${glcparray}; do mkdir -p ${i}; tree ${i}; done
     - env
 
 stages:          # List of stages for jobs, and their order of execution
