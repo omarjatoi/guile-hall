@@ -1349,7 +1349,7 @@ all default files that contain non-empty contents."
     ;; FIXME: 2020-05-25: Added temporary allowance for optional skip.
     ;; This is to help migration of specs from 0.4 and earlier to 0.5.
     (#f '())
-    (((? string) ...) project-skip)
+    (((? string?) ...) project-skip)
     (_ (quit-with-error
         "PROJECT-SKIP should be a list of strings."
         project-skip))))
