@@ -101,8 +101,9 @@ with docstrings.
      # Now let's create the build infrastructure
      hall build -x # recreate build infrastructure
 
-     # Let's build it!
-     guix shell -l guix.scm
+     # Let's build it! For an introduction to Guix Shell and its options:
+     # https://guix.gnu.org/manual/en/html_node/Invoking-guix-shell.html
+     guix shell -D -f guix.scm
      autoreconf -vif && ./configure && make && exit
 
      # Let's run it!
@@ -110,7 +111,7 @@ with docstrings.
      ./pre-inst-env scripts/${script} # Or run our scripts
 
      # We're ready for a tarball
-     guix shell -l guix.scm
+     guix shell -f guix.scm
      make dist
    #+END_SRC
 
