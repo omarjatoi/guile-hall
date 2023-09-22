@@ -159,7 +159,7 @@ individual file in the directory you wish to add."))
                                    (first (string->list
                                            file-name-separator-string)))
                      `(,fx))))
-           p)
+           p #:width 79 #:max-expr-width 79)
           (format p "Hello, world~%"))
       (newline p)
       (close-port p)
