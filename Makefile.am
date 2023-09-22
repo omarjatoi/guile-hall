@@ -38,7 +38,7 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_TARGET) $(GUILE_WARNINGS) -o "$@" "$<"
 
-SOURCES = hall/hconfig.scm \
+SOURCES = hall/hconfig.scm.hall \
           hall/config.scm \
           hall/publish.scm \
           hall/friends.scm \
@@ -96,6 +96,5 @@ clean-go:
 .PHONY: clean-go
 
 CLEANFILES =					\
-  hall/hconfig.scm    \
   $(GOBJECTS)					\
   $(TESTS:tests/%.scm=%.log)

@@ -974,7 +974,8 @@ installed in a profile."
                                      (compiled-dir out version)
                                      (compiled-dir "" version))))
                        ,,(timed-expression 2 files))
-                      #t)))))))))))))
+                      #t)))))))))))
+    (e (throw 'invalid-binaries e))))
 
 (define (guix-package spec type)
   "Return a guix package description of the hall project specification SPEC, of
@@ -1043,7 +1044,7 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
   "Return a hall file procedure describing a file containing the hconfig
 settings derived from the hall spec passed to it."
   (file
-   "hconfig.scm.hall" hall-filetype
+   "hconfig.scm" hall-filetype
    (λ (spec)
      (for-each (λ (n) (pretty-print n) (newline))
                `((define-module
