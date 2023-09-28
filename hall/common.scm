@@ -336,7 +336,7 @@ Please send ~a bug reports to ~a.
     ,(file "AUTHORS" text-filetype
            (lambda (spec)
              (format #t
-                     "Contributers to ~a ~a:
+                     "Contributors to ~a ~a:
 
     ~a <~a>~%"
                      (friendly-project-name spec) (specification-version spec)
