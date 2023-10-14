@@ -1,1 +1,5 @@
+2023-10-14  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* configure.ac (AC_CONFIG_FILES): Add po/Makefile.in.
+
 See the Git commit log at <https://gitlab.com/a-sassmannshausen/guile-hall/commits/master>.

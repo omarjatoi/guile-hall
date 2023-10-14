@@ -1,7 +1,7 @@
 dnl -*- Autoconf -*-
 
-AC_INIT(guile-hall, 0.4.1)
-AC_SUBST(HVERSION, "\"0.4.1\"")
+AC_INIT(guile-hall, 0.5.0)
+AC_SUBST(HVERSION, "\"0.5.0\"")
 AC_SUBST(AUTHOR, "\"Alex Sassmannshausen\"")
 AC_SUBST(COPYRIGHT, "'(2018 2020 2021 2022 2023)")
 AC_SUBST(LICENSE, gpl3+)

@@ -15,7 +15,7 @@
 
 (package
   (name "guile-hall")
-  (version "0.4.1")
+  (version "0.5.0")
   (source
     (local-file
       (dirname (current-filename))
