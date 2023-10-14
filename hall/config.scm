@@ -226,6 +226,19 @@ generate the new project.")
        (list
         (switch (name 'convert) (default #f) (test boolean?)
                 (synopsis "Convert this project to a Hall project."))
+        (setting (name 'licensing?) (default #f) (character #\L)
+                 (synopsis "Enable licensing feature?")
+                 (description "Enabling this will cause Hall to invoke `reuse`
+when appropriate to automatically manage file headers and licensing information.
+ You must either ensure `reuse` is installed in your path, or enable the `guix`
+feature.")
+                 (test boolean?))
+        (setting (name 'guix?) (default #f)
+                 (synopsis "Enable guix feature?")
+                 (description "Enabling this will cause Hall to invoke other
+features via `guix shell`. Very convenient, but makes Hall depend on guix for
+proper operation.")
+                 (test boolean?))
         (setting (name 'author) (default "")
                  (synopsis "Author of the project.")
                  (example "\"Alyssa P. Hacker\""))
