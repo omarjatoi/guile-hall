@@ -22,10 +22,10 @@
       #:recursive?
       #t
       #:select?
-      (λ (file stat)
-         (not (any (lambda (my-string)
-                     (string-contains file my-string))
-                   (list ".git" ".dir-locals.el" "guix.scm"))))))
+      (lambda (file stat)
+        (not (any (lambda (my-string)
+                    (string-contains file my-string))
+                  (list ".git" ".dir-locals.el" "guix.scm"))))))
   (build-system gnu-build-system)
   (arguments
     `(#:modules
