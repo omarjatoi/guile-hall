@@ -1010,9 +1010,9 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
         ('local
          `(local-file (dirname (current-filename))
            #:recursive? #t #:select?
-           (λ (file stat)
+           (lambda (file stat)
              (not (any (lambda (my-string)
-              (string-contains file my-string))
+                         (string-contains file my-string))
                        (list ".git" ".dir-locals.el" "guix.scm"))))))
         ('local-tarball
          `(local-file ,(string-append "./" (full-project-name spec) "-"
