@@ -1,4 +1,5 @@
 # List of source files which contain translatable strings.
+hall/hconfig.scm.hall
 hall/config.scm
 hall/publish.scm
 hall/friends.scm
