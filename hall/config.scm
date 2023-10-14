@@ -103,7 +103,7 @@ set the working directory to it, or throw an error."
 (define (part-of-project? filename)
   (regexp-match? (string-match (string-append "^" (find-project-root-directory*)
                                               ".+")
-                    filename)))
+                               filename)))
 
 (define %configuration
   (configuration
