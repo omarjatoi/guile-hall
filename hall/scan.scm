@@ -168,7 +168,7 @@ individual file in the directory you wish to add."))
                     `(,(directory "templates"
                                   `(,(hall-template-file)))))
          spec '() 'exec "")
-        (reuse "addheader --copyright"
+        (reuse "annotate --copyright"
                (format #f "\"~a <~a>\"" (specification-author spec)
                        (specification-email spec))
                (match (assv-ref license-map (specification-license spec))
@@ -176,7 +176,7 @@ individual file in the directory you wish to add."))
                   (quit-with-error
                    "Your project is missing a license that we know."))
                  (l (format #f "--license ~a" l)))
-               (if scheme-file? "--style lisp" "--skip-unrecognised")
+               (if scheme-file? "--style lisp")
                (match template
                  (#f "")
                  (t (format #f "--template ~a" t)))

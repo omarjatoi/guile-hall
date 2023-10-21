@@ -293,11 +293,11 @@ text if desired. By default this uses a template located at
       (keywords
        (list
         (setting
-         (name 'template) (default "hall.commented.jinja")
+         (name 'template) (default "hall.commented")
          (handler (match-lambda ("" #f) (n n)))
          (test (match-lambda ((? string?) #t) (#f #t)))
          (synopsis "The name of the reuse template to use, if desired.")
-         (example "\"\"|hall.commented.jinja2"))))
+         (example "\"\"|hall.commented"))))
       (arguments
        (list
         (argument

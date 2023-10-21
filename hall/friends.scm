@@ -149,7 +149,7 @@ provides the following additional features:
           (0 #t)
           (n (throw 'friends (format #f "~a returned an error code: ~a. Aborting.~%"
                                      name n) n)))
-        (guix (format #f "shell -Df guix.scm -- ~a" full-cmd)))))
+        (guix (format #f "shell ~a -Df guix.scm -- ~a" cmd full-cmd)))))
 
 (define license-map
   '((agpl1 . AGPL-1.0-only)
