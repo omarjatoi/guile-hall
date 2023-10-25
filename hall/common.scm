@@ -669,6 +669,22 @@ DIST_DEPENDS_ON_UPDATE_PO = yes
                   (specification-email spec)))
         #t))
 
+(define* (AC_CONFIG_FILES file #:key executable?)
+  "Generate an AC_CONFIG_FILES directive for FILE.  If EXECUTABLE? is
+true, include the directive to have the generated file executable."
+  (let ((file (regexp-substitute #f (string-match "\\.in$" file) 'pre)))
+    (apply string-append
+           `("AC_CONFIG_FILES([" ,file "]"
+             ,@(if executable?
+                   (list ",[chmod +x " file "]")
+                   '())
+             ")"))))
+
+(define (input-file? file)
+  "Predicate to check whether FILE is an input file (with file extension
+\".in\")."
+  (string-suffix? ".in" file))
+
 (define (configure-file)
   "Return a hall file procedure with default contents for the project's
 configure.ac file."
@@ -679,6 +695,14 @@ configure.ac file."
           (define spec-files (specification-files spec))
           (define program-files (files-programs spec-files))
           (define library-files (files-libraries spec-files))
+          (define program-input-files
+            (filter input-file?
+                    (flatten (map (cut <> '() '() 'raw "")
+                                  program-files))))
+          (define library-input-files
+            (filter input-file?
+                    (flatten (map (cut <> '() '() 'raw "")
+                                  library-files))))
           (display
            (string-append "dnl -*- Autoconf -*-
 
@@ -702,28 +726,21 @@ AM_INIT_AUTOMAKE([1.12 gnu silent-rules subdir-objects \
  color-tests parallel-tests -Woverride -Wno-portability])
 AM_SILENT_RULES([yes])
 "
-                           (if (nls-feature?)
-                               "AM_GNU_GETTEXT([external])
+(if (nls-feature?)
+    "AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.21])
 "
-                               "")
+    "")
 
-                           "
+"
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 "
-                           (string-join
-                            (map (lambda (file)
-                                   (let ((file (or (and=> (string-match "\\.in$" file)
-                                                          (cut regexp-substitute #f <> 'pre))
-                                                   file)))
-                                     (string-append "AC_CONFIG_FILES([" file
-                                                    "],[chmod +x " file "])")))
-                                 (flatten (map (cut <> '() '() 'raw "")
-                                               (files-programs
-                                                (specification-files spec)))))
-                            "\n")
-                           "
+(string-join
+ (append (map (cut AC_CONFIG_FILES <> #:executable? #t) program-input-files)
+         (map AC_CONFIG_FILES library-input-files))
+ "\n")
+"
 dnl Search for 'guile' and 'guild'.  This macro defines
 dnl 'GUILE_EFFECTIVE_VERSION'.
 GUILE_PKG([3.0 2.2 2.0])
