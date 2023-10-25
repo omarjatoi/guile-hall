@@ -674,6 +674,11 @@ DIST_DEPENDS_ON_UPDATE_PO = yes
 configure.ac file."
   (file "configure" autoconf-filetype
         (lambda (spec)
+          (define core-file (string-append (specification-name spec)
+                                           ".scm"))
+          (define spec-files (specification-files spec))
+          (define program-files (files-programs spec-files))
+          (define library-files (files-libraries spec-files))
           (display
            (string-append "dnl -*- Autoconf -*-
 
@@ -682,16 +687,16 @@ AC_SUBST(HVERSION, \"\\\"" (specification-version spec) "\\\"\")
 AC_SUBST(AUTHOR, \"\\\"" (specification-author spec) "\\\"\")
 AC_SUBST(COPYRIGHT, \"'" (object->string (specification-copyright spec)) "\")
 AC_SUBST(LICENSE, " (symbol->string (specification-license spec)) ")
-AC_CONFIG_SRCDIR(" (let ((core-file (string-append (specification-name spec)
-                                                   ".scm")))
-                     (if (file-exists? core-file)
-                         core-file
-                         (match (find (match-lambda (('directory . rest) #t)
-                                                    (_ #f))
-                                      (map (cut <> '() '() 'write "")
-                                           (files-libraries
-                                            (specification-files spec))))
-                           (('directory name children) name)))) ")
+AC_CONFIG_SRCDIR(" (if (file-exists? core-file)
+                       core-file
+                       (match (find (match-lambda (('directory . rest) #t)
+                                                  (_ #f))
+                                    (map (cut <> '() '() 'write "")
+                                         (append program-files
+                                                 library-files)))
+                         (('directory name children) name)
+                         (#f (quit-with-error "\
+failed to locate a unique source file for AC_CONFIG_SRCDIR")))) ")
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([1.12 gnu silent-rules subdir-objects \
  color-tests parallel-tests -Woverride -Wno-portability])
