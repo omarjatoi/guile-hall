@@ -12,7 +12,8 @@
   "https://gitlab.com/a-sassmannshausen/guile-hall")
  (license gpl3+)
  (dependencies
-  `(("guile-config" (config) ,guile-config)))
+  `(("guile-config" (config) ,guile-config)
+    ("guile-lib" ,guile-lib)))
  (skip ())
  (features
   ((guix #t)
@@ -34,6 +35,7 @@
             (scheme-file "builders")
             (scheme-file "clean")
             (scheme-file "init")
+            (scheme-file "logging")
             (scheme-file "spec")))))
         (tests ((directory
                  "tests"

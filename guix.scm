@@ -62,7 +62,7 @@
                                           (string-append
                                             (assoc-ref inputs input)
                                             path))
-                                        ,''("guile-config"))))))
+                                        ,''("guile-config" "guile-lib"))))))
                    (out (assoc-ref outputs "out"))
                    (bin (string-append out "/bin/"))
                    (site (uncompiled-dir out "")))
@@ -85,7 +85,7 @@
   (native-inputs
     (list autoconf automake pkg-config texinfo))
   (inputs (list guile-3.0))
-  (propagated-inputs (list guile-config))
+  (propagated-inputs (list guile-config guile-lib))
   (synopsis "Guile project tooling")
   (description
     "Hall is a command-line application and a set of Guile libraries that allow you to quickly create and publish Guile projects.  It allows you to transparently support the GNU build system, manage a project hierarchy & provides tight coupling to Guix.")

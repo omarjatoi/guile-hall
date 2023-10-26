@@ -41,6 +41,7 @@
              (hall friends)
              (hall hconfig)
              (hall init)
+             (hall logging)
              (hall scan)
              (hall spec)
              (ice-9 match)
@@ -53,7 +54,11 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
   (init-locale)
   (let* ((options (getopt-config-auto args %configuration))
          (operation (if (option-ref options 'execute) 'exec 'show))
-         (force (option-ref options 'force)))
+         (force (option-ref options 'force))
+         (verbose (option-ref options 'verbose)))
+    (setup-logging #:level (if verbose
+                               (make-log-level debug)
+                               (make-log-level warning)))
     (match (full-command options)
       (("hall")
        (emit-help options))
@@ -147,7 +152,8 @@ switched on in your hall file.")))))
                                            operation))))
              (("hall" "publish")
               (publish-project (read-spec) operation)))))))
-    (emit-notes)))
+    (emit-notes)
+    (shutdown-logging)))
 
 ;;; Local Variables:
 ;;; mode: scheme

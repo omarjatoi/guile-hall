@@ -29,6 +29,7 @@ fi
 
 dnl Hall auto-generated guile-module dependencies
 GUILE_MODULE_REQUIRED([config])
+GUILE_MODULE_REQUIRED([logging logger])
 
 dnl Installation directories for .scm and .go files.
 guilemoduledir="${datarootdir}/guile/site/$GUILE_EFFECTIVE_VERSION"
