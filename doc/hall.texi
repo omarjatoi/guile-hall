@@ -11,6 +11,7 @@
 
 @copying
 Copyright @copyright{} 2018-2020 Alex Sassmannshausen
+Copyright @copyright{} 2023 Maxim Cournoyer
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
@@ -915,39 +916,59 @@ files using the @var{@@LICENSE@@} variable.
 @item @code{dependencies}
 @tindex dependencies
 The dependencies field is designed to hold your project's Guile
-dependencies, so any other Guile modules that your project depends
-on.
+dependencies, so any other Guile modules that your project depends on.
 
 It is primarily used when generating Guix recipes.
 
-The format of the field is at heart the same as the one used by Guix's
-dependencies field. It looks as follows:
+There are two ways to specify the dependencies: as a list of Guix
+package specifications, or as raw Guix code.  The former should be
+preferred, as it is unambiguous and allows leveraging the Guix API to
+discover the package's associated Scheme variable name and its location,
+to automatically adjust the @samp{use-modules} stanza at the top of the
+computed Guix file.  It is not currently enabled by default, to allow
+for a transition time.  In the future, it will be enabled by default
+when the @samp{guix} features is turned on, so it's a good idea to start
+using it already!
+
+@cindex use-guix-specs-for-dependencies, feature
+When using the @samp{use-guix-specs-for-dependencies} feature, the
+@samp{dependencies} field of the Hall specification should list Guix
+package specifications, which, in a nutshell, have the following format
+(@pxref{Invoking guix package,,,guix,GNU Guix Reference Manual} for more
+information regarding Guix specifications):
+
 @indentedblock
-`((label [library-configure-test] ,guix-package-name)
-  ...)
+@var{name}@@@var{version}:@var{output}
 @end indentedblock
 
-In the above, LABEL should be a string of your choosing.  It is the
-label by which the dependency can be referred to in Guix code.
+More concretely, the @samp{dependencies} field looks as follows:
 
-LIBRARY-CONFIGURE-TEST is an optional Guile module specification
-which, when present, is used at configure time to ensure the
-dependency is present on the system.  In other words, when the
-end-user runs @command{./configure}, the configure script will try to
-load LIBRARY-CONFIGURE-TEST in a Guile session to see if it is
+@lisp
+(dependencies
+ ("@var{package-spec-1}"
+  ("@var{package-spec-2}" @var{library-configure-test})
+  ...))
+@end lisp
+
+@cindex configure test, of Guile modules
+As you can see, it's a simple list of Guix package specifications
+strings.  Optionally, a dependency item can be turned into a tuple of
+the package spec as its first element and @var{library-configure-test}
+as its second, where @var{library-configure-test} a Guile module
+specification which is used at configure time to ensure the dependency
+is present on the system.  In other words, when the end-user runs
+@command{./configure}, the configure script will try to load
+@var{library-configure-test} in a Guile session to see if it is
 available on the system.  If not, @command{./configure} exits with an
 error.
 
-GUIX-PACKAGE-NAME is the name of the Guile dependency in Guix.
-
-The `...` means that you can specify multiple dependencies in this
-manner.
-
+@cindex dependencies, using guix package specifications
 As an example:
-@example
-`(("guile-hall" (hall common) ,guile-hall)
-  ("guix" ,guix))
-@end example
+
+@lisp
+(dependencies (("guile-hall" (hall common))
+               "guix")
+@end lisp
 
 The above is a valid dependencies declaration which says the
 following:
@@ -958,6 +979,30 @@ We depend on the Guix packages @var{guile-hall} and @var{guix};
 We should test for the existence of @var{guile-hall} at configure time
 by attempting to load the @code{(hall common)} library.
 @end itemize
+
+The legacy alternative, when @emph{not} using the
+@samp{use-guix-specs-for-dependencies} feature, looks like:
+
+@lisp
+(dependencies
+ `(("@var{label-1}" ,@var{guix-package-variable-name-1})
+   ("@var{label-2}" @var{library-configure-test}
+    ,@var{guix-package-variable-name-2}))
+   ...)
+@end lisp
+
+In the above, the labels should be strings of your choosing.  It is the
+label by which the dependency can be referred to in Guix code.
+@var{library-configure-test} has the same meaning as explained earlier,
+while the Guix package variable names are what their name suggest.
+
+As an example:
+@lisp
+`(("guile-hall" (hall common) ,guile-hall)
+  ("guix" ,guix))
+@end lisp
+
+It is semantically equivalent to the previous example.
 
 @item @code{skip}
 @tindex skip
@@ -984,7 +1029,6 @@ project.
 
 More information is available in the section on the @command{scan}
 subcommand.
-
 
 @end table
 

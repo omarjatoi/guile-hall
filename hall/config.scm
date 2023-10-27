@@ -39,6 +39,7 @@
   #:export (guix-feature?
             nls-feature?
             licensing-feature?
+            use-guix-specs-for-dependencies?
 
             project-root-directory?
             quit-with-error
@@ -52,6 +53,9 @@
 (define nls-feature? (make-parameter #f (lambda (v) (and (boolean? v) v))))
 
 (define licensing-feature? (make-parameter #f (lambda (v) (and (boolean? v) v))))
+
+(define use-guix-specs-for-dependencies?
+  (make-parameter #f (lambda (v) (and (boolean? v) v))))
 
 (define (quit-with-error msg . args)
   (apply format (current-error-port) (string-append msg "~%") args)

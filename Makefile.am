@@ -50,6 +50,7 @@ SOURCES = hall/hconfig.scm \
 TESTS = tests/build.scm \
         tests/scan.scm \
         tests/common.scm \
+	tests/guix-file.scm \
         tests/hall.scm \
         tests/spec.scm
 

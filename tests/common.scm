@@ -1,8 +1,10 @@
 ;; tests/common.scm --- common implementation    -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2021 Alex Sassmannshausen <alex@pompo.co>
+;; Copyright (C) 2023 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;
 ;; Author: Alex Sassmannshausen <alex@pompo.co>
+;; Author: Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;
 ;; This file is part of guile-hall.
 ;;
@@ -30,12 +32,39 @@
 ;;; Code:
 
 (define-module (tests common)
+  #:use-module (ice-9 exceptions)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (srfi srfi-64)
+  #:use-module (srfi srfi-71)
+  #:use-module (hall config)
   #:use-module (hall common)
   #:use-module (hall spec))
+
+(define has-guix?
+  (false-if-exception (resolve-module '(guix))))
+
+;;; For white-box testing:
+(define dependencies->items
+  (@@ (hall common) dependencies->items))
+
+(define dependency->package+module
+  (@@ (hall common) dependency->package+module))
+
+(define guix-package->variable
+  (@@ (hall common) guix-package->variable))
+
+;;; XXX: Unfortunately, SRFI-64's test-error doesn't not match the
+;;; error type, so we must use test-assert with the syntax below
+;;; instead (see: https://bugs.gnu.org/66776).
+(define-syntax-rule (with-expected-exception predicate body ...)
+  "Return #t if an exception matched with PREDICATE was raised by
+evaluating BODY, else #f."
+  (guard (ex ((predicate ex) #t)
+             (else #f))
+    body ...
+    #f))
 
 (test-begin "common")
 
@@ -217,6 +246,88 @@
   "tests/test"
   ((filetype-read 'unknown-type "test" "tests/test.edurinaed"
                   (make-hash-table)) '() '("tests") 'path ""))
+
+;;;; Tests for dependency validation.
+(test-assert "dependencies->items, old-style, invalid dependencies field"
+  (with-expected-exception
+   invalid-dependencies-field?
+   (dependencies->items '("expected" "quasiquoted" "list"))))
+
+(test-equal "dependencies->items, old-style, valid dependency field"
+  '(("guile-hall" (hall common) ,guile-hall)
+    ("guix" ,guix))
+  (dependencies->items '`(("guile-hall" (hall common) ,guile-hall)
+                          ("guix" ,guix))))
+
+(test-equal "dependencies->items, old-style, empty list"
+  '()
+  (dependencies->items '`()))
+
+(unless has-guix? (test-skip 1))
+(test-equal "dependencies->items, new-style, valid dependency field"
+  '(("guile-hall" (hall common))
+    "guix")
+  (parameterize ((use-guix-specs-for-dependencies? #t))
+    (dependencies->items '(("guile-hall" (hall common))
+                           "guix"))))
+
+(test-equal "dependencies->items, new-style, empty list"
+  '()
+  (parameterize ((use-guix-specs-for-dependencies? #t))
+    (dependencies->items '())))
+
+(test-equal "old-inputs style"
+  'guile-hall-2
+  (dependency->package+module '("guile-hall" ,guile-hall-2)))
+
+(test-equal "old-inputs style, with module symbol"
+  '(guile-hall-2 (hall common))
+  (let ((variable module (dependency->package+module
+                      '("guile-hall" (hall common) ,guile-hall-2))))
+    (list variable module)))
+
+(test-equal "old-inputs style, without module symbol"
+  '(guile-hall #f)
+  (let ((variable module (dependency->package+module
+                      '("label" ,guile-hall))))
+    (list variable module)))
+
+(test-assert "old-inputs style, invalid input"
+  (with-expected-exception
+   invalid-dependency-input?
+   (dependency->package+module
+    '("guix" "specs" "but" "expected" "old" "style"))))
+
+(unless has-guix? (test-skip 1))
+(test-assert "guix specs dependencies, invalid input"
+  (with-expected-exception
+   invalid-dependency-input?
+   (parameterize ((use-guix-specs-for-dependencies? #t))
+     (dependency->package+module
+      ;; Old-style provided, expected Guix specifications.
+      '("guile-git" ,guile-git)))))
+
+(unless has-guix? (test-skip 1))
+(test-assert "guix specs dependencies, unresolved spec"
+  (with-expected-exception
+   invalid-guix-input-specification?
+   (parameterize ((use-guix-specs-for-dependencies? #t))
+     (dependency->package+module "nonexistent/package:doc@9999.1.8"))))
+
+(unless has-guix? (test-skip 1))
+(test-equal "guix specs dependencies, with module symbol"
+  '(guile-hall (hall common))
+  (parameterize ((use-guix-specs-for-dependencies? #t))
+    (let ((package module (dependency->package+module
+                           '("guile-hall" (hall common)))))
+      (list (guix-package->variable package) module))))
+
+(unless has-guix? (test-skip 1))
+(test-equal "guix specs dependencies, without module symbol"
+  '(guile-hall #f)
+  (parameterize ((use-guix-specs-for-dependencies? #t))
+    (let ((package module (dependency->package+module "guile-hall")))
+      (list (guix-package->variable package) module))))
 
 (test-end "filetype-read")
 

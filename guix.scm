@@ -1,15 +1,15 @@
 (use-modules
-  (guix packages)
-  ((guix licenses) #:prefix license:)
-  (guix download)
-  (guix gexp)
-  (guix build-system gnu)
   (gnu packages)
   (gnu packages autotools)
   (gnu packages guile)
   (gnu packages guile-xyz)
   (gnu packages pkg-config)
   (gnu packages texinfo)
+  (guix build-system gnu)
+  (guix download)
+  (guix gexp)
+  ((guix licenses) #:prefix license:)
+  (guix packages)
   (srfi srfi-1))
 
 (package

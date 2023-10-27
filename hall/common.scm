@@ -1,8 +1,10 @@
 ;; hall/common.scm --- common implementation    -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2018-2020 Alex Sassmannshausen <alex@pompo.co>
+;; Copyright (C) 2023 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;
 ;; Author: Alex Sassmannshausen <alex@pompo.co>
+;; Author: Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;
 ;; This file is part of guile-hall.
 ;;
@@ -32,12 +34,22 @@
   #:use-module (hall config)
   #:use-module (hall spec)
   #:use-module (hall builders)
+
+  ;; From Guix.
+  #:autoload (gnu packages) (specification->package)
+  #:autoload (guix diagnostics) (location-file)
+  #:autoload (guix modules) (file-name->module-name)
+  #:autoload (guix packages) (package-location package-name)
+
+  #:use-module (ice-9 control)
+  #:use-module (ice-9 exceptions)
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 regex)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
+  #:use-module (srfi srfi-71)
   #:use-module (web client)
   #:use-module (web response)
   #:use-module (web http)
@@ -51,10 +63,14 @@
 
             blacklisted?
 
-            read-spec filetype-read category-traverser
+            read-features read-spec filetype-read category-traverser
             scm->files scm->specification
 
             guix-file brew-file hconfig-file
+            invalid-dependencies-field?
+            invalid-dependency-input?
+            invalid-guix-input-specification?
+            guix-package-variable-not-found?
 
             hall-template-file
 
@@ -93,6 +109,114 @@ filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
                                (cons* "^.*~$" "^#.*#$" "^\\.git$" skip)))
              #f)
            (const #t)))))
+
+(define-exception-type &invalid-dependencies-field
+  &error                                ;parent
+  make-invalid-dependencies-field       ;constructor
+  invalid-dependencies-field?           ;predicate
+  (sexp invalid-dependencies-field-sexp))
+
+(define-exception-type &invalid-dependency-input
+  &error                                ;parent
+  make-invalid-dependency-input         ;constructor
+  invalid-dependency-input?             ;predicate
+  (sexp invalid-dependency-input-sexp))
+
+(define-exception-type &invalid-guix-input-specification
+  &error
+  make-invalid-guix-input-specification ;constructor
+  invalid-guix-input-specification?     ;predicate
+  (text invalid-guix-input-specification-text))
+
+(define-exception-type &guix-package-variable-not-found
+  &error
+  make-guix-package-variable-not-found ;constructor
+  guix-package-variable-not-found?     ;predicate
+  (name guix-package-variable-not-found-name))
+
+;;; XXX: Adapted from 'package->variable' from the
+;;; hydra/build-package-metadata.scm module from the guix-maintenance
+;;; repository (see:
+;;; https://git.savannah.gnu.org/cgit/guix/maintenance.git).
+(define (guix-package->variable package)
+  "Return the name of the variable whose value is PACKAGE in the module that
+defines it, else raise a "
+  (match (package-location package)
+    (#f (raise-exception (make-guix-package-variable-not-found
+                          (package-name package))))
+    ((= location-file file)
+     (let* ((name (file-name->module-name file))
+            (module (false-if-exception (resolve-interface name))))
+       (let/ec return
+         (module-for-each (lambda (symbol variable)
+                            (when (eq? package (variable-ref variable))
+                              (return symbol)))
+                          module)
+         (raise-exception (make-guix-package-variable-not-found
+                           (package-name package))))))))
+
+(define (dependencies->items dependencies)
+  "Normalize the list of dependency items, stripping the quasiquote if
+using old-style Guix inputs.  If DEPENDENCIES does not match the
+expected syntax, an &invalid-dependencies-field exception is raised."
+  (if (use-guix-specs-for-dependencies?)
+      (match dependencies
+        ((item ...)
+         item)
+        (_ (raise-exception
+            (make-invalid-dependencies-field dependencies))))
+      (match dependencies
+        (('quasiquote ()) '())
+        (('quasiquote (item ...))
+         item)
+        (_ (raise-exception
+            (make-invalid-dependencies-field dependencies))))))
+
+(define (dependency->package+module item)
+  "Return the Guix package object corresponding to ITEM, a Hall
+dependency item if the USE-GUIX-SPECS-FOR-DEPENDENCIES? is #t, else
+the package *variable*, a symbol.  If the input format is unexpected, an
+&invalid-dependency-input error is raised.  A second value contains
+the Guile module, e.g. '(hall common), when specified via the Hall
+augmented input format is used, else #f.  If the
+USE-GUIX-SPECS-FOR-DEPENDENCIES?  parameter is #t, the Guix package
+specification is validated, and an &invalid-guix-input-specification
+exception is raised when the specification could not match any Guix
+package."
+  (define (guix-spec->package guix-spec)
+    ;; XXX: 'specification->package' calls exit in case of error.
+    (guard (ex ((quit-exception? ex)
+                (raise-exception
+                 (make-invalid-guix-input-specification guix-spec))))
+      (specification->package guix-spec)))
+
+  (if (use-guix-specs-for-dependencies?)
+      (match item
+        ((? string? guix-spec)
+         (values (guix-spec->package guix-spec) #f))
+        (((? string?) ('unquote . _))
+         ;; Expected Guix specifications, got old style inputs.
+         (raise-exception (make-invalid-dependency-input item)))
+        (((? string? guix-spec) ((? symbol? module) ...))
+         ;; For augmented Hall input declaration.
+         (values (guix-spec->package guix-spec) module))
+        (_ (raise-exception (make-invalid-dependency-input item))))
+      (match item
+        ;; Old-style Guix inputs.
+        (((? string? label) ('unquote (? symbol? package-variable)))
+         (values package-variable #f))
+        ;; Augmented Hall input declaration with Guile module symbol.
+        (((? string? label) ((? symbol? module) ...)
+          ('unquote (? symbol? package-variable)))
+         (values package-variable module))
+        (_ (raise-exception (make-invalid-dependency-input item))))))
+
+(define (read-features)
+  "Read the features only from the project's hall.scm file."
+  (find-project-root-directory)
+  (scm->features
+   (with-input-from-file "hall.scm"
+     (lambda _ (read)))))
 
 (define* (read-spec #:optional abs-file)
   "Set the working directory to the current project's root directory & parse
@@ -194,9 +318,14 @@ Once those dependencies are installed you can run:
 "
                      (specification-name spec) (specification-name spec)
                      (string-join
-                      (map (match-lambda ((label . _) label))
-                           ;; first element is quasiquote
-                           (second (specification-dependencies spec)))
+                      (let ((packages (map dependency->package+module
+                                           (dependencies->items
+                                            (specification-dependencies
+                                             spec)))))
+                        (if (use-guix-specs-for-dependencies?)
+                            (map package-name packages)
+                            (map symbol->string packages)))
+
                       "\n  - " 'prefix))))
     ,(file "COPYING" text-filetype
            (lambda (spec)
@@ -773,19 +902,20 @@ fi
 dnl Hall auto-generated guile-module dependencies
 "
                            (string-join
-                            (filter-map
-                             (match-lambda
-                               ;; Standard Guix dependency declaration
-                               ((_ ('unquote _) . _) #f)
-                               ;; Augmented Hall dependency declaration
-                               ((_ (module ...) . _)
-                                (string-append "GUILE_MODULE_REQUIRED(["
-                                               (string-join
-                                                (map symbol->string module)
-                                                " ")
-                                               "])")))
-                             ;; first element is quasiquote
-                             (second (specification-dependencies spec)))
+                            (let ((items (dependencies->items
+                                          (specification-dependencies
+                                           spec))))
+                              (filter-map
+                               (lambda (i)
+                                 (let ((_ module (dependency->package+module
+                                                  i)))
+                                   (and module
+                                        (string-append
+                                         "GUILE_MODULE_REQUIRED(["
+                                         (string-join
+                                          (map symbol->string module))
+                                         "])"))))
+                               items))
                             "\n")
                            "
 
@@ -946,8 +1076,18 @@ evaluation."
 binary in such a way that it can be run without additional dependencies being
 installed in a profile."
   (define dep-labels
-    (timed-expression 2 (map first
-                             (second (specification-dependencies spec)))))
+    (timed-expression
+     2
+     (let ((items (dependencies->items (specification-dependencies spec))))
+       (if (use-guix-specs-for-dependencies?)
+           ;; XXX: The automatic labels added on Guix new style inputs
+           ;; are derived from the package name, but these don't take
+           ;; account non-standard outputs that may be specified in a
+           ;; Guix package spec, so it doesn't allow differentiating
+           ;; between multiple outputs at this time.
+           (let ((packages (map dependency->package+module items)))
+             (map package-name packages))
+           (map first items)))))
   (match (files-programs (specification-files spec))
     ;; No binaries, so arguments is just `()
     (() ``())
@@ -1053,17 +1193,12 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
           `(list autoconf automake pkg-config texinfo)))
     (inputs (list guile-3.0))
     (propagated-inputs
-     ;; This arcane contraption generates a valid input list.
-     (list ,@(map (lambda (n)
-                    (match n
-                      ;; Old-style Guix input declaration
-                      ((_ ('unquote pkg) . _) pkg)
-                      ;; Augmented Hall input declaration
-                      ((_ (? list?) ('unquote pkg) . _) pkg)
-                      ;; Modern Guix input declaration
-                      ((pkg . _) pkg)))
-                  ;; first element is quasiquote
-                  (second (specification-dependencies spec)))))
+     (list ,@(let ((packages (map dependency->package+module
+                                  (dependencies->items
+                                   (specification-dependencies spec)))))
+               (if (use-guix-specs-for-dependencies?)
+                   (map guix-package->variable packages)
+                   packages))))
     (synopsis ,(specification-synopsis spec))
     (description ,(specification-description spec))
     (home-page ,(specification-home-page spec))
@@ -1122,35 +1257,53 @@ guix.scm file."
   (file
    "guix" scheme-filetype
    (lambda (spec)
-     (for-each (lambda (n) (pretty-print n) (newline))
-               (let ((lst (list (match type
-                                  ('local (guix-package spec type))
-                                  (_ `(define-public
-                                        ,(string->symbol
-                                          (full-project-name spec))
-                                        ,(guix-package spec type)))))))
-                 (match type
-                   ('local
-                    (cons
-                     (cons
-                      'use-modules
-                      (filter identity `((guix packages)
-                                         ((guix licenses) #:prefix license:)
-                                         (guix download)
-                                         (guix gexp)
-                                         (guix build-system gnu)
-                                         (gnu packages)
-                                         (gnu packages autotools)
-                                         ,(and (features-nls
-                                                (specification-features spec))
-                                               '(gnu packages gettext))
-                                         (gnu packages guile)
-                                         (gnu packages guile-xyz)
-                                         (gnu packages pkg-config)
-                                         (gnu packages texinfo)
-                                         (srfi srfi-1))))
-                     lst))
-                   (_ lst))))) #t))
+     (for-each
+      (lambda (n) (pretty-print n) (newline))
+      (let* ((lst (list (match type
+                          ('local (guix-package spec type))
+                          (_ `(define-public
+                                ,(string->symbol
+                                  (full-project-name spec))
+                                ,(guix-package spec type))))))
+             (features (specification-features spec))
+             (modules (if (use-guix-specs-for-dependencies?)
+                          (let* ((deps (dependencies->items
+                                        (specification-dependencies spec)))
+                                 (packages (map dependency->package+module
+                                                deps)))
+                            (map (compose file-name->module-name
+                                          location-file
+                                          package-location)
+                                 packages))
+                          '())))        ;not using guix specifications
+        (match type
+          ('local
+           (cons
+            (cons
+             'use-modules
+             (delete-duplicates
+              (sort `((gnu packages)
+                      (gnu packages autotools)
+                      ,@(if (features-nls features)
+                            (list '(gnu packages gettext))
+                            '())
+                      (gnu packages guile)
+                      (gnu packages guile-xyz)
+                      (gnu packages pkg-config)
+                      (gnu packages texinfo)
+                      ,@modules
+                      (guix build-system gnu)
+                      (guix download)
+                      (guix gexp)
+                      ((guix licenses) #:prefix license:)
+                      (guix packages)
+                      (srfi srfi-1))
+                    (lambda (x y)
+                      (define (normalize s)
+                        (format #f "~{~a~^ ~}" (flatten s)))
+                      (string<? (normalize x) (normalize y))))))
+            lst))
+          (_ lst))))) #t))
 
 (define* (brew-file)
   "Return a Brew file procedure with default contents for the project's
@@ -1367,18 +1520,24 @@ all default files that contain non-empty contents."
         "PROJECT-COPYRIGHTs should be one or more numbers."
         project-copyrights))))
 
-(define (dependencies project-dependencies)
-  (match project-dependencies
-    (('quasiquote dependencies)
-     (let lp ((rst dependencies))
-       (match rst
-         (() project-dependencies)
-         ((or (((? string?) ('unquote (? symbol?))) . rest)
-              (((? string?) ((? symbol?)) ('unquote (? symbol?))) . rest))
-          (lp rest)))))
-    (_ (quit-with-error
-        "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
-        project-dependencies))))
+(define* (dependencies project-dependencies)
+  "Validate the dependencies were given in the appropriate format."
+  (guard (ex ((invalid-dependencies-field? ex)
+              (quit-with-error
+               "PROJECT-DEPENDENCIES should be one or more Guix style dependencies."
+               (invalid-dependencies-field-sexp ex)))
+             ((invalid-dependency-input? ex)
+              (quit-with-error
+               "PROJECT-DEPENDENCIES the following input is malformed."
+               (invalid-dependency-input-sexp ex)))
+             ((invalid-guix-input-specification? ex)
+              (quit-with-error
+               "PROJECT-DEPENDENCIES the following Guix input specification\
+ did not match a package."
+               (invalid-guix-input-specification-text ex))))
+    (for-each dependency->package+module
+              (dependencies->items project-dependencies))
+    project-dependencies))
 
 (define (skip project-skip)
   (match project-skip
@@ -1398,10 +1557,13 @@ all default files that contain non-empty contents."
 (define (features-prs project-features)
   (match project-features
     ;; FIXME: 2022-08-13: As above, but for implementing feature support.
-    (#f (features #f #f #f))
+    (#f (features #f #f #f #f))
     ((((? symbol?) (? boolean?)) ...)
      (apply features (map (cut href project-features <>)
-                          '(guix native-language-support licensing))))
+                          '(guix
+                            use-guix-specs-for-dependencies
+                            native-language-support
+                            licensing))))
     (_ (quit-with-error
         (format #f
                 "~a should be ~a, got ~s instead."
@@ -1493,6 +1655,18 @@ of the files ALL-FILES under PROJECT-NAME."
          (map (compose (cut category-traverser <> project-name)
                        (cute href all-files <>))
               '(libraries tests programs documentation infrastructure))))
+
+(define (scm->features scm)
+  "Like scm->specification, but only reads features.  This is useful
+because some other field reader/sanitizers depend on the value of
+features."
+  (match scm
+    ((or ('hall-description . scm) scm)
+     (features-prs (href scm 'features)))
+    (_
+     (quit-with-error
+      "It looks like your hall file has been corrupted.  You may have to
+regenerate it."))))
 
 (define* (scm->specification scm #:optional files)
   "Return a hall specification of the SXML representation of that specification

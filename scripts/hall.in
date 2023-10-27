@@ -91,11 +91,21 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                 (create-project-here spec '() operation))
                (else (create-project spec '() operation)))))
       (cmd
-       (let* ((spec (read-spec))
-              (feat (specification-features spec)))
-         (parameterize ((guix-feature? (features-guix feat))
-                        (nls-feature? (features-nls feat))
-                        (licensing-feature? (features-licensing feat)))
+       ;; The features must be read in isolation, before the whole
+       ;; spec file is parsed, as the 'dependencies' procedure
+       ;; behavior is parameterized by them.
+       (define feat (read-features))
+       (parameterize ((guix-feature? (features-guix feat))
+                      (nls-feature? (features-nls feat))
+                      (licensing-feature? (features-licensing feat))
+                      (use-guix-specs-for-dependencies?
+                       (features-use-guix-specs-for-dependencies feat)))
+         (let* ((spec (read-spec))
+                (feat (specification-features spec)))
+           (when (and guix-feature? (not use-guix-specs-for-dependencies?))
+             (log-msg 'WARNING "listing dependencies as guix variable names "
+                      "is deprecated; consider setting the "
+                      "`use-guix-specs-for-dependencies' feature to #t"))
            (match cmd
              (("hall" "clean")
               (clean-project (read-spec) (find-project-root-directory)
