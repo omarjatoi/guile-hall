@@ -180,7 +180,7 @@ system.  The default distribution system we encourage, and are coupled to, is
 Guix.  But more will be supported over time.
 
 The default guix file that will be generated is one that can be used in the
-project's repository, for use with Guix's 'environment' subcommand.  You can
+project's repository, for use with Guix's 'shell' subcommand.  You can
 also generate a tarball or git repository based package which can be used with
 the 'guix package' subcommand, by using the '--type' argument.
 
