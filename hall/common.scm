@@ -669,11 +669,40 @@ DIST_DEPENDS_ON_UPDATE_PO = yes
                   (specification-email spec)))
         #t))
 
+(define* (AC_CONFIG_FILES file #:key executable?)
+  "Generate an AC_CONFIG_FILES directive for FILE.  If EXECUTABLE? is
+true, include the directive to have the generated file executable."
+  (let ((file (regexp-substitute #f (string-match "\\.in$" file) 'pre)))
+    (apply string-append
+           `("AC_CONFIG_FILES([" ,file "]"
+             ,@(if executable?
+                   (list ",[chmod +x " file "]")
+                   '())
+             ")"))))
+
+(define (input-file? file)
+  "Predicate to check whether FILE is an input file (with file extension
+\".in\")."
+  (string-suffix? ".in" file))
+
 (define (configure-file)
   "Return a hall file procedure with default contents for the project's
 configure.ac file."
   (file "configure" autoconf-filetype
         (lambda (spec)
+          (define core-file (string-append (specification-name spec)
+                                           ".scm"))
+          (define spec-files (specification-files spec))
+          (define program-files (files-programs spec-files))
+          (define library-files (files-libraries spec-files))
+          (define program-input-files
+            (filter input-file?
+                    (flatten (map (cut <> '() '() 'raw "")
+                                  program-files))))
+          (define library-input-files
+            (filter input-file?
+                    (flatten (map (cut <> '() '() 'raw "")
+                                  library-files))))
           (display
            (string-append "dnl -*- Autoconf -*-
 
@@ -682,43 +711,36 @@ AC_SUBST(HVERSION, \"\\\"" (specification-version spec) "\\\"\")
 AC_SUBST(AUTHOR, \"\\\"" (specification-author spec) "\\\"\")
 AC_SUBST(COPYRIGHT, \"'" (object->string (specification-copyright spec)) "\")
 AC_SUBST(LICENSE, " (symbol->string (specification-license spec)) ")
-AC_CONFIG_SRCDIR(" (let ((core-file (string-append (specification-name spec)
-                                                   ".scm")))
-                     (if (file-exists? core-file)
-                         core-file
-                         (match (find (match-lambda (('directory . rest) #t)
-                                                    (_ #f))
-                                      (map (cut <> '() '() 'write "")
-                                           (files-libraries
-                                            (specification-files spec))))
-                           (('directory name children) name)))) ")
+AC_CONFIG_SRCDIR(" (if (file-exists? core-file)
+                       core-file
+                       (match (find (match-lambda (('directory . rest) #t)
+                                                  (_ #f))
+                                    (map (cut <> '() '() 'write "")
+                                         (append program-files
+                                                 library-files)))
+                         (('directory name children) name)
+                         (#f (quit-with-error "\
+failed to locate a unique source file for AC_CONFIG_SRCDIR")))) ")
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([1.12 gnu silent-rules subdir-objects \
  color-tests parallel-tests -Woverride -Wno-portability])
 AM_SILENT_RULES([yes])
 "
-                           (if (nls-feature?)
-                               "AM_GNU_GETTEXT([external])
+(if (nls-feature?)
+    "AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.21])
 "
-                               "")
+    "")
 
-                           "
+"
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 "
-                           (string-join
-                            (map (lambda (file)
-                                   (let ((file (or (and=> (string-match "\\.in$" file)
-                                                          (cut regexp-substitute #f <> 'pre))
-                                                   file)))
-                                     (string-append "AC_CONFIG_FILES([" file
-                                                    "],[chmod +x " file "])")))
-                                 (flatten (map (cut <> '() '() 'raw "")
-                                               (files-programs
-                                                (specification-files spec)))))
-                            "\n")
-                           "
+(string-join
+ (append (map (cut AC_CONFIG_FILES <> #:executable? #t) program-input-files)
+         (map AC_CONFIG_FILES library-input-files))
+ "\n")
+"
 dnl Search for 'guile' and 'guild'.  This macro defines
 dnl 'GUILE_EFFECTIVE_VERSION'.
 GUILE_PKG([3.0 2.2 2.0])
@@ -798,10 +820,10 @@ do_subst = $(SED)					\\
   -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\\
   -e 's,[@]localedir[@],$(localedir),g'
 
-" (specification-name spec) "/hconfig.scm: " (specification-name spec) "/hconfig.scm Makefile
+" (specification-name spec) "/hconfig.scm: " (specification-name spec) "/hconfig.scm.hall Makefile
 	$(AM_V_at)rm -f $@ $@-t
 	$(AM_V_at)$(MKDIR_P) \"$(@D)\"
-	$(AM_V_GEN)$(do_subst) < \"$(srcdir)/$@.hall\" > \"$@-t\"
+	$(AM_V_GEN)$(do_subst) < \"$<\" > \"$@-t\"
 	$(AM_V_at) mv -f \"$@-t\" \"$@\"
 
 nodist_noinst_SCRIPTS = pre-inst-env
@@ -812,7 +834,8 @@ moddir=$(prefix)/share/guile/site/$(GUILE_EFFECTIVE_VERSION)
 godir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
-nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
+nobase_dist_mod_DATA = $(filter-out $(BUILT_SOURCES),$(SOURCES)) $(NOCOMP_SOURCES)
+nobase_nodist_mod_DATA = $(BUILT_SOURCES)
 nobase_go_DATA = $(GOBJECTS)
 
 # Make sure source files are installed first, so that the mtime of
@@ -821,23 +844,21 @@ nobase_go_DATA = $(GOBJECTS)
 # <http://lists.gnu.org/archive/html/guile-devel/2010-07/msg00125.html>
 # for details.
 guile_install_go_files = install-nobase_goDATA
-$(guile_install_go_files): install-nobase_modDATA
+$(guile_install_go_files): install-nobase_dist_modDATA
 
-EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES) " (specification-name spec) "/hconfig.scm.hall
 GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_TARGET) $(GUILE_WARNINGS) -o \"$@\" \"$<\"
 
+BUILT_SOURCES = " (specification-name spec) "/hconfig.scm
+
 SOURCES = "
  (string-join
   (align
-   (filter (λ (filename)                ; Remove special hconfig.scm filename
-             (and (not (string-match "^.+/hconfig.scm$" filename))
-                  filename))
-           (flatten
-            (map (cut <> spec '() 'raw "") ; Return filename relative to project
-                 (files-libraries (specification-files spec)))))
+   (flatten
+    (map (cut <> spec '() 'raw "") ; Return filename relative to project
+         (files-libraries (specification-files spec))))
    10)
   " \\\n") "
 
@@ -872,21 +893,21 @@ info_TEXINFOS = " (string-join
                     16)
                    " \\\n") "
 
-EXTRA_DIST += " (string-join
-                 (align
-                  (append
-                   (filter (negate (cut string-match ".*\\.texi$" <>))
-                           (flatten
-                            (map (cute <> spec '() 'raw "")
-                                 (files-documentation
-                                  (specification-files spec)))))
-                   (flatten (map (cute <> spec '() 'raw "")
-                                 (files-infrastructure
-                                  (specification-files spec)))))
-                  14)
-                 " \\\n") " \\
-              build-aux/test-driver.scm \\
-              $(TESTS)
+EXTRA_DIST = " (string-join
+                (align
+                 (append
+                  (filter (negate (cut string-match ".*\\.texi$" <>))
+                          (flatten
+                           (map (cute <> spec '() 'raw "")
+                                (files-documentation
+                                 (specification-files spec)))))
+                  (flatten (map (cute <> spec '() 'raw "")
+                                (files-infrastructure
+                                 (specification-files spec)))))
+                 13)
+                " \\\n") " \\
+             build-aux/test-driver.scm \\
+             $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
 "
@@ -899,6 +920,7 @@ clean-go:
 .PHONY: clean-go
 
 CLEANFILES =					\\
+  $(BUILT_SOURCES)				\\
   $(GOBJECTS)					\\
   $(TESTS:tests/%.scm=%.log)
 "))) #t))
