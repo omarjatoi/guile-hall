@@ -13,7 +13,7 @@
     init-nls
     init-locale))
 
-(define %version "0.4.1")
+(define %version "0.5.0")
 
 (define %author "Alex Sassmannshausen")
 
