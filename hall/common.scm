@@ -802,16 +802,16 @@ Makefile.am file."
    (lambda (spec)
      (display
       (string-append "bin_SCRIPTS = " (string-join
-                 (align
-                  (map (lambda (file)
-                         (or (and=> (string-match "\\.in$" file)
-                                    (cut regexp-substitute #f <> 'pre))
-                             file))
-                       (flatten
-                        (map (cute <> spec '() 'raw "")
-                             (files-programs (specification-files spec)))))
-                  14)
-                 " \\\n") "
+                                       (align
+                                        (map (lambda (file)
+                                               (or (and=> (string-match "\\.in$" file)
+                                                          (cut regexp-substitute #f <> 'pre))
+                                                   file))
+                                             (flatten
+                                              (map (cute <> spec '() 'raw "")
+                                                   (files-programs (specification-files spec)))))
+                                        14)
+                                       " \\\n") "
 
 # Handle substitution of fully-expanded Autoconf variables.
 do_subst = $(SED)					\\
@@ -854,13 +854,16 @@ SUFFIXES = .scm .go
 BUILT_SOURCES = " (specification-name spec) "/hconfig.scm
 
 SOURCES = "
- (string-join
-  (align
-   (flatten
-    (map (cut <> spec '() 'raw "") ; Return filename relative to project
-         (files-libraries (specification-files spec))))
-   10)
-  " \\\n") "
+(string-join
+ (align
+  (filter (λ (filename)                ; Remove special hconfig.scm filename
+            (and (not (string-match "^.+/hconfig.scm.hall$" filename))
+                 filename))
+          (flatten
+           (map (cut <> spec '() 'raw "") ; Return filename relative to project
+                (files-libraries (specification-files spec)))))
+  10)
+ " \\\n") "
 
 TESTS = " (string-join
            (align
