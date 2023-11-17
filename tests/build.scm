@@ -37,18 +37,29 @@
   #:use-module (hall build))
 
 (set! *random-state* (random-state-from-platform))
+(define %build-dir #f)
+(define (hall args)
+  "Run the hall command as present in the build environment, not on the system."
+  (string-append %build-dir "/scripts/hall " args))
 
 (define-syntax directory-excursion
   (syntax-rules ()
     [(_ new-directory body body* ...)
      (let ([old-directory (getcwd)])
+       (when (not %build-dir)
+         (set! %build-dir (getcwd)))
        (dynamic-wind
          (lambda () (chdir new-directory))
          (lambda () body body* ...)
          (lambda () (chdir old-directory))))]))
 
 (define (shell cmd)
-  (test-eq 0 (status:exit-val (system cmd))))
+  ;; We need to make sure that our HALL commands are invoked without loading
+  ;; user hal configuration files at $HOME
+  (let ((home (getenv "HOME")))
+    (setenv "HOME" "/tmp/")
+    (test-eq cmd 0 (status:exit-val (system cmd)))
+    (setenv "HOME" home)))
 
 (test-begin "Build")
 
@@ -59,16 +70,19 @@
 (define tmp
   ;; mkdtemp is not avaiable in Guile 3.0.2 but it's in 3.0.7
   ;;(mkdtemp "hall-tests-scan.XXXXXX")
-  (let ([name (format #f  "hall-tests-scan.~a" (random 4096))])
+  (let ([name (format #f  "hall-tests-build.~a" (random 4096))])
     (mkdir name)
     name))
 
 (directory-excursion
  tmp
- (shell "hall init -p '' foo -x")
+ (shell (hall "init -p '' foo -x"))
  (directory-excursion
   "foo"
-  (shell "hall build -xf")))
+  (shell "cat guix.scm")
+  (shell (hall "dist -xf"))
+  (shell "cat guix.scm")
+  (shell (hall "build -xf"))))
 
 (shell (string-append "rm -rf " tmp))
 
