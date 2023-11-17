@@ -83,7 +83,8 @@ yourself!"))))))
     (λ _
       (run "autoreconf" args "Autoconf"
            (list
-            "Automatically generate GNU build system files.")))
+            "Automatically generate GNU build system files.")
+           "autoconf"))
     (lambda (key message code . rest)
       (match code
         (1
@@ -135,7 +136,7 @@ please report it to us."))))))
 
 ;;;; General
 
-(define (run cmd args name features)
+(define* (run cmd args name features #:optional (package-name cmd))
   (let ((full-cmd (string-join `(,cmd ,args) " ")))
     (if (or (string=? cmd "guix")
             (not (guix-feature?)))
@@ -149,7 +150,7 @@ provides the following additional features:
           (0 #t)
           (n (throw 'friends (format #f "~a returned an error code: ~a. Aborting.~%"
                                      name n) n)))
-        (guix (format #f "shell ~a -Df guix.scm -- ~a" cmd full-cmd)))))
+        (guix (format #f "shell ~a -Df guix.scm -- ~a" package-name full-cmd)))))
 
 (define license-map
   '((agpl1 . AGPL-1.0-only)
