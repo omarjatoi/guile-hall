@@ -820,12 +820,6 @@ do_subst = $(SED)					\\
   -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\\
   -e 's,[@]localedir[@],$(localedir),g'
 
-" (specification-name spec) "/hconfig.scm: " (specification-name spec) "/hconfig.scm.hall Makefile
-	$(AM_V_at)rm -f $@ $@-t
-	$(AM_V_at)$(MKDIR_P) \"$(@D)\"
-	$(AM_V_GEN)$(do_subst) < \"$<\" > \"$@-t\"
-	$(AM_V_at) mv -f \"$@-t\" \"$@\"
-
 nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
@@ -851,17 +845,12 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_TARGET) $(GUILE_WARNINGS) -o \"$@\" \"$<\"
 
-BUILT_SOURCES = " (specification-name spec) "/hconfig.scm
-
 SOURCES = "
 (string-join
  (align
-  (filter (λ (filename)                ; Remove special hconfig.scm filename
-            (and (not (string-match "^.+/hconfig.scm.hall$" filename))
-                 filename))
-          (flatten
-           (map (cut <> spec '() 'raw "") ; Return filename relative to project
-                (files-libraries (specification-files spec)))))
+  (flatten
+   (map (cut <> spec '() 'raw "") ; Return filename relative to project
+        (files-libraries (specification-files spec))))
   10)
  " \\\n") "
 
@@ -1069,7 +1058,7 @@ TYPE 'local, 'local-tarball', 'git or 'tarball."
   "Return a hall file procedure describing a file containing the hconfig
 settings derived from the hall spec passed to it."
   (file
-   "hconfig.scm" hall-filetype
+   "hconfig" scheme-filetype
    (λ (spec)
      (for-each (λ (n) (pretty-print n) (newline))
                `((define-module
