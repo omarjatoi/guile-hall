@@ -130,14 +130,15 @@
 ;;;; Specification->metadata
 
 (define (features->scm features)
- (map (match-lambda
-        ((label proc) `(,label ,(proc features))))
-      `((guix ,features-guix) (native-language-support ,features-nls)
-        (licensing ,features-licensing))))
+  (map (match-lambda
+         ((label proc) `(,label ,(proc features))))
+       `((guix ,features-guix) (native-language-support ,features-nls)
+         (licensing ,features-licensing))))
 
 (define (specification->metadata spec)
   "Return an SXML style association list containing all the metadata of the
 hall specification SPEC."
+  ;; Used for serialising the spec into a hall.scm file.
   `((name ,(specification-name spec))
     (prefix ,(specification-prefix spec))
     (version ,(specification-version spec))
@@ -293,8 +294,10 @@ to tweak your configure.ac and automake.am files yourself.
 
 (define hall-filetype (filetype 'hall-file "hall" 'scheme '()))
 
-(define unknown-filetype (filetype 'unknown-type #f 'unknown
-'("
+(define unknown-filetype
+  (filetype
+   'unknown-type #f 'unknown
+   '("
 Your project includes files of type unknown to Hall. This should be fine, but
 if you run into problems as a result of this, please let the project know at
 https://gitlab.com/a-sassmannshausen/guile-hall/-/issues/.
