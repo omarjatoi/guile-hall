@@ -97,12 +97,13 @@ filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
 
 (define* (read-spec #:optional abs-file)
   "Set the working directory to the current project's root directory & parse
-the project's hall.scm file."
+the project's hall.scm file.
+
+When abs-file is given, return the spec in ABS-FILE as scm."
   (if abs-file
       (begin
         (chdir (dirname abs-file))
-        (scm->specification (with-input-from-file abs-file
-                              (λ _ (read)))))
+        (with-input-from-file abs-file (λ _ (read))))
       (begin
         (find-project-root-directory)
         (scm->specification
