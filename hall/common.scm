@@ -95,13 +95,19 @@ filepath PROJECT-ROOT is contained in the list of relative file-paths SKIP."
              #f)
            (const #t)))))
 
-(define (read-spec)
+(define* (read-spec #:optional abs-file)
   "Set the working directory to the current project's root directory & parse
 the project's hall.scm file."
-  (find-project-root-directory)
-  (scm->specification
-   (with-input-from-file "hall.scm"
-     (lambda _ (read)))))
+  (if abs-file
+      (begin
+        (chdir (dirname abs-file))
+        (scm->specification (with-input-from-file abs-file
+                              (λ _ (read)))))
+      (begin
+        (find-project-root-directory)
+        (scm->specification
+         (with-input-from-file "hall.scm"
+           (lambda _ (read)))))))
 
 ;;;; Defaults
 
