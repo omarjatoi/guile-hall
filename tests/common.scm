@@ -39,12 +39,9 @@
 
 (test-begin "common")
 
-;;;;; Tests for: href
-
 (test-begin "spec parsing")
 
-(let ((href (@@ (hall common) href))
-      (spec '(hall-description
+(let ((spec '(hall-description
               (name "hall")
               (prefix "guile")
               (version "0.5.0")
@@ -103,13 +100,77 @@
                       ((unknown-type ".gitlab-ci.yml")
                        (scheme-file "guix")
                        (scheme-file "hall")))))))
-  (test-equal "href single-value"
-    "guile"
-    (href spec 'prefix))
-  (test-assert "href not-found"
-    (not (href spec 'gobbledygook)))
-  (test-assert "href multiple-values"
-    (list? (href spec 'files))))
+
+;;;;; Tests for: href
+  (let ((href (@@ (hall common) href)))
+    (test-equal "href single-value"
+      "guile"
+      (href spec 'prefix))
+    (test-assert "href not-found"
+      (not (href spec 'gobbledygook)))
+    (test-assert "href multiple-values"
+      (list? (href spec 'files))))
+
+;;;;; Tests for: merge-skip
+  ;; (let ((merge-skip (@@ (hall common) merge-skip)))
+  ;;   ((test-assert "placeholder-merge-skip"
+  ;;      (boolean? #t))))
+
+;;;;; Tests for: merge-skip-clean
+
+  (let ((merge-skip-clean (@@ (hall common) merge-skip-clean))
+        (spec (λ (skip)
+                (scm->specification `(hall-description
+                                      (name "minimal") (prefix "minimal")
+                                      (version "0.0.1") (author "atheia")
+                                      (email "test@example.com")
+                                      (copyright (2023)) (synopsis "")
+                                      (description "") (home-page "")
+                                      (license gpl3+) (dependencies `())
+                                      (skip ,skip)
+                                      (files ((libraries)
+                                              (tests)
+                                              (programs)
+                                              (documentation)
+                                              (infrastructure))))))))
+    (test-assert "CLEAN: Empty skip"
+      (null? (merge-skip-clean (spec '()) '())))
+    (test-assert "CLEAN: Empty clean skip"
+      (null? (merge-skip-clean (spec '((clean))) '())))
+    (test-assert "CLEAN: No clean skip"
+      (null? (merge-skip-clean (spec '((scan "thuent" "tsuea"))) '())))
+    (test-assert "CLEAN: Clean skip merge"
+      (merge-skip-clean (spec '((scan "thuent" "tsuea"))) '("test")))
+    (test-assert "CLEAN: Clean skip"
+      (merge-skip-clean (spec '((clean "thuent" "tsuea"))) '())))
+
+;;;;; Tests for: merge-skip-scan
+
+  (let ((merge-skip-scan (@@ (hall common) merge-skip-scan))
+        (spec (λ (skip)
+                (scm->specification `(hall-description
+                                      (name "minimal") (prefix "minimal")
+                                      (version "0.0.1") (author "atheia")
+                                      (email "test@example.com")
+                                      (copyright (2023)) (synopsis "")
+                                      (description "") (home-page "")
+                                      (license gpl3+) (dependencies `())
+                                      (skip ,skip)
+                                      (files ((libraries)
+                                              (tests)
+                                              (programs)
+                                              (documentation)
+                                              (infrastructure))))))))
+    (test-assert "SCAN: Empty skip"
+      (null? (merge-skip-scan (spec '()) '())))
+    (test-assert "SCAN: Empty scan skip"
+      (null? (merge-skip-scan (spec '((scan))) '())))
+    (test-assert "SCAN: No scan skip"
+      (null? (merge-skip-scan (spec '((clean "thuent" "tsuea"))) '())))
+    (test-assert "SCAN: Scan skip merge"
+      (merge-skip-scan (spec '((scan "thuent" "tsuea"))) '("test")))
+    (test-assert "SCAN: Scan skip"
+      (merge-skip-scan (spec '((scan "thuent" "tsuea"))) '()))))
 
 (test-end "spec parsing")
 

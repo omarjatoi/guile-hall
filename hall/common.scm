@@ -60,8 +60,7 @@
 
             base-autotools
             base-autotools-documentation base-autotools-infrastructure
-
-            flatten merge-skip))
+            flatten merge-skip merge-skip-clean merge-skip-scan))
 
 (define (default-files project-name)
   (files (base-libraries project-name)
@@ -1373,6 +1372,11 @@ all default files that contain non-empty contents."
     ;; This is to help migration of specs from 0.4 and earlier to 0.5.
     (#f '())
     (((? string?) ...) project-skip)
+    (((? (match-lambda
+           (((or 'clean 'scan) . ((? string?) ...)) #t)
+           (_ #f)))
+      ...)
+     project-skip)
     (_ (quit-with-error
         "PROJECT-SKIP should be a list of strings."
         project-skip))))
@@ -1406,6 +1410,35 @@ all default files that contain non-empty contents."
 (define (merge-skip spec skip)
   "Return a new, valid, skip list by merging the skip field in SPEC and SKIP."
   (append (or (specification-skip spec) '()) skip))
+
+(define (merge-skip-clean spec skip)
+  "Return the clean portion of the skip spec derived from SPEC and SKIP."
+  (append (match (specification-skip spec)
+            ;; The spec's skip is empty if it's empty or #f
+            ((or () #f) '())
+            ;; If the spec's skip contains lists, then we have specialised skips
+            (((? list? l))
+             (match (href l 'clean)
+               ((or () #f) '())
+               (('clean . rest) rest)))
+            ;; Otherwise we have general skips
+            (spec-skip spec-skip))
+          skip))
+
+(define (merge-skip-scan spec skip)
+  "Return the scan portion of the skip spec derived from SPEC and SKIP."
+  ;; Virtually identical to above
+  (append (match (specification-skip spec)
+            ;; The spec's skip is empty if it's empty or #f
+            ((or () #f) '())
+            ;; If the spec's skip contains lists, then we have specialised skips
+            (((? list? l))
+             (match (href l 'scan)
+               ((or () #f) '())
+               (('scan . rest) rest)))
+            ;; Otherwise we have general skips
+            (spec-skip spec-skip))
+          skip))
 
 ;;;; Hall file parser
 

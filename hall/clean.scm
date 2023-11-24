@@ -50,7 +50,7 @@ filepaths to be ignored by clean-project.  OPERATION can be 'show or 'exec."
   (receive (delete others)
       (partition (match-lambda (('delete . rest) #t) (_ #f))
                  (project-walk (specification->files-tree spec)
-                               (first context) (merge-skip spec skip)))
+                               (first context) (merge-skip-clean spec skip)))
     (format #t "  Deleting:~%")
     (for-each
      (compose (lambda (path)
