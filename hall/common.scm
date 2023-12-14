@@ -695,14 +695,16 @@ configure.ac file."
           (define spec-files (specification-files spec))
           (define program-files (files-programs spec-files))
           (define library-files (files-libraries spec-files))
-          (define program-input-files
-            (filter input-file?
-                    (flatten (map (cut <> '() '() 'raw "")
-                                  program-files))))
-          (define library-input-files
-            (filter input-file?
-                    (flatten (map (cut <> '() '() 'raw "")
-                                  library-files))))
+          (define documentation-files (files-documentation spec-files))
+          (define filter/input-files
+            (lambda (x)
+              (filter input-file?
+                      (flatten (map (cut <> '() '() 'raw "")
+                                    x)))))
+          (define program-input-files (filter/input-files program-files))
+          (define library-input-files (filter/input-files library-files))
+          (define documentation-input-files
+            (filter/input-files documentation-files))
           (display
            (string-append "dnl -*- Autoconf -*-
 
@@ -738,7 +740,8 @@ AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 "
 (string-join
  (append (map (cut AC_CONFIG_FILES <> #:executable? #t) program-input-files)
-         (map AC_CONFIG_FILES library-input-files))
+         (map AC_CONFIG_FILES library-input-files)
+         (map AC_CONFIG_FILES documentation-input-files))
  "\n")
 "
 dnl Search for 'guile' and 'guild'.  This macro defines
