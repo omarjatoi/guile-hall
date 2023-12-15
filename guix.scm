@@ -27,61 +27,56 @@
                   (list ".git" ".dir-locals.el" "guix.scm"))))))
   (build-system gnu-build-system)
   (arguments
-    `(#:modules
-      ((ice-9 match)
-       (ice-9 ftw)
-       ,@%gnu-build-system-modules)
-      #:phases
-      (modify-phases
-        %standard-phases
-        (add-after
-          'install
-          'hall-wrap-binaries
-          (lambda* (#:key inputs outputs #:allow-other-keys)
-            (let* ((compiled-dir
-                     (lambda (out version)
-                       (string-append
-                         out
-                         "/lib/guile/"
-                         version
-                         "/site-ccache")))
-                   (uncompiled-dir
-                     (lambda (out version)
-                       (string-append
-                         out
-                         "/share/guile/site"
-                         (if (string-null? version) "" "/")
-                         version)))
-                   (dep-path
-                     (lambda (env modules path)
-                       (list env
-                             ":"
-                             'prefix
-                             (cons modules
-                                   (map (lambda (input)
-                                          (string-append
-                                            (assoc-ref inputs input)
-                                            path))
-                                        ,''("guile-config" "guile-lib"))))))
-                   (out (assoc-ref outputs "out"))
-                   (bin (string-append out "/bin/"))
-                   (site (uncompiled-dir out "")))
-              (match (scandir site)
-                     (("." ".." version)
-                      (for-each
-                        (lambda (file)
-                          (wrap-program
-                            (string-append bin file)
-                            (dep-path
-                              "GUILE_LOAD_PATH"
-                              (uncompiled-dir out version)
-                              (uncompiled-dir "" version))
-                            (dep-path
-                              "GUILE_LOAD_COMPILED_PATH"
-                              (compiled-dir out version)
-                              (compiled-dir "" version))))
-                        ,''("hall"))
-                      #t))))))))
+    (list #:modules
+          `(((guix build guile-build-system)
+             #:select
+             (target-guile-effective-version))
+            ,@%gnu-build-system-modules)
+          #:phases
+          (with-imported-modules
+            `((guix build guile-build-system)
+              ,@%gnu-build-system-modules)
+            (gexp (modify-phases
+                    %standard-phases
+                    (add-after
+                      'install
+                      'hall-wrap-binaries
+                      (lambda* (#:key inputs #:allow-other-keys)
+                        (let* ((version (target-guile-effective-version))
+                               (site-ccache
+                                 (string-append
+                                   "/lib/guile/"
+                                   version
+                                   "/site-ccache"))
+                               (site (string-append
+                                       "/share/guile/site/"
+                                       version))
+                               (dep-path
+                                 (lambda (env path)
+                                   (list env
+                                         ":"
+                                         'prefix
+                                         (cons (string-append
+                                                 (ungexp output)
+                                                 path)
+                                               (map (lambda (input)
+                                                      (string-append
+                                                        (assoc-ref
+                                                          inputs
+                                                          input)
+                                                        path))
+                                                    (list "guile-config"
+                                                          "guile-lib"))))))
+                               (bin (string-append (ungexp output) "/bin/")))
+                          (for-each
+                            (lambda (file)
+                              (wrap-program
+                                (string-append bin file)
+                                (dep-path "GUILE_LOAD_PATH" site)
+                                (dep-path
+                                  "GUILE_LOAD_COMPILED_PATH"
+                                  site-ccache)))
+                            (list "hall"))))))))))
   (native-inputs
     (list autoconf automake pkg-config texinfo))
   (inputs (list guile-3.0))
@@ -92,4 +87,3 @@
   (home-page
     "https://gitlab.com/a-sassmannshausen/guile-hall")
   (license license:gpl3+))
-
