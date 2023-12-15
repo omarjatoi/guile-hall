@@ -1072,6 +1072,10 @@ installed in a profile."
           (let ((packages (map dependency->package+module items)))
             (map package-name packages))
           (map first items))))
+
+  (define guile-dep-labels
+    (filter (cut string-prefix? "guile-" <>) dep-labels))
+
   (match (files-programs (specification-files spec))
     ;; No binaries, so arguments is just `()
     (() ''())
@@ -1109,7 +1113,7 @@ installed in a profile."
                                                 (string-append
                                                  (assoc-ref inputs input)
                                                  path))
-                                              (list ,@dep-labels))))))
+                                              (list ,@guile-dep-labels))))))
                           (bin (string-append (ungexp output) "/bin/")))
                      (for-each (lambda (file)
                                  (wrap-program (string-append bin file)
