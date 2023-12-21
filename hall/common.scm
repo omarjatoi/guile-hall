@@ -1119,7 +1119,8 @@ installed in a profile."
                                  (wrap-program (string-append bin file)
                                    (dep-path "GUILE_LOAD_PATH" site)
                                    (dep-path "GUILE_LOAD_COMPILED_PATH"
-                                             site-ccache)))
+                                             site-ccache)
+                                   (dep-path "GUILE_EXTENSIONS_PATH" "/lib")))
                                (list ,@files))))))))))))
     (e (throw 'invalid-binaries e))))
 
