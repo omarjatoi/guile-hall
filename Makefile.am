@@ -7,12 +7,6 @@ do_subst = $(SED)					\
   -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\
   -e 's,[@]localedir[@],$(localedir),g'
 
-hall/hconfig.scm: hall/hconfig.scm.hall Makefile
-	$(AM_V_at)rm -f $@ $@-t
-	$(AM_V_at)$(MKDIR_P) "$(@D)"
-	$(AM_V_GEN)$(do_subst) < "$<" > "$@-t"
-	$(AM_V_at) mv -f "$@-t" "$@"
-
 nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
@@ -38,10 +32,7 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN)$(top_builddir)/pre-inst-env $(GUILE_TOOLS) compile $(GUILE_TARGET) $(GUILE_WARNINGS) -o "$@" "$<"
 
-BUILT_SOURCES = hall/hconfig.scm
-
-SOURCES = hall/hconfig.scm.hall \
-          hall/hconfig.scm \
+SOURCES = hall/hconfig.scm \
           hall/config.scm \
           hall/publish.scm \
           hall/friends.scm \
