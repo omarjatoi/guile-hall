@@ -848,9 +848,10 @@ SUFFIXES = .scm .go
 SOURCES = "
 (string-join
  (align
-  (flatten
-   (map (cut <> spec '() 'raw "") ; Return filename relative to project
-        (files-libraries (specification-files spec))))
+  (remove input-file?
+          (flatten
+           (map (cut <> spec '() 'raw "") ; Return filename relative to project
+                (files-libraries (specification-files spec)))))
   10)
  " \\\n") "
 
