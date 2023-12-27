@@ -691,6 +691,15 @@ true, include the directive to have the generated file executable."
 \".in\")."
   (string-suffix? ".in" file))
 
+(define (hall-file? file)
+  "Predicate to check whether FILE is a Hall file (with file extension
+\".hall\")."
+  (string-suffix? ".hall" file))
+
+(define (source-files files)
+  (remove (λ (file-name) (any (cut <> file-name) (list input-file? hall-file?)))
+          (flatten files)))
+
 (define (configure-file)
   "Return a hall file procedure with default contents for the project's
 configure.ac file."
@@ -854,10 +863,9 @@ SUFFIXES = .scm .go
 SOURCES = "
 (string-join
  (align
-  (remove input-file?
-          (flatten
-           (map (cut <> spec '() 'raw "") ; Return filename relative to project
-                (files-libraries (specification-files spec)))))
+  (source-files (map (cut <> spec '() 'raw "")
+                     ;; Return filename relative to project
+                     (files-libraries (specification-files spec))))
   10)
  " \\\n") "
 

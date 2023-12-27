@@ -174,6 +174,23 @@
 
 (test-end "spec parsing")
 
+;;;;; Tests for: source-files
+
+(test-begin "source-files")
+(let ((source-files (@@ (hall common) source-files)))
+  (test-assert "Only .in files"
+    (null? (source-files '("test/x.in" "hall/x/test.in" "blah.in"))))
+  (test-assert "Only .hall files"
+    (null? (source-files '("test/x.hall" "hall/x/test.hall" "blah.hall"))))
+  (test-assert "Only .hall and .in files"
+    (null? (source-files '("test/x.hall" "hall/x/test.in" "blah.hall"
+                           "foo.in"))))
+  (test-assert "Mixed files"
+    (equal? '("test/x.scm" "blah.hall.scm" )
+            (source-files '("test/x.hall" "test/x.scm" "hall/x/test.in"
+                            "blah.hall.scm" "hall/x/test.scm.in" "blah.hall"
+                            "foo.in")))))
+(test-end "source-files")
 
 ;;;;; Tests for: file->filepath
 (test-begin "file->filepath")
