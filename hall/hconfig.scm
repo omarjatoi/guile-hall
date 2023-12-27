@@ -23,22 +23,13 @@
 
 (define %gettext-domain "guile-hall")
 
-(define G_ (cut gettext <> %gettext-domain))
+(define G_ identity)
 
-(define N_
-  (cut ngettext <> <> <> %gettext-domain))
+(define N_ identity)
 
-(define (init-nls)
-  "Bind this project's textdomain."
-  (bindtextdomain %gettext-domain "/usr/local/share/locale"))
+(define (init-nls) "Dummy as no NLS is used" #t)
 
 (define (init-locale)
-  "Install the current locale settings."
-  (catch 'system-error
-         (lambda _ (setlocale LC_ALL ""))
-         (lambda args
-           (false-if-exception
-             (setlocale LC_ALL "en_US.utf8"))))
-  (init-nls)
-  (textdomain %gettext-domain))
+  "Dummy as no NLS is used"
+  #t)
 

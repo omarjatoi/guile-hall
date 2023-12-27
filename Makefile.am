@@ -82,7 +82,7 @@ EXTRA_DIST = README.org \
              $(TESTS)
 
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = po
+
 AM_DISTCHECK_DVI_TARGET = info # Disable DVI as part of distcheck
 
 clean-go:

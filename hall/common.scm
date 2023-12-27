@@ -1107,7 +1107,13 @@ settings derived from the hall spec passed to it."
                                (false-if-exception (setlocale LC_ALL "en_US.utf8"))))
                            (init-nls)
                            (textdomain %gettext-domain)))
-                       `()))))
+                       `((define %gettext-domain ,(full-project-name spec))
+                         (define G_ identity)
+                         (define N_ identity)
+                         (define (init-nls) "Dummy as no NLS is used" #t)
+                         (define (init-locale)
+                           "Dummy as no NLS is used"
+                           #t))))))
    #t))
 
 (define* (guix-file #:optional (type 'local))

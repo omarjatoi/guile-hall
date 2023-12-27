@@ -16,7 +16,7 @@
  (skip ())
  (features
   ((guix #t)
-   (native-language-support #t)
+   (native-language-support #f)
    (licensing #t)))
  (files (libraries
          ((directory
