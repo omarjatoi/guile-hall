@@ -10,6 +10,15 @@ Copyright © 2018-2020 Alex Sassmannshausen <alex@pompo.co>
 
 Please send Guile Hall bug reports to alex@pompo.co.
 
+* Changes in 0.5.0 (since 0.4.1)
+** Add `features` tooling
+** Add a `guix` feature, allowing transparent invocation of guix by Hall.
+** Add a `licensing` feature, using the `reuse` program
+** Move towards `guix specifications` for dependencies
+** Add experimental Native-Language-Support tooling
+** Modernise guix jargon and tooling
+** Improve test infrastructure, including adding CI
+** Make common project variables available in auto-generated hconfig.scm file.
 * Changes in 0.4.1 (since 0.4.0)
 ** Fix upgrade to guile-config 0.5
 ** Revert Guile query during build time

@@ -4,7 +4,7 @@
  (version "0.5.0")
  (author "Alex Sassmannshausen")
  (email "alex@komputilo.eu")
- (copyright (2018 2020 2021 2022 2023))
+ (copyright (2018 2020 2021 2022 2023 2024))
  (synopsis "Guile project tooling")
  (description
   "Hall is a command-line application and a set of Guile libraries that allow you to quickly create and publish Guile projects.  It allows you to transparently support the GNU build system, manage a project hierarchy & provides tight coupling to Guix.")
