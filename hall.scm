@@ -17,7 +17,7 @@
  (features
   ((guix #t)
    (use-guix-specs-for-dependencies #t)
-   (native-language-support #t)
+   (native-language-support #f)
    (licensing #t)))
  (files (libraries
          ((directory
