@@ -1,12 +1,5 @@
 bin_SCRIPTS = scripts/hall
 
-# Handle substitution of fully-expanded Autoconf variables.
-do_subst = $(SED)					\
-  -e 's,[@]GUILE[@],$(GUILE),g'				\
-  -e 's,[@]guilemoduledir[@],$(guilemoduledir),g'	\
-  -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\
-  -e 's,[@]localedir[@],$(localedir),g'
-
 nodist_noinst_SCRIPTS = pre-inst-env
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
@@ -15,8 +8,7 @@ moddir=$(prefix)/share/guile/site/$(GUILE_EFFECTIVE_VERSION)
 godir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 ccachedir=$(libdir)/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
-nobase_dist_mod_DATA = $(filter-out $(BUILT_SOURCES),$(SOURCES)) $(NOCOMP_SOURCES)
-nobase_nodist_mod_DATA = $(BUILT_SOURCES)
+nobase_dist_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
 nobase_go_DATA = $(GOBJECTS)
 
 # Make sure source files are installed first, so that the mtime of
