@@ -39,13 +39,15 @@
             specification-author specification-copyright
             specification-synopsis specification-description
             specification-home-page specification-license
-            specification-dependencies specification-skip specification-files
+            specification-dependencies
+            specification-skip specification-files
             specification-email specification-features
             set-specification-files
 
             <features>
             features features?
             features-guix features-licensing features-nls
+            features-use-guix-specs-for-dependencies
 
             <files>
             files files?
@@ -87,9 +89,13 @@
   (infrastructure files-infrastructure set-files-infrastructure))
 
 (define-immutable-record-type <features>
-  (features guix native-language-support licensing)
+  (features guix use-guix-specs-for-dependencies native-language-support
+            licensing)
   features?
   (guix features-guix set-features-guix)
+  (use-guix-specs-for-dependencies
+   features-use-guix-specs-for-dependencies
+   set-features-use-guix-specs-for-dependencies)
   (native-language-support features-nls set-features-nls)
   (licensing features-licensing set-features-licensing))
 
@@ -130,10 +136,13 @@
 ;;;; Specification->metadata
 
 (define (features->scm features)
-  (map (match-lambda
-         ((label proc) `(,label ,(proc features))))
-       `((guix ,features-guix) (native-language-support ,features-nls)
-         (licensing ,features-licensing))))
+ (map (match-lambda
+        ((label proc) `(,label ,(proc features))))
+      `((guix ,features-guix)
+        (use-guix-specs-for-dependencies
+         ,features-use-guix-specs-for-dependencies)
+        (native-language-support ,features-nls)
+        (licensing ,features-licensing))))
 
 (define (specification->metadata spec)
   "Return an SXML style association list containing all the metadata of the

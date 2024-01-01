@@ -46,6 +46,7 @@ dependencies manually:
   - pkg-config
   - texinfo
   - guile-config
+  - guile-library
 
 Once those dependencies are installed you can run:
 

@@ -44,11 +44,13 @@ SOURCES = hall/hconfig.scm \
           hall/builders.scm \
           hall/clean.scm \
           hall/init.scm \
+          hall/logging.scm \
           hall/spec.scm
 
 TESTS = tests/build.scm \
         tests/scan.scm \
         tests/common.scm \
+	tests/guix-file.scm \
         tests/hall.scm \
         tests/spec.scm
 

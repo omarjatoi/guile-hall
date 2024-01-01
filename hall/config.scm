@@ -39,6 +39,7 @@
   #:export (guix-feature?
             nls-feature?
             licensing-feature?
+            use-guix-specs-for-dependencies?
 
             project-root-directory?
             quit-with-error
@@ -52,6 +53,9 @@
 (define nls-feature? (make-parameter #f (lambda (v) (and (boolean? v) v))))
 
 (define licensing-feature? (make-parameter #f (lambda (v) (and (boolean? v) v))))
+
+(define use-guix-specs-for-dependencies?
+  (make-parameter #f (lambda (v) (and (boolean? v) v))))
 
 (define (quit-with-error msg . args)
   (apply format (current-error-port) (string-append msg "~%") args)
@@ -126,6 +130,9 @@ provides tight coupling to Guix.")
      (switch (name 'execute) (character #\x)
              (default #f) (test boolean?)
              (synopsis "Carry out operations, instead of displaying them."))
+     (switch (name 'verbose) (character #\v)
+             (default #f) (test boolean?)
+             (synopsis "Increase verbosity to show debug messages."))
      (switch (name 'force)
              (default #f) (test boolean?)
              (synopsis "Re-generate transient files.")
@@ -145,7 +152,7 @@ specific files using the '--skip' argument.
 
 Once you are happy with the result, pass the '--execute' flag to carry out the
 cleaning process.")
-      (wanted '((keywords execute)))
+      (wanted '((keywords execute verbose)))
       (keywords
        (list
         (switch
@@ -165,7 +172,7 @@ generate build-system files, and the '--force' switch to re-generate hall
 managed build-system files (for the gnu build system, these are the test-driver,
 the pre-inst-env helper, configure.ac and Makefile.am).  In addition, '--force'
 will also trigger the full regeneration of autotools supplied files.")
-      (wanted '((keywords execute force)))
+      (wanted '((keywords execute force verbose)))
       (arguments
        (list
         (argument (name 'target) (default "")
@@ -188,7 +195,7 @@ Once you are happy with the result, pass the '--execute' flag to generate the
 guix package file.  You can pass the '--force' switch to regenerate the
 distribution file.")
       (synopsis "Manage your project's distribution files.")
-      (wanted '((keywords execute force)))
+      (wanted '((keywords execute force verbose)))
       (keywords
        (list
         (switch (name 'type) (default 'local)
@@ -216,7 +223,7 @@ start using hall for.
 
 Once you are happy with the result, pass the '--execute' flag to finally
 generate the new project.")
-      (wanted '((keywords execute)))
+      (wanted '((keywords execute verbose)))
       (arguments
        (list
         (argument (name 'name) (test (negate string-null?))
@@ -259,7 +266,7 @@ proper operation.")
        (list
         (configuration
          (name 'refresh)
-         (wanted '((keywords execute)))
+         (wanted '((keywords execute verbose)))
          (synopsis "Regenerate HACKING & COPYING files.")))))
      (configuration
       (name 'scan)
@@ -271,7 +278,7 @@ the '--skip' argument.
 Once you are happy with the result, pass the '--execute' flag to actually
 generate the new hall.scm file.  You will want to delete the old hall.scm file
 first.")
-      (wanted '((keywords execute)))
+      (wanted '((keywords execute verbose)))
       (keywords
        (list
         (switch
@@ -289,7 +296,7 @@ available. Specifically, if you have the reuse feature enabled, include the
 appropriate licensing and copyright headers and insert boilerplate licensing
 text if desired. By default this uses a template located at
 /.reuse/templates/hall.commented.jinja.")
-      (wanted '((keywords execute)))
+      (wanted '((keywords execute verbose)))
       (keywords
        (list
         (setting
@@ -325,6 +332,6 @@ well as to generate and submit a guix recipe to the guix project. If you use the
 GNU build system this subcommand also allows you to generate your release
 tarball, to tag your repository with a new version tag and to upload your
 tarball using ssh.")
-      (wanted '((keywords execute))))))
+      (wanted '((keywords execute verbose))))))
    (directory (in-home ".hall/"))
    (parser simple-sexp-parser)))

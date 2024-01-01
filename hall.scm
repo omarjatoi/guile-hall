@@ -11,12 +11,13 @@
  (home-page
   "https://gitlab.com/a-sassmannshausen/guile-hall")
  (license gpl3+)
- (dependencies
-  `(("guile-config" (config) ,guile-config)))
+ (dependencies (("guile-config" (config))
+                ("guile-lib" (logging logger))))
  (skip ())
  (features
   ((guix #t)
-   (native-language-support #f)
+   (use-guix-specs-for-dependencies #t)
+   (native-language-support #t)
    (licensing #t)))
  (files (libraries
          ((directory
@@ -34,10 +35,12 @@
             (scheme-file "builders")
             (scheme-file "clean")
             (scheme-file "init")
+            (scheme-file "logging")
             (scheme-file "spec")))))
         (tests ((directory
                  "tests"
                  ((scheme-file "build")
+                  (scheme-file "guix-file")
                   (scheme-file "scan")
                   (scheme-file "common")
                   (scheme-file "hall")
