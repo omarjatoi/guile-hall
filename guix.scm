@@ -75,7 +75,8 @@
                                 (dep-path "GUILE_LOAD_PATH" site)
                                 (dep-path
                                   "GUILE_LOAD_COMPILED_PATH"
-                                  site-ccache)))
+                                  site-ccache)
+                                (dep-path "GUILE_EXTENSIONS_PATH" "/lib")))
                             (list "hall"))))))))))
   (native-inputs
     (list autoconf automake pkg-config texinfo))
@@ -87,3 +88,4 @@
   (home-page
     "https://gitlab.com/a-sassmannshausen/guile-hall")
   (license license:gpl3+))
+
