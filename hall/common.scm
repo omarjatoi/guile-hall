@@ -1,7 +1,7 @@
 ;; hall/common.scm --- common implementation    -*- coding: utf-8 -*-
 ;;
 ;; Copyright (C) 2018-2020 Alex Sassmannshausen <alex@pompo.co>
-;; Copyright (C) 2023 Maxim Cournoyer <maxim.cournoyer@gmail.com>
+;; Copyright (C) 2023, 2024 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;
 ;; Author: Alex Sassmannshausen <alex@pompo.co>
 ;; Author: Maxim Cournoyer <maxim.cournoyer@gmail.com>
@@ -1057,35 +1057,28 @@ CLEANFILES =					\\
   $(TESTS:tests/%.scm=%.log)
 "))) #t))
 
-(define-syntax timed-expression
-  (lambda (x)
-    "Return expression EXP so that it will be evaluated in N+1 rounds of
-evaluation."
-    (syntax-case x ()
-      ((_ 0 exp . _) #'exp)
-      ((_ n exp)
-       #``(quote ,(timed-expression #,(1- (syntax->datum #'n)) exp))))))
-
 (define (guix-wrap-binaries spec)
   "Return a guix arguments section, which, if spec has binaries, wraps each
 binary in such a way that it can be run without additional dependencies being
 installed in a profile."
   (define dep-labels
-    (timed-expression
-     2
-     (let ((items (dependencies->items (specification-dependencies spec))))
-       (if (use-guix-specs-for-dependencies?)
-           ;; XXX: The automatic labels added on Guix new style inputs
-           ;; are derived from the package name, but these don't take
-           ;; account non-standard outputs that may be specified in a
-           ;; Guix package spec, so it doesn't allow differentiating
-           ;; between multiple outputs at this time.
-           (let ((packages (map dependency->package+module items)))
-             (map package-name packages))
-           (map first items)))))
+    (let ((items (dependencies->items (specification-dependencies spec))))
+      (if (use-guix-specs-for-dependencies?)
+          ;; XXX: The automatic labels added on Guix new style inputs
+          ;; are derived from the package name, but these don't take
+          ;; account non-standard outputs that may be specified in a
+          ;; Guix package spec, so it doesn't allow differentiating
+          ;; between multiple outputs at this time.
+          (let ((packages (map dependency->package+module items)))
+            (map package-name packages))
+          (map first items))))
+
+  (define guile-dep-labels
+    (filter (cut string-prefix? "guile-" <>) dep-labels))
+
   (match (files-programs (specification-files spec))
     ;; No binaries, so arguments is just `()
-    (() ``())
+    (() ''())
     ;; Potential binaries.  First, resolve files.
     (((? procedure? p))
      (match (p '() '() 'write "")
@@ -1094,51 +1087,41 @@ installed in a profile."
        ;; - no further dirs in scripts folder
        ;; - no files with extensions in scripts folder.
        ;; No binaries, so arguments is just `()
-       (('directory "scripts" ()) ``())
+       (('directory "scripts" ()) ''())
        ;; Binaries!
        (('directory "scripts" ((ids files) ...))
-        `(quasiquote
-          (#:modules
-           ((ice-9 match) (ice-9 ftw)
-            ,@%gnu-build-system-modules)
-           #:phases
-           (modify-phases %standard-phases
-             (add-after 'install 'hall-wrap-binaries
-               (lambda* (#:key inputs outputs #:allow-other-keys)
-                 (let* ((compiled-dir
-                         (lambda (out version)
-                           (string-append
-                            out "/lib/guile/" version "/site-ccache")))
-                        (uncompiled-dir
-                         (lambda (out version)
-                           (string-append
-                            out "/share/guile/site"
-                            (if (string-null? version) "" "/") version)))
-                        (dep-path
-                         (lambda (env modules path)
-                           (list env ":" 'prefix
-                                 (cons modules
-                                       (map (lambda (input)
-                                              (string-append
-                                               (assoc-ref inputs input)
-                                               path))
-                                            ,,dep-labels)))))
-                        (out (assoc-ref outputs "out"))
-                        (bin (string-append out "/bin/"))
-                        (site (uncompiled-dir out "")))
-                   (match (scandir site)
-                     (("." ".." version)
-                      (for-each
-                       (lambda (file)
-                         (wrap-program (string-append bin file)
-                           (dep-path "GUILE_LOAD_PATH"
-                                     (uncompiled-dir out version)
-                                     (uncompiled-dir "" version))
-                           (dep-path "GUILE_LOAD_COMPILED_PATH"
-                                     (compiled-dir out version)
-                                     (compiled-dir "" version))))
-                       ,,(timed-expression 2 files))
-                      #t)))))))))))
+        `(list
+          #:modules `(((guix build guile-build-system)
+                       #:select (target-guile-effective-version))
+                      ,@%gnu-build-system-modules)
+          #:phases
+          (with-imported-modules `((guix build guile-build-system)
+                                   ,@%gnu-build-system-modules)
+            (gexp
+             (modify-phases %standard-phases
+               (add-after 'install 'hall-wrap-binaries
+                 (lambda* (#:key inputs #:allow-other-keys)
+                   (let* ((version (target-guile-effective-version))
+                          (site-ccache (string-append "/lib/guile/" version
+                                                      "/site-ccache"))
+                          (site (string-append "/share/guile/site/" version))
+                          (dep-path
+                           (lambda (env path)
+                             (list env ":" 'prefix
+                                   (cons (string-append (ungexp output) path)
+                                         (map (lambda (input)
+                                                (string-append
+                                                 (assoc-ref inputs input)
+                                                 path))
+                                              (list ,@guile-dep-labels))))))
+                          (bin (string-append (ungexp output) "/bin/")))
+                     (for-each (lambda (file)
+                                 (wrap-program (string-append bin file)
+                                   (dep-path "GUILE_LOAD_PATH" site)
+                                   (dep-path "GUILE_LOAD_COMPILED_PATH"
+                                             site-ccache)
+                                   (dep-path "GUILE_EXTENSIONS_PATH" "/lib")))
+                               (list ,@files))))))))))))
     (e (throw 'invalid-binaries e))))
 
 (define (guix-package spec type)
