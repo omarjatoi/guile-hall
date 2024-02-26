@@ -115,7 +115,6 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                                          operation force)
               (cond ((and force (eqv? operation 'exec) (nls-feature?))
                      (system "rm -rf po/Makefile*")
-                     (format #t "PLEASE PRESS ENTER, FOR ARCANE NLS REASONS.~%")
                      (gettextize ">/dev/null")
                      (autoreconf "-vif"))
                     ((and force (eqv? operation 'exec))

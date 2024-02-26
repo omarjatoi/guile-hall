@@ -98,17 +98,18 @@ make sure you have automake installed."))
 You are likely missing aclocal. This can usually be found in the automake
 package."))))))
 
-(define (gettextize args)
+(define (gettextize . args)
   (catch 'friends
     (lambda _
-      (run "gettextize --force" args "Gettextize"
+      (run "autopoint" (string-join (cons "--force" args) " ") "Autopoint"
            (list
             "Prepare your project for Native Language Support using GNU Gettext"
-            "Keep your program up to date with gettext and translations")))
+            "Keep your program up to date with gettext and translations")
+           "gettext"))
     (lambda (key message code . rest)
       (match code
         (1
-         (quit-with-error "Gettextize exited with an error.
+         (quit-with-error "Autopoint exited with an error.
 
 You are likely missing some parts of the autotools build infrastructure. Please
 make sure you have automake installed."))))))

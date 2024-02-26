@@ -879,7 +879,7 @@ AM_GNU_GETTEXT_VERSION([0.21])
     "")
 
 "
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile" (if (nls-feature?) " po/Makefile.in" "") "])
 AC_CONFIG_FILES([pre-inst-env], [chmod +x pre-inst-env])
 "
 (string-join
