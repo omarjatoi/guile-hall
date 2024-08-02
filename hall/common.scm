@@ -1445,8 +1445,16 @@ all default files that contain non-empty contents."
 (define (prefix project-prefix)
   (or (and (string? project-prefix) project-prefix)
       (quit-with-error
-       "PROJECT-prefix should be a string."
+       "PROJECT-PREFIX should be a string."
        project-prefix)))
+
+(define (postfix project-postfix)
+  ;; XXX: 2024-08-01: Temporary allowance for #f postfix, for old specs.
+  (or (and (string? project-postfix) project-postfix)
+      (and (not project-postfix) "")
+      (quit-with-error
+       "PROJECT-POSTFIX should be a string."
+       project-postfix)))
 
 (define (version project-version)
   (or (and (string? project-version) project-version)
@@ -1655,7 +1663,7 @@ SCM."
             (append (map (match-lambda
                            ((label proc)
                             (proc (href scm label))))
-                         `((name ,name) (prefix ,prefix) (version ,version)
+                         `((name ,name) (prefix ,prefix) (postfix ,postfix) (version ,version)
                            (author ,author) (email ,email)
                            (copyright ,copyright) (synopsis ,synopsis)
                            (description ,description) (home-page ,home-page)

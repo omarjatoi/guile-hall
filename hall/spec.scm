@@ -35,7 +35,8 @@
   #:use-module (srfi srfi-26)
   #:export (<specification>
             specification specification?
-            specification-name specification-prefix specification-version
+            specification-name specification-prefix
+            specification-postfix specification-version
             specification-author specification-copyright
             specification-synopsis specification-description
             specification-home-page specification-license
@@ -107,11 +108,12 @@
 ;; - `scm->specification'
 ;; - `href'
 (define-immutable-record-type <specification>
-  (specification name prefix version author email copyright synopsis description
+  (specification name prefix postfix version author email copyright synopsis description
                  home-page license dependencies features skip files)
   specification?
   (name specification-name)
   (prefix specification-prefix)
+  (postfix specification-postfix)
   (version specification-version)
   (author specification-author)
   (email specification-email)
@@ -136,13 +138,13 @@
 ;;;; Specification->metadata
 
 (define (features->scm features)
- (map (match-lambda
-        ((label proc) `(,label ,(proc features))))
-      `((guix ,features-guix)
-        (use-guix-specs-for-dependencies
-         ,features-use-guix-specs-for-dependencies)
-        (native-language-support ,features-nls)
-        (licensing ,features-licensing))))
+  (map (match-lambda
+         ((label proc) `(,label ,(proc features))))
+       `((guix ,features-guix)
+         (use-guix-specs-for-dependencies
+          ,features-use-guix-specs-for-dependencies)
+         (native-language-support ,features-nls)
+         (licensing ,features-licensing))))
 
 (define (specification->metadata spec)
   "Return an SXML style association list containing all the metadata of the
@@ -150,6 +152,7 @@ hall specification SPEC."
   ;; Used for serialising the spec into a hall.scm file.
   `((name ,(specification-name spec))
     (prefix ,(specification-prefix spec))
+    (postfix ,(specification-postfix spec))
     (version ,(specification-version spec))
     (author ,(specification-author spec))
     (email ,(specification-email spec))

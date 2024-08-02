@@ -72,23 +72,28 @@ a string, add \".EXTENSION\" to the resulting filename."
                              name)))
    file-name-separator-string))
 
-(define* (full-project-name spec)
+(define (project-name spec decorator)
+  (decorator
+   (match (list (specification-prefix spec) (specification-postfix spec))
+     (("" "") (list (specification-name spec)))
+     ((prefix "")
+      (list (specification-prefix spec) (specification-name spec)))
+     (("" postfix)
+      (list (specification-name spec) (specification-postfix spec)))
+     ((prefix postfix)
+      (list (specification-prefix spec) (specification-name spec)
+            (specification-postfix spec))))))
+
+(define (full-project-name spec)
   "Return the full name of the project described by specification SPEC.  The
 full name is the project's prefix and the project's name, separated by a
 \"-\"."
-  (match (specification-prefix spec)
-    ((or #f "") (specification-name spec))
-    (prefix (string-append (specification-prefix spec) "-"
-                           (specification-name spec)))))
+  (project-name spec (cut string-join <> "-")))
 
-(define* (friendly-project-name spec)
+(define (friendly-project-name spec)
   "Return a human friendly version of the full name of the project described
 by the specification SPEC."
-  (string-titlecase
-   (match (specification-prefix spec)
-     ((or #f "") (specification-name spec))
-     (prefix (string-append (specification-prefix spec) " "
-                            (specification-name spec))))))
+  (project-name spec (compose string-titlecase (cut string-join <> " "))))
 
 ;;;; File-like objects
 ;;

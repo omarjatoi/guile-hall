@@ -78,7 +78,8 @@ command-line list, e.g. '(\"hall\" \"clean\" \"--x\")."
                                  `(,label ,(option-ref options opt)))
                                 (label
                                  `(,label ,(option-ref options label))))))
-                          `((name = ,name) prefix author (version = "0.1") email
+                          `((name = ,name) prefix postfix author
+                            (version = "0.1") email
                             (copyright = (,(date-year (current-date))))
                             (synopsis = "") (description = "")
                             (features #((guix guix?)
